@@ -33,6 +33,19 @@ migrate_working_dir/
 /build/
 /coverage/
 
+# Generated code (build_runner)
+*.freezed.dart
+*.g.dart
+*.gr.dart
+
+# Local environment / secrets
+.env
+.env.*
+
+# AI assistant / tooling local config
+.ai/
+.aiassistant/
+
 # Symbolication related
 app.*.symbols
 

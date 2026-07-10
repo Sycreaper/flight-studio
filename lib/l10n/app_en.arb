@@ -1,0 +1,74 @@
+{
+  "@@locale": "en",
+  "appName": "Flight Studio",
+  "@appName": { "description": "Application display name" },
+
+  "navRecentFlights": "Recent Flights",
+  "navPluginCenter": "Plugin Center",
+  "navSettings": "Settings",
+
+  "createFirstFlight": "Create your first flight",
+  "createFlight": "Create Flight",
+  "worldMap": "World Map",
+  "flightAcademy": "Flight Academy",
+
+  "createFlightHint": "Plan a new route from scratch",
+  "worldMapHint": "Explore the global map and airports",
+  "flightAcademyHint": "Learn flight planning and procedures",
+
+  "searchFlights": "Search flights…",
+  "noResults": "No flights match your search",
+
+  "pluginCenterTitle": "Plugin Center",
+  "pluginCenterDesc": "Manage simulator bridges and extensions",
+
+  "settingsTitle": "Settings",
+  "settingsDesc": "Application preferences",
+  "comingSoon": "Coming soon",
+  "openSettings": "Open settings",
+
+  "tabMap": "Map",
+  "tabFlightPlan": "Flight Plan",
+  "tabMapUnnamed": "Map",
+  "tabPlanUnnamed": "Flight Plan",
+  "addTab": "Add tab",
+  "newMapTab": "New Map",
+  "newFlightPlanTab": "New Flight Plan",
+  "closeTab": "Close tab",
+  "noOpenTabs": "No open tabs",
+  "clickPlusToOpen": "Click the + on the right to open a new tab",
+
+  "sectionFlightInfo": "Flight Information",
+  "sectionRoute": "Route",
+  "sectionPerformance": "Fuel & Performance",
+  "sectionProcedures": "Procedures",
+
+  "fieldAircraft": "Aircraft",
+  "fieldAirframe": "Airframe / Registration",
+  "fieldAirline": "Airline",
+  "fieldFlightNumber": "Flight Number",
+  "fieldCallsign": "Callsign",
+  "fieldDeparture": "Departure (ICAO)",
+  "fieldDestination": "Destination (ICAO)",
+  "fieldAlternate": "Alternate (ICAO)",
+  "fieldCruiseLevel": "Cruise Level (FL)",
+  "fieldCostIndex": "Cost Index",
+  "fieldRoute": "Route string",
+  "fieldContingency": "Contingency fuel",
+  "fieldReserve": "Reserve fuel",
+  "fieldTaxiFuel": "Taxi fuel",
+  "fieldExtraFuel": "Extra fuel",
+  "fieldUnits": "Units",
+  "fieldSid": "SID",
+  "fieldStar": "STAR",
+  "fieldApproach": "Approach",
+  "fieldPlanDetail": "Plan detail",
+
+  "unitsKg": "Kilograms",
+  "unitsLb": "Pounds",
+  "detailFull": "Detailed",
+  "detailRouteOnly": "Route Only",
+
+  "calculatePlan": "Calculate Plan",
+  "resetForm": "Reset"
+}
