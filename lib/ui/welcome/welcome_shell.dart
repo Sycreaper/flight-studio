@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../features/flights/flight_repository.dart';
 import '../../l10n/app_localizations.dart';
 import '../shell/app_shell.dart';
+import '../shell/window_chrome.dart';
 import '../theme/app_colors.dart';
 import 'pages/page_placeholder.dart';
 import 'pages/recent_flights_page.dart';
@@ -42,27 +43,29 @@ class _WelcomeShellState extends State<WelcomeShell> {
     final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: colors.surfaceBase,
-      body: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            SizedBox(
-              width: 264,
-              child: WelcomeNavDrawer(
-                selected: _section,
-                onSelect: (s) => setState(() => _section = s),
-                onOpenSettings: () {},
+      body: WindowDragArea(
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SizedBox(
+                width: 264,
+                child: WelcomeNavDrawer(
+                  selected: _section,
+                  onSelect: (s) => setState(() => _section = s),
+                  onOpenSettings: () {},
+                ),
               ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                child: _buildContent(l10n),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: _buildContent(l10n),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

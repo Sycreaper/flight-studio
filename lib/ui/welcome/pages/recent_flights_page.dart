@@ -137,49 +137,56 @@ class _EmptyState extends StatelessWidget {
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 520),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.flight_takeoff_rounded,
-                size: 56, color: colors.accent.withValues(alpha: 0.7)),
-            const SizedBox(height: 18),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-                color: colors.textPrimary,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(vertical: 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.flight_takeoff_rounded,
+                  size: 56, color: colors.accent.withValues(alpha: 0.7)),
+              const SizedBox(height: 18),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                  color: colors.textPrimary,
+                ),
               ),
-            ),
-            const SizedBox(height: 28),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _ActionTile(
-                  icon: Icons.edit_note_rounded,
-                  label: l10n.createFlight,
-                  hint: l10n.createFlightHint,
-                  onTap: onCreateFlight,
+              const SizedBox(height: 28),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _ActionTile(
+                      icon: Icons.edit_note_rounded,
+                      label: l10n.createFlight,
+                      hint: l10n.createFlightHint,
+                      onTap: onCreateFlight,
+                    ),
+                    const SizedBox(width: 16),
+                    _ActionTile(
+                      icon: Icons.public_rounded,
+                      label: l10n.worldMap,
+                      hint: l10n.worldMapHint,
+                      onTap: onWorldMap,
+                    ),
+                    const SizedBox(width: 16),
+                    _ActionTile(
+                      icon: Icons.school_rounded,
+                      label: l10n.flightAcademy,
+                      hint: l10n.flightAcademyHint,
+                      onTap: onFlightAcademy,
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 16),
-                _ActionTile(
-                  icon: Icons.public_rounded,
-                  label: l10n.worldMap,
-                  hint: l10n.worldMapHint,
-                  onTap: onWorldMap,
-                ),
-                const SizedBox(width: 16),
-                _ActionTile(
-                  icon: Icons.school_rounded,
-                  label: l10n.flightAcademy,
-                  hint: l10n.flightAcademyHint,
-                  onTap: onFlightAcademy,
-                ),
-              ],
-            ),
+              ),
           ],
         ),
+      ),
       ),
     );
   }

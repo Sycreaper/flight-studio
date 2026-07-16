@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../l10n/app_localizations.dart';
 import '../../theme/app_colors.dart';
+import '../window_chrome.dart';
 import 'app_tab.dart';
 import 'app_tab_controller.dart';
 
@@ -15,45 +16,49 @@ class AppTabBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppColors>()!;
-    return Container(
-      height: 38,
-      decoration: BoxDecoration(
-        color: colors.chrome,
-      ),
-      child: ListenableBuilder(
-        listenable: controller,
-        builder: (context, _) {
-          return Row(
-            children: [
-              Expanded(
-                child: controller.isEmpty
-                    ? const SizedBox.shrink()
-                    : ListView.separated(
-                        scrollDirection: Axis.horizontal,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 5),
-                        itemCount: controller.tabs.length,
-                        separatorBuilder: (_, _) =>
-                            const SizedBox(width: 6),
-                        itemBuilder: (context, i) {
-                          final tab = controller.tabs[i];
-                          final selected =
-                              tab.id == controller.selectedOrNull?.id;
-                          return _TabChip(
-                            tab: tab,
-                            selected: selected,
-                            onTap: () => controller.select(tab.id),
-                            onClose: () => controller.close(tab.id),
-                          );
-                        },
-                      ),
-              ),
-              const SizedBox(width: 2),
-              _AddTabButton(controller: controller),
-              const SizedBox(width: 6),
-            ],
-          );
-        },
+    return WindowDragArea(
+      child: Container(
+        height: 38,
+        decoration: BoxDecoration(
+          color: colors.chrome,
+        ),
+        child: ListenableBuilder(
+          listenable: controller,
+          builder: (context, _) {
+            return Row(
+              children: [
+                Expanded(
+                  child: controller.isEmpty
+                      ? const SizedBox.shrink()
+                      : ListView.separated(
+                          scrollDirection: Axis.horizontal,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 5),
+                          itemCount: controller.tabs.length,
+                          separatorBuilder: (_, _) =>
+                              const SizedBox(width: 6),
+                          itemBuilder: (context, i) {
+                            final tab = controller.tabs[i];
+                            final selected =
+                                tab.id == controller.selectedOrNull?.id;
+                            return _TabChip(
+                              tab: tab,
+                              selected: selected,
+                              onTap: () => controller.select(tab.id),
+                              onClose: () => controller.close(tab.id),
+                            );
+                          },
+                        ),
+                ),
+                const SizedBox(width: 2),
+                _AddTabButton(controller: controller),
+                // Reserve space for the caption controls overlay so the "+"
+                // sits immediately to its left.
+                const SizedBox(width: kCaptionWidth),
+              ],
+            );
+          },
+        ),
       ),
     );
   }

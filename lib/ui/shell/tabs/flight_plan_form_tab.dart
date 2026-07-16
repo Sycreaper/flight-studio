@@ -2,18 +2,13 @@ import 'package:flutter/material.dart';
 
 import '../../../l10n/app_localizations.dart';
 import '../../theme/app_colors.dart';
-import '../../workspace/defaults.dart';
-import '../../workspace/workspace_controller.dart';
-import '../../workspace/workspace_view.dart';
 
-/// A "Flight Plan" tab hosting the detailed route-building form. Mirrors the
-/// map tab's chrome frame (left/right docks + drawers) so every page is
-/// consistent. The sticky header is dark (surfaceRaised); the form body sits
-/// on the light chrome workspace. No border frame.
+/// The center card for a Flight Plan tab: a sticky summary header plus the
+/// scrollable route-building form. The surrounding workspace (drawers, docks,
+/// sizes) is owned by the app shell and shared across all tabs, so switching
+/// tabs only swaps this center — drawer layout and state are preserved.
 class FlightPlanFormTab extends StatefulWidget {
-  const FlightPlanFormTab({super.key, this.onCreateFlightPlan});
-
-  final VoidCallback? onCreateFlightPlan;
+  const FlightPlanFormTab({super.key});
 
   @override
   State<FlightPlanFormTab> createState() => _FlightPlanFormTabState();
@@ -42,21 +37,8 @@ class _FlightPlanFormTabState extends State<FlightPlanFormTab> {
   String _units = 'kg';
   String _planDetail = 'detailed';
 
-  late final WorkspaceController _workspace;
-
-  @override
-  void initState() {
-    super.initState();
-    _workspace = WorkspaceController();
-    for (final p in buildDefaultPanels(
-        onCreateFlightPlan: widget.onCreateFlightPlan)) {
-      _workspace.register(p);
-    }
-  }
-
   @override
   void dispose() {
-    _workspace.dispose();
     for (final c in [
       _aircraft,
       _airframe,
@@ -85,21 +67,18 @@ class _FlightPlanFormTabState extends State<FlightPlanFormTab> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return WorkspaceView(
-      controller: _workspace,
-      center: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _StickyHeader(
-            departure: _departure,
-            destination: _destination,
-            aircraft: _aircraft,
-            onCalculate: () {},
-            onReset: _reset,
-          ),
-          Expanded(child: _buildFormBody(l10n)),
-        ],
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _StickyHeader(
+          departure: _departure,
+          destination: _destination,
+          aircraft: _aircraft,
+          onCalculate: () {},
+          onReset: _reset,
+        ),
+        Expanded(child: _buildFormBody(l10n)),
+      ],
     );
   }
 

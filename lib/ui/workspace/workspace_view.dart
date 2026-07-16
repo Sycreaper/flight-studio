@@ -101,19 +101,31 @@ class _WorkspaceViewState extends State<WorkspaceView> {
     final right = c.visibleForSlot(DrawerSlot.right);
     final hasLeft = left.isNotEmpty;
     final hasRight = right.isNotEmpty;
-    return Row(
-      children: [
-        _slotColumn(DrawerSlot.left, left, hasLeft ? c.leftWidth : 10),
-        if (hasLeft)
-          ResizeHandle(
-              horizontal: true, onDrag: (d) => c.resizeLeft(d)),
-        Expanded(child: widget.center),
-        if (hasRight)
-          ResizeHandle(
-              horizontal: true, onDrag: (d) => c.resizeRight(-d)),
-        _slotColumn(DrawerSlot.right, right, hasRight ? c.rightWidth : 10),
-      ],
-    );
+    // When both side columns plus handles exceed the available width, shrink
+    // the columns proportionally so the row never overflows.
+    return LayoutBuilder(builder: (context, constraints) {
+      const handleW = 8.0;
+      final handles = (hasLeft ? handleW : 0) + (hasRight ? handleW : 0);
+      final desired =
+          (hasLeft ? c.leftWidth : 0) + (hasRight ? c.rightWidth : 0);
+      final forCols = (constraints.maxWidth - handles).clamp(0.0, double.infinity);
+      final scale = (desired > forCols && desired > 0)
+          ? (forCols / desired)
+          : 1.0;
+      final leftW = hasLeft ? (c.leftWidth * scale) : 10.0;
+      final rightW = hasRight ? (c.rightWidth * scale) : 10.0;
+      return Row(
+        children: [
+          _slotColumn(DrawerSlot.left, left, leftW),
+          if (hasLeft)
+            ResizeHandle(horizontal: true, onDrag: (d) => c.resizeLeft(d)),
+          Expanded(child: widget.center),
+          if (hasRight)
+            ResizeHandle(horizontal: true, onDrag: (d) => c.resizeRight(-d)),
+          _slotColumn(DrawerSlot.right, right, rightW),
+        ],
+      );
+    });
   }
 
   /// Renders a slot column. When the slot holds visible drawers they fill it;
