@@ -19,11 +19,17 @@ phone or web browser.
 ## Features
 
 ### Route Planning
-- **Automatic route calculation** with an A\* search engine over the airway network,
-  including altitude-range pruning to select Jet/Victor airways.
+
+- **Dual route sources** behind one model:
+    - **Local A\* engine** — automatic route calculation over the airway network, with multi-factor cost adjustments and
+      altitude-range pruning to select Jet/Victor airways.
+    - **SimBrief import** — pull an OFP/FMS from the user's own SimBrief account (OAuth2) into the same flight plan;
+      Flight Studio adds value on top instead of competing with SimBrief's network effect.
 - **SID / STAR / Approach** procedure resolution following ARINC 424 leg types
   (`IF`, `TF`, `CF`, `DF`, `RF`, ...).
 - **Interactive route editor** on a live map — drag, insert, delete waypoints.
+- **Trust layer** — every plan shows its data source, AIRAC cycle, procedure availability and aircraft compatibility;
+  import/export validate AIRAC consistency.
 - **Altitude & fuel profile** charts (climb / cruise / descent).
 - **Multi-format export** so one plan flies across simulators:
   | Format | Simulators |
@@ -54,6 +60,17 @@ phone or web browser.
   watch the moving map, pause the sim, toggle autopilot modes, and operate the
   MCDU remotely.
 
+### AI Copilot (Bring Your Own Key)
+
+- A built-in assistant you power with **your own** LLM API key (OpenAI-compatible, Anthropic, local Ollama, ...).
+- Uses an **MCP-style tool registry**: the model can only act through deterministic tools — it **never computes routes
+  or writes files itself**. Route calculation, flight-plan export and simulator commands are exposed as tools that call
+  the same trusted core the UI uses.
+- Read tools surface navdata, flight records, live telemetry, AIRAC and weather; write tools (export, **sim/Lua
+  commands** such as gear or altitude window)
+  **require user confirmation** before executing.
+- Lives in a workspace drawer; future use cases include Route Copilot, pre-flight onboarding and a post-flight coach.
+
 ### Cross-Platform
 Desktops (Windows first, then macOS / Linux), all Flutter-supported mobile
 platforms, the web, and a future HarmonyOS NEXT target via the OpenHarmony-SIG
@@ -82,6 +99,8 @@ Flight Studio ingests navigation data from multiple sources:
   `earth_fix.dat`, `awy.dat` and CIFP terminal procedures directly.
 - **Navigraph (optional, user-provided):** end users sign in with their own
   Navigraph subscription via OAuth2; data is never bundled or redistributed.
+- **SimBrief (optional, user-provided):** users link their own SimBrief account to import OFPs and route strings;
+  nothing is redistributed.
 
 ---
 
@@ -126,8 +145,10 @@ HarmonyOS clients.
 ```
 lib/
 ├── core/        Pure logic (geo, navdata models, parsers, A* routing, exporters)
+├── domain/      Cloud-ready domain model (Pilot/Aircraft/Intent/FlightRecord)
 ├── data/        Drift/SQLite persistence + repositories + navdata importer
 ├── sim/         Simulator adapters (X-Plane UDP + FlyWithLua, MSFS bridge, MCDU proxy)
+├── ai/          BYOK LLM providers + MCP tool registry (deterministic tools)
 ├── server/      Embedded shelf HTTP/WebSocket server for remote clients
 ├── ui/          Flutter widgets — JetBrains IDEA-style shell, map, panels, profile
 └── shared/      Common utilities and extensions
@@ -138,29 +159,55 @@ lib/
   penalty, NDB avoidance, NAT preference, ...) and along-path altitude-range
   merging for pruning — following the approach documented publicly by Little
   Navmap, implemented from scratch.
+- **Domain model:** four core objects — `PilotProfile`, `AircraftState`,
+  `FlightIntent`, `FlightRecord` — designed up front with stable ids, timestamps and JSON so an optional cloud sync /
+  profile / social layer can be added later without rework. Repositories are abstracted (local today, cloud-ready).
 - **X-Plane control:** telemetry is read over the simulator's UDP Data Output;
   commands are sent as JSON over UDP to a tiny FlyWithLua bridge script
   (`command_once` / `dataref` access, including third-party aircraft commands).
 - **Remote access:** the desktop app hosts a `shelf` server in-process with
   token-based authentication, relaying telemetry and (for MSFS) proxying the
   FlyByWire SimBridge MCDU WebSocket.
+- **AI as conductor, not calculator:** the assistant is constrained to call MCP tools for anything with side effects.
+  `compute_route`, `export_flight_plan`
+  and `send_sim_command` are deterministic Dart — the model decides *what* to invoke, the trusted core does the actual
+  work. A stdio MCP server may be exposed later so external clients (e.g. Claude Desktop) can reuse the same tools.
 
 ---
 
 ## Roadmap
 
-- [x] **Phase 0** — Project foundation: layered `lib/`, theme, app shell.
-- [ ] **Phase 1** — X-Plane navdata parsing (`apt.dat`, `earth_nav/fix/awy`,
-      CIFP) → SQLite + map rendering.
-- [ ] **Phase 2** — Route planning: A\* engine, procedures, editor, multi-format
-      export (FMS / PLN / FLP / GPX).
-- [ ] **Phase 3** — X-Plane connection: UDP telemetry + FlyWithLua commands +
-      flight tracking.
-- [ ] **Phase 4** — Remote monitoring/control: embedded server + web + mobile
-      companion.
-- [ ] **Phase 5** — MSFS support: C++ SimConnect bridge + FlyByWire MCDU proxy +
-      Navigraph OAuth2.
-- [ ] **Phase 6** — macOS/Linux, HarmonyOS NEXT, weather, aircraft performance.
+**MVP boundary = Phases 1–4** (X-Plane 12 planner + tracker). Phases 5+ are growth.
+
+- [x] **Phase 0** — Project foundation: layered `lib/`, JetBrains-style workspace (tabs, tool docks, drawers, resizable
+  cards, custom window chrome), theme, i18n.
+- [ ] **Phase 1** — Domain core & data models: four cloud-ready objects (`PilotProfile`/`AircraftState`/`FlightIntent`/
+  `FlightRecord`), abstract repositories, drift schema, coordinate/unit utils. Reserves the `lib/ai/`
+  scaffold (`McpTool` registry, BYOK `LlmProvider` interface, credential hook).
+- [ ] **Phase 2** — X-Plane navdata + map: stream-parse `apt.dat`/`earth_nav`/
+  `fix`/`awy`/CIFP → SQLite, flutter_map rendering, airport search. Registers read-only MCP tools.
+- [ ] **Phase 3** — Route planning (dual source): local A\* engine + SimBrief import behind one `RouteSource`,
+  SID/STAR/approach, trust layer + AIRAC validation, multi-format export (FMS/PLN/FLP/GPX). Registers
+  `compute_route` / `export_flight_plan` MCP tools.
+- [ ] **Phase 4** — X-Plane live tracking: UDP telemetry + FlyWithLua bridge, live position + trail + active-leg
+  highlight (no debrief yet). Registers telemetry/sim-command MCP tools.
+- [ ] **Phase 5** — Remote monitor & control: embedded shelf server, web + mobile companion (view / pause / autopilot),
+  mDNS discovery.
+- [ ] **Phase 6** — MSFS support: C++ SimConnect bridge daemon, MSFS/P3D adapter, FlyByWire SimBridge MCDU proxy,
+  Navigraph OAuth2.
+- [ ] **Phase 7** — Optional cloud: activate sync-ready repositories for flight records, pilot profile, aircraft
+  continuity and lightweight social.
+- [ ] **Phase 8** — Debrief engine: structured plan-vs-actual scoring (route deviation, altitude/fuel, approach
+  stability). Feeds the AI coach.
+- [ ] **Phase 9** — AI assistant (BYOK + MCP): chat drawer, provider settings, wire the LLM to the tool registry
+  populated in Phases 3/4/8 — Route Copilot, pre-flight onboarding, post-flight coach. Optional stdio MCP server for
+  external clients.
+- [ ] **Future** — Platform expansion: macOS/Linux desktop, HarmonyOS NEXT, NOAA weather (GRIB2 + METAR/TAF), aircraft
+  performance collection, progressive-disclosure newbie mode, aircraft import-compatibility matrix.
+
+> Cross-cutting throughout: English/Chinese i18n, light-theme readiness,
+> cloud-sync-ready models, MIT compliance (clean-room reimplementation;
+> Navigraph/SimBrief data user-brought, never redistributed).
 
 ---
 
@@ -192,6 +239,8 @@ Third-party data and assets carry their own terms (see
   public documentation and algorithm descriptions only; no GPL source is reused.
 - **[FlyWithLua](https://github.com/X-Friese/FlyWithLua)** (MIT) — the X-Plane
   scripting bridge.
+- **[SimBrief](https://www.simbrief.com)** — the de-facto flight-planning service, integrated as a user-brought data
+  source.
 - **[flutter_map](https://github.com/fleaflet/flutter_map)** and the Fleaflet
   community.
 - The **X-Plane**, **MSFS** and **Prepar3D** developer communities for their open

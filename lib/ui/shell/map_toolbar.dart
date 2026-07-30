@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_localizations.dart';
+import '../settings/settings_window.dart';
 import '../theme/app_colors.dart';
 import '../widgets/tool_button.dart';
 
 /// Toolbar shown when a Map tab is active.
+///
+/// Right side, in order: home (back to welcome), projection toggle, gear (opens
+/// the gear menu — Settings / About / Updates / Help / Exit). The gear is the
+/// single entry point for everything not on the toolbar.
 class MapToolbar extends StatelessWidget {
   const MapToolbar({
     super.key,
@@ -14,7 +20,6 @@ class MapToolbar extends StatelessWidget {
     this.onConnect,
     this.onPause,
     this.onProjection,
-    this.onSettings,
   });
 
   final VoidCallback onNew;
@@ -24,11 +29,11 @@ class MapToolbar extends StatelessWidget {
   final VoidCallback? onConnect;
   final VoidCallback? onPause;
   final VoidCallback? onProjection;
-  final VoidCallback? onSettings;
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppColors>()!;
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       height: 40,
       decoration: BoxDecoration(
@@ -39,47 +44,50 @@ class MapToolbar extends StatelessWidget {
         children: [
           ToolButton(
             icon: Icons.note_add_rounded,
-            tooltip: 'New flight plan',
+            tooltip: l10n.ttNewFlightPlan,
             onPressed: onNew,
             accent: true,
           ),
           ToolButton(
             icon: Icons.folder_open_rounded,
-            tooltip: 'Open flight plan',
+            tooltip: l10n.ttOpenFlightPlan,
             onPressed: onOpen,
           ),
           const ToolDivider(),
           ToolButton(
             icon: Icons.ios_share_rounded,
-            tooltip: 'Export',
+            tooltip: l10n.ttExport,
             onPressed: onExport ?? () {},
           ),
           ToolButton(
             icon: Icons.route_rounded,
-            tooltip: 'Calculate route',
+            tooltip: l10n.ttCalculateRoute,
             onPressed: onCalculate ?? () {},
           ),
           const ToolDivider(),
           ToolButton(
             icon: Icons.play_arrow_rounded,
-            tooltip: 'Connect simulator',
+            tooltip: l10n.ttConnectSim,
             onPressed: onConnect ?? () {},
           ),
           ToolButton(
             icon: Icons.pause_circle_outline_rounded,
-            tooltip: 'Pause simulator',
+            tooltip: l10n.ttPauseSim,
             onPressed: onPause ?? () {},
           ),
           const Spacer(),
           ToolButton(
             icon: Icons.public_rounded,
-            tooltip: 'Toggle projection',
+            tooltip: l10n.ttToggleProjection,
             onPressed: onProjection ?? () {},
           ),
-          ToolButton(
-            icon: Icons.settings_rounded,
-            tooltip: 'Settings',
-            onPressed: onSettings ?? () {},
+          Builder(
+            builder: (gearContext) =>
+                ToolButton(
+                  icon: Icons.settings_rounded,
+                  tooltip: l10n.gearMenuTooltip,
+                  onPressed: () => showGearMenu(gearContext),
+                ),
           ),
         ],
       ),

@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart';
 
 import 'app.dart';
+import 'data/settings/settings_controller.dart';
+import 'features/flights/flight_repository.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,5 +21,13 @@ void main() async {
     }
   }
 
-  runApp(FlightStudioApp());
+  // Load persisted user settings before the first frame. If the store is empty
+  // (or fails), the controller falls back to defaults — boot is never blocked.
+  final settings = SettingsController();
+  await settings.load();
+
+  runApp(FlightStudioApp(
+    repository: FlightRepository(),
+    settings: settings,
+  ));
 }

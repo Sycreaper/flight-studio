@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../l10n/app_localizations.dart';
 import '../theme/app_colors.dart';
 
 /// Right drawer: contextual inspector for the currently selected waypoint or
@@ -10,22 +11,26 @@ class InspectorPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppColors>()!;
+    final l10n = AppLocalizations.of(context)!;
     return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            Icons.touch_app_rounded,
-            size: 32,
-            color: colors.textDisabled,
-          ),
-          const SizedBox(height: 10),
-          Text(
-            'Select a waypoint or leg on the map\nto inspect its details.',
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 12, color: colors.textSecondary),
-          ),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.touch_app_rounded,
+              size: 32,
+              color: colors.textDisabled,
+            ),
+            const SizedBox(height: 10),
+            Text(
+              l10n.inspectorHint,
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 12, color: colors.textSecondary),
+            ),
+          ],
+        ),
       ),
     );
   }

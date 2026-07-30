@@ -70,5 +70,246 @@
   "detailRouteOnly": "Route Only",
 
   "calculatePlan": "Calculate Plan",
-  "resetForm": "Reset"
+  "resetForm": "Reset",
+
+  "settingsSearchHint": "Search settings…",
+  "settingsResetDefaults": "Reset to defaults",
+  "settingsResetDefaultsConfirm": "Reset all settings to their defaults? This cannot be undone.",
+  "settingsReset": "Reset",
+  "settingsCancel": "Cancel",
+  "settingsClose": "Close",
+  "settingsSave": "Save",
+  "settingsEdit": "Edit",
+  "settingsBrowse": "Browse…",
+  "settingsNotSet": "Not set",
+  "settingsRestartHint": "Restart Flight Studio for this change to take full effect.",
+  "settingsPlannedBadge": "Planned",
+  "settingsConnectedBadge": "Connected",
+  "settingsDisconnectedBadge": "Disconnected",
+
+  "gearMenuTooltip": "Open menu",
+  "gearMenuSettings": "Settings…",
+  "gearMenuAbout": "About Flight Studio",
+  "gearMenuCheckUpdates": "Check for Updates…",
+  "gearMenuCheckUpdatesNone": "You are running the latest version.",
+  "gearMenuHelp": "Help",
+  "gearMenuExit": "Exit",
+
+  "toolbarHome": "Back to welcome",
+
+  "aboutDialogTitle": "About Flight Studio",
+
+  "settingsCategoryGeneral": "General",
+  "settingsCategoryGeneralDesc": "Appearance, language and startup behaviour.",
+  "settingsCategorySimulator": "Simulator",
+  "settingsCategorySimulatorDesc": "X-Plane, MSFS and Prepar3D bridges.",
+  "settingsCategoryNavdata": "Navigation Data",
+  "settingsCategoryNavdataDesc": "Airports, airways, procedures and AIRAC sources.",
+  "settingsCategoryAi": "AI Copilot",
+  "settingsCategoryAiDesc": "Bring your own LLM key and configure tool access.",
+  "settingsCategoryRemote": "Remote Access",
+  "settingsCategoryRemoteDesc": "Embedded server for phone and web clients.",
+  "settingsCategoryAbout": "About",
+  "settingsCategoryAboutDesc": "Version, license and credits.",
+
+  "settingsAppearanceTitle": "Appearance",
+  "settingsTheme": "Theme",
+  "settingsThemeDark": "Dark",
+  "settingsThemeLight": "Light",
+  "settingsThemeSystem": "Follow system",
+  "settingsThemeHint": "Dark is recommended for cockpit use at night.",
+
+  "settingsLanguage": "Language",
+  "settingsLanguageHint": "Application interface language.",
+  "settingsLanguageEn": "English",
+  "settingsLanguageZh": "中文（简体）",
+
+  "settingsStartupTitle": "Startup",
+  "settingsReopenLastWorkspace": "Reopen last workspace on launch",
+  "settingsReopenLastWorkspaceHint": "Skip the welcome screen and jump straight into your last session.",
+  "settingsCheckUpdatesOnLaunch": "Check for updates on launch",
+  "settingsCheckUpdatesOnLaunchHint": "Notify when a new Flight Studio build is available.",
+
+  "settingsUnitsTitle": "Default units",
+  "settingsUnitsMetric": "Metric (kg, km)",
+  "settingsUnitsImperial": "Imperial (lb, nm)",
+  "settingsUnitsHint": "Used by new flight plans and the fuel planner.",
+
+  "settingsSimulatorTitle": "Simulator connections",
+  "settingsSimulatorDesc": "Flight Studio reads telemetry and sends commands through per-simulator bridges. Only one simulator needs to be connected at a time.",
+
+  "settingsXplaneTitle": "X-Plane 12",
+  "settingsXplaneStatusConnected": "Bridge detected on port {port}",
+  "@settingsXplaneStatusConnected": {
+    "placeholders": {
+      "port": { "type": "int" }
+    }
+  },
+  "settingsXplaneStatusDisconnected": "Not connected",
+  "settingsXplaneInstallPath": "X-Plane install folder",
+  "settingsXplaneInstallHint": "Location of the X-Plane 12 root (contains ‘Resources’ and ‘Aircraft’).",
+  "settingsXplaneInstallPick": "Choose folder…",
+  "settingsXplaneInstallClear": "Clear",
+  "settingsXplaneUdpPort": "Telemetry UDP port",
+  "settingsXplaneUdpPortHint": "Port X-Plane sends Data Output to (default 49000).",
+  "settingsXplaneBridgePort": "Bridge command port",
+  "settingsXplaneBridgePortHint": "Port the bundled FlyWithLua script listens on (default 49001).",
+  "settingsXplaneInstallBridge": "Install FlyWithLua bridge…",
+  "settingsXplaneInstallBridgeHint": "Copies FlightStudioBridge.lua into the FlyWithLua Scripts folder.",
+  "settingsXplaneTestConnection": "Test connection",
+
+  "settingsMsfsTitle": "MSFS 2020 / 2024 & Prepar3D",
+  "settingsMsfsPlanned": "The C++ SimConnect bridge daemon is planned for a later phase. Telemetry and command support for MSFS and Prepar3D will share this adapter.",
+  "settingsMsfsBridgePath": "SimConnect bridge daemon",
+  "settingsMsfsBridgePathHint": "Auto-discovered when the daemon ships.",
+
+  "settingsNavdataTitle": "Navigation data sources",
+  "settingsNavdataDesc": "Mix and match sources. The trust layer shows where each plan’s data came from and validates AIRAC consistency on import/export.",
+
+  "settingsNavdataBundledTitle": "Bundled (free & open)",
+  "settingsNavdataOurAirports": "OurAirports",
+  "settingsNavdataOurAirportsHint": "Airports, runways, frequencies and navaids (Public Domain).",
+  "settingsNavdataFaaCifp": "FAA CIFP / NASR",
+  "settingsNavdataFaaCifpHint": "U.S. instrument procedures (Public Domain).",
+  "settingsNavdataXplaneNative": "Parse X-Plane native files",
+  "settingsNavdataXplaneNativeHint": "Reads apt.dat, earth_nav.dat, earth_fix.dat and awy.dat directly from the install folder.",
+  "settingsNavdataRefreshBundled": "Refresh bundled data",
+
+  "settingsNavdataNavigraphTitle": "Navigraph (user subscription)",
+  "settingsNavdataNavigraphHint": "Sign in with your own Navigraph account. Charts and AIRAC are never bundled or redistributed by Flight Studio.",
+  "settingsNavdataNavigraphSignedIn": "Signed in as {user}",
+  "@settingsNavdataNavigraphSignedIn": {
+    "placeholders": {
+      "user": { "type": "String" }
+    }
+  },
+  "settingsNavdataNavigraphSignedOut": "Not signed in",
+  "settingsNavdataNavigraphSignIn": "Sign in with Navigraph…",
+  "settingsNavdataNavigraphSignOut": "Sign out",
+  "settingsNavdataNavigraphAirac": "Active AIRAC cycle",
+  "settingsNavdataNavigraphAiracNone": "Not available",
+
+  "settingsNavdataSimBriefTitle": "SimBrief (free account)",
+  "settingsNavdataSimBriefHint": "Link your SimBrief account to import OFPs and route strings. Nothing is redistributed.",
+  "settingsNavdataSimBriefLinked": "Linked to {username}",
+  "@settingsNavdataSimBriefLinked": {
+    "placeholders": {
+      "username": { "type": "String" }
+    }
+  },
+  "settingsNavdataSimBriefNotLinked": "Not linked",
+  "settingsNavdataSimBriefLink": "Link SimBrief account…",
+  "settingsNavdataSimBriefUnlink": "Unlink",
+
+  "settingsAiTitle": "AI Copilot",
+  "settingsAiDesc": "The assistant is constrained to call MCP tools for anything with side effects — it never computes routes or writes files itself. Route calculation, export and simulator commands run as deterministic Dart.",
+
+  "settingsAiProvider": "Provider",
+  "settingsAiProviderOpenAi": "OpenAI-compatible",
+  "settingsAiProviderAnthropic": "Anthropic",
+  "settingsAiProviderOllama": "Local (Ollama)",
+  "settingsAiProviderHint": "OpenAI-compatible covers OpenAI, Groq, Together, OpenRouter, LM Studio, etc.",
+
+  "settingsAiApiKey": "API key",
+  "settingsAiApiKeyHint": "Stored locally on this device and only ever sent to the provider you pick.",
+  "settingsAiApiKeyHidden": "Key set (hidden)",
+  "settingsAiClearApiKey": "Clear",
+
+  "settingsAiEndpoint": "Endpoint URL",
+  "settingsAiEndpointHint": "Override the provider’s default base URL (e.g. http://localhost:11434 for Ollama).",
+  "settingsAiEndpointPlaceholder": "https://api.openai.com/v1",
+
+  "settingsAiModel": "Model",
+  "settingsAiModelHint": "Example: gpt-4o-mini, claude-3-5-sonnet, llama3.1.",
+  "settingsAiModelPlaceholder": "model-id",
+
+  "settingsAiToolPolicy": "Tool policy",
+  "settingsAiConfirmWrites": "Require confirmation for write actions",
+  "settingsAiConfirmWritesHint": "Export, simulator commands and file writes need your approval before they run.",
+  "settingsAiAutoRead": "Allow read tools without confirmation",
+  "settingsAiAutoReadHint": "Navdata, weather, telemetry and flight records are surfaced to the model without prompting.",
+
+  "settingsRemoteTitle": "Remote access",
+  "settingsRemoteDesc": "Host an embedded HTTP/WebSocket server in-process so the companion phone and web clients can watch the moving map, pause the sim and operate the MCDU over LAN.",
+
+  "settingsRemoteEnable": "Enable embedded server",
+  "settingsRemotePort": "Listen port",
+  "settingsRemotePortHint": "TCP port the desktop app listens on (default 48080).",
+  "settingsRemoteToken": "Access token",
+  "settingsRemoteTokenHint": "Shared secret every phone/web client must present.",
+  "settingsRemoteRegenerateToken": "Regenerate token",
+  "settingsRemoteStatusTitle": "Server status",
+  "settingsRemoteNotRunning": "Not running",
+  "settingsRemoteRunningOn": "Listening on http://{host}:{port}",
+  "@settingsRemoteRunningOn": {
+    "placeholders": {
+      "host": { "type": "String" },
+      "port": { "type": "int" }
+    }
+  },
+  "settingsRemoteMdns": "Advertise on local network (mDNS)",
+  "settingsRemoteMdnsHint": "Lets the companion apps discover this machine automatically.",
+
+  "settingsAboutTitle": "About Flight Studio",
+  "settingsAboutVersion": "Version",
+  "settingsAboutLicense": "License",
+  "settingsAboutLicenseValue": "MIT — permissive, clean-room reimplementation",
+  "settingsAboutViewLicense": "View full license",
+  "settingsAboutThirdParty": "Third-party data",
+  "settingsAboutThirdPartyDesc": "Navigraph and SimBrief data is user-licensed and never redistributed. OpenStreetMap tiles are © OSM contributors (ODbL). OurAirports and FAA CIFP/NASR are Public Domain.",
+  "settingsAboutViewThirdParty": "View third-party notices",
+  "settingsAboutHomepage": "Homepage",
+  "settingsAboutOpenSource": "Open source on GitHub",
+  "settingsAboutInspiredBy": "Inspired by Little Navmap (no GPL source reused).",
+
+  "tabSettings": "Settings",
+  "welcomeSubtitle": "Flight Planner",
+
+  "ttNewFlightPlan": "New flight plan",
+  "ttOpenFlightPlan": "Open flight plan",
+  "ttExport": "Export",
+  "ttCalculateRoute": "Calculate route",
+  "ttConnectSim": "Connect simulator",
+  "ttPauseSim": "Pause simulator",
+  "ttToggleProjection": "Toggle projection",
+  "ttCalculatePlan": "Calculate plan",
+  "ttResetForm": "Reset form",
+  "ttImportRoute": "Import route",
+  "ttExportPlan": "Export plan",
+  "ttFetchSimBrief": "Fetch from SimBrief",
+  "ttSavePlan": "Save plan",
+
+  "mapPlaceholder": "Map",
+  "mapApiKeyCta": "Bind your map API key to enable live tiles",
+  "mapLoadError": "Map failed to load",
+  "mapErrorNoNetwork": "No network connection — check your internet and retry.",
+  "mapError404": "Tile server returned 404. The tile URL may be incorrect or the server is down.",
+  "mapErrorGeneric": "Error {code}",
+  "@mapErrorGeneric": {
+    "placeholders": {
+      "code": { "type": "String" }
+    }
+  },
+  "mapRetry": "Retry",
+  "mapZoomIn": "Zoom in",
+  "mapZoomOut": "Zoom out",
+
+  "statusConnected": "Connected",
+  "statusNoNavdata": "No navdata loaded",
+  "statusCpu": "CPU",
+  "statusMem": "MEM",
+
+  "panelFlightPlans": "Flight Plans",
+  "panelInspector": "Inspector",
+  "panelProfile": "Profile",
+  "hidePanel": "Hide",
+
+  "inspectorHint": "Select a waypoint or leg on the map to inspect its details.",
+  "treeNoPlans": "No flight plans",
+  "treeCreateHint": "Click to create one",
+  "profileTabAltitude": "Altitude",
+  "profileTabFuel": "Fuel",
+  "profileTabSpeed": "Speed",
+  "profileTabWeather": "Weather",
+  "profileHint": "Altitude/fuel profile will render here"
 }

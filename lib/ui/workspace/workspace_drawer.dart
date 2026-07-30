@@ -1,7 +1,26 @@
 import 'package:flutter/material.dart';
 
+import '../../../l10n/app_localizations.dart';
 import '../theme/app_colors.dart';
 import 'workspace_controller.dart';
+
+/// Resolves a panel's visible title from its [id] at render time, so the label
+/// tracks the active locale without the controller needing a `BuildContext`.
+/// Falls back to [DrawerPanelData.title] for custom/future panels whose id is
+/// not one of the three defaults.
+String _resolvePanelTitle(BuildContext context, DrawerPanelData panel) {
+  final l10n = AppLocalizations.of(context)!;
+  switch (panel.id) {
+    case 'flight_plans':
+      return l10n.panelFlightPlans;
+    case 'inspector':
+      return l10n.panelInspector;
+    case 'profile':
+      return l10n.panelProfile;
+    default:
+      return panel.title;
+  }
+}
 
 /// A single dockable drawer rendered inside a workspace slot. Its header is a
 /// drag handle: holding the left mouse button and dragging moves the drawer to
@@ -28,26 +47,41 @@ class WorkspaceDrawer extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Draggable header (drag handle).
-          LongPressDraggable<DrawerPanelData>(
-            data: panel,
-            delay: const Duration(milliseconds: 120),
-            feedback: Material(
-              color: Colors.transparent,
-              child: _DragFeedback(title: panel.title),
-            ),
-            childWhenDragging: Opacity(
-              opacity: 0.4,
-              child: _HeaderBar(
-                title: panel.title,
-                colors: colors,
-                onHide: onHide,
-              ),
-            ),
-            child: _HeaderBar(
-              title: panel.title,
-              colors: colors,
-              onHide: onHide,
+          // Header row: the drag handle fills the available width so the user
+          // can grab anywhere except the close button to drag the drawer. The
+          // close button lives OUTSIDE the [LongPressDraggable] so its tap is
+          // never swallowed by the long-press recogniser.
+          Container(
+            height: 32,
+            color: colors.surfaceRaised,
+            padding: const EdgeInsets.only(left: 10),
+            child: Row(
+              children: [
+                Expanded(
+                  child: LongPressDraggable<DrawerPanelData>(
+                    data: panel,
+                    delay: const Duration(milliseconds: 220),
+                    feedback: Material(
+                      color: Colors.transparent,
+                      child: _DragFeedback(panel: panel),
+                    ),
+                    childWhenDragging: Opacity(
+                      opacity: 0.4,
+                      child: _DragHandleLabel(panel: panel),
+                    ),
+                    child: _DragHandleLabel(panel: panel),
+                  ),
+                ),
+                IconButton(
+                  tooltip: AppLocalizations.of(context)!.hidePanel,
+                  onPressed: onHide,
+                  icon: const Icon(Icons.close_rounded, size: 14),
+                  color: colors.textDisabled,
+                  constraints: const BoxConstraints(
+                      minWidth: 22, minHeight: 22),
+                  padding: const EdgeInsets.only(right: 8),
+                ),
+              ],
             ),
           ),
           Expanded(child: panel.content(context)),
@@ -57,24 +91,29 @@ class WorkspaceDrawer extends StatelessWidget {
   }
 }
 
-class _HeaderBar extends StatelessWidget {
-  const _HeaderBar({
-    required this.title,
-    required this.colors,
-    required this.onHide,
-  });
-  final String title;
-  final AppColors colors;
-  final VoidCallback onHide;
+/// Just the icon + uppercase title — the draggable label inside the header.
+///
+/// The title is resolved from [panel.id] at build time via
+/// [_resolvePanelTitle] so it follows locale changes.
+///
+/// The outer `Container(color: …)` is critical: `Draggable`'s internal
+/// `GestureDetector` defaults to `HitTestBehavior.deferToChild`, so without a
+/// coloured (or `ColoredBox`-backed) ancestor the drag area would not accept
+/// hits and the drawer couldn't be moved. `Colors.transparent` is enough —
+/// `ColoredBox.hitTestSelf` always returns `true` regardless of opacity.
+class _DragHandleLabel extends StatelessWidget {
+  const _DragHandleLabel({required this.panel});
+
+  final DrawerPanelData panel;
 
   @override
   Widget build(BuildContext context) {
-    return MouseRegion(
-      cursor: SystemMouseCursors.grab,
-      child: Container(
-        height: 32,
-        padding: const EdgeInsets.symmetric(horizontal: 10),
-        color: colors.surfaceRaised,
+    final colors = Theme.of(context).extension<AppColors>()!;
+    final title = _resolvePanelTitle(context, panel);
+    return Container(
+      color: Colors.transparent,
+      child: MouseRegion(
+        cursor: SystemMouseCursors.grab,
         child: Row(
           children: [
             Icon(Icons.drag_indicator_rounded,
@@ -92,14 +131,6 @@ class _HeaderBar extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            IconButton(
-              tooltip: 'Hide',
-              onPressed: onHide,
-              icon: const Icon(Icons.close_rounded, size: 14),
-              color: colors.textDisabled,
-              constraints: const BoxConstraints(minWidth: 22, minHeight: 22),
-              padding: EdgeInsets.zero,
-            ),
           ],
         ),
       ),
@@ -108,12 +139,14 @@ class _HeaderBar extends StatelessWidget {
 }
 
 class _DragFeedback extends StatelessWidget {
-  const _DragFeedback({required this.title});
-  final String title;
+  const _DragFeedback({required this.panel});
+
+  final DrawerPanelData panel;
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppColors>()!;
+    final title = _resolvePanelTitle(context, panel);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(

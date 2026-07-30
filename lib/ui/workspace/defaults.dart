@@ -7,6 +7,11 @@ import 'workspace_controller.dart';
 
 /// Builds the standard set of dockable drawers shared by every tab:
 /// Flight Plans (left), Inspector (right), Profile (bottom).
+///
+/// Panel **titles are resolved at render time** by `workspace_drawer.dart`
+/// (mapping panel `id` → `AppLocalizations` key), so they automatically track
+/// the active locale. The `title` field here is just a fallback for custom
+/// panels whose id is not one of the three defaults.
 List<DrawerPanelData> buildDefaultPanels({
   VoidCallback? onCreateFlightPlan,
 }) {

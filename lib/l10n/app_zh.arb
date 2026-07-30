@@ -1,0 +1,315 @@
+{
+  "@@locale": "zh",
+  "appName": "Flight Studio",
+  "@appName": { "description": "Application display name" },
+
+  "navRecentFlights": "近期飞行",
+  "navPluginCenter": "插件中心",
+  "navSettings": "设置",
+
+  "createFirstFlight": "创建你的第一个航班",
+  "createFlight": "新建航班",
+  "worldMap": "世界地图",
+  "flightAcademy": "飞行学院",
+
+  "createFlightHint": "从零开始规划一条新航线",
+  "worldMapHint": "浏览全球地图与机场",
+  "flightAcademyHint": "学习航路规划与飞行程序",
+
+  "searchFlights": "搜索航班…",
+  "noResults": "未找到匹配的航班",
+
+  "pluginCenterTitle": "插件中心",
+  "pluginCenterDesc": "管理模拟器桥接与扩展",
+
+  "settingsTitle": "设置",
+  "settingsDesc": "应用首选项",
+  "comingSoon": "敬请期待",
+  "openSettings": "打开设置",
+
+  "tabMap": "地图",
+  "tabFlightPlan": "飞行计划",
+  "tabMapUnnamed": "地图",
+  "tabPlanUnnamed": "飞行计划",
+  "addTab": "新建标签页",
+  "newMapTab": "新建地图",
+  "newFlightPlanTab": "新建飞行计划",
+  "closeTab": "关闭标签页",
+  "noOpenTabs": "没有打开的标签页",
+  "clickPlusToOpen": "点击右侧的 + 打开新标签页",
+
+  "sectionFlightInfo": "航班信息",
+  "sectionRoute": "航路",
+  "sectionPerformance": "燃油与性能",
+  "sectionProcedures": "飞行程序",
+
+  "fieldAircraft": "机型",
+  "fieldAirframe": "机身 / 注册号",
+  "fieldAirline": "航空公司",
+  "fieldFlightNumber": "航班号",
+  "fieldCallsign": "呼号",
+  "fieldDeparture": "起飞机场（ICAO）",
+  "fieldDestination": "目的机场（ICAO）",
+  "fieldAlternate": "备降场（ICAO）",
+  "fieldCruiseLevel": "巡航高度层（FL）",
+  "fieldCostIndex": "成本指数",
+  "fieldRoute": "航路字符串",
+  "fieldContingency": "应急燃油",
+  "fieldReserve": "备份燃油",
+  "fieldTaxiFuel": "滑行燃油",
+  "fieldExtraFuel": "额外燃油",
+  "fieldUnits": "单位",
+  "fieldSid": "SID 离场",
+  "fieldStar": "STAR 进场",
+  "fieldApproach": "进近",
+  "fieldPlanDetail": "计划详细程度",
+
+  "unitsKg": "千克",
+  "unitsLb": "磅",
+  "detailFull": "完整",
+  "detailRouteOnly": "仅航路",
+
+  "calculatePlan": "计算计划",
+  "resetForm": "重置",
+
+  "settingsSearchHint": "搜索设置…",
+  "settingsResetDefaults": "恢复默认",
+  "settingsResetDefaultsConfirm": "将所有设置恢复为默认值？此操作无法撤销。",
+  "settingsReset": "重置",
+  "settingsCancel": "取消",
+  "settingsClose": "关闭",
+  "settingsSave": "保存",
+  "settingsEdit": "编辑",
+  "settingsBrowse": "浏览…",
+  "settingsNotSet": "未设置",
+  "settingsRestartHint": "需要重启 Flight Studio 才能完全生效。",
+  "settingsPlannedBadge": "计划中",
+  "settingsConnectedBadge": "已连接",
+  "settingsDisconnectedBadge": "未连接",
+
+  "gearMenuTooltip": "打开菜单",
+  "gearMenuSettings": "设置…",
+  "gearMenuAbout": "关于 Flight Studio",
+  "gearMenuCheckUpdates": "检查更新…",
+  "gearMenuCheckUpdatesNone": "已是最新版本。",
+  "gearMenuHelp": "帮助",
+  "gearMenuExit": "退出",
+
+  "toolbarHome": "返回欢迎页",
+
+  "aboutDialogTitle": "关于 Flight Studio",
+
+  "settingsCategoryGeneral": "常规",
+  "settingsCategoryGeneralDesc": "外观、语言与启动行为。",
+  "settingsCategorySimulator": "模拟器",
+  "settingsCategorySimulatorDesc": "X-Plane、MSFS 与 Prepar3D 桥接。",
+  "settingsCategoryNavdata": "导航数据",
+  "settingsCategoryNavdataDesc": "机场、航路、程序与 AIRAC 数据源。",
+  "settingsCategoryAi": "AI 副驾驶",
+  "settingsCategoryAiDesc": "使用你自己的 LLM 密钥并配置工具权限。",
+  "settingsCategoryRemote": "远程访问",
+  "settingsCategoryRemoteDesc": "为手机和网页客户端托管内嵌服务器。",
+  "settingsCategoryAbout": "关于",
+  "settingsCategoryAboutDesc": "版本、许可证与致谢。",
+
+  "settingsAppearanceTitle": "外观",
+  "settingsTheme": "主题",
+  "settingsThemeDark": "深色",
+  "settingsThemeLight": "浅色",
+  "settingsThemeSystem": "跟随系统",
+  "settingsThemeHint": "夜间在驾驶舱中推荐使用深色主题。",
+
+  "settingsLanguage": "语言",
+  "settingsLanguageHint": "应用界面语言。",
+  "settingsLanguageEn": "English",
+  "settingsLanguageZh": "中文（简体）",
+
+  "settingsStartupTitle": "启动",
+  "settingsReopenLastWorkspace": "启动时重新打开上次的工作区",
+  "settingsReopenLastWorkspaceHint": "跳过欢迎页，直接进入上次会话。",
+  "settingsCheckUpdatesOnLaunch": "启动时检查更新",
+  "settingsCheckUpdatesOnLaunchHint": "当有新的 Flight Studio 构建可用时通知我。",
+
+  "settingsUnitsTitle": "默认单位",
+  "settingsUnitsMetric": "公制（千克、千米）",
+  "settingsUnitsImperial": "英制（磅、海里）",
+  "settingsUnitsHint": "用于新建的飞行计划和燃油规划。",
+
+  "settingsSimulatorTitle": "模拟器连接",
+  "settingsSimulatorDesc": "Flight Studio 通过每个模拟器对应的桥接读取遥测并下发指令。同一时间只需要连接一个模拟器。",
+
+  "settingsXplaneTitle": "X-Plane 12",
+  "settingsXplaneStatusConnected": "已在端口 {port} 检测到桥接",
+  "@settingsXplaneStatusConnected": {
+    "placeholders": {
+      "port": { "type": "int" }
+    }
+  },
+  "settingsXplaneStatusDisconnected": "未连接",
+  "settingsXplaneInstallPath": "X-Plane 安装目录",
+  "settingsXplaneInstallHint": "X-Plane 12 根目录位置（应包含 ‘Resources’ 与 ‘Aircraft’）。",
+  "settingsXplaneInstallPick": "选择目录…",
+  "settingsXplaneInstallClear": "清除",
+  "settingsXplaneUdpPort": "遥测 UDP 端口",
+  "settingsXplaneUdpPortHint": "X-Plane 数据输出所发送到的端口（默认 49000）。",
+  "settingsXplaneBridgePort": "桥接命令端口",
+  "settingsXplaneBridgePortHint": "内置 FlyWithLua 脚本监听的端口（默认 49001）。",
+  "settingsXplaneInstallBridge": "安装 FlyWithLua 桥接…",
+  "settingsXplaneInstallBridgeHint": "将 FlightStudioBridge.lua 复制到 FlyWithLua 的 Scripts 目录。",
+  "settingsXplaneTestConnection": "测试连接",
+
+  "settingsMsfsTitle": "MSFS 2020 / 2024 与 Prepar3D",
+  "settingsMsfsPlanned": "C++ SimConnect 桥接守护进程计划于后续阶段提供。MSFS 与 Prepar3D 的遥测和指令支持将共用同一适配器。",
+  "settingsMsfsBridgePath": "SimConnect 桥接守护进程",
+  "settingsMsfsBridgePathHint": "守护进程发布后将自动发现。",
+
+  "settingsNavdataTitle": "导航数据源",
+  "settingsNavdataDesc": "可组合使用多种数据源。信任层会显示每条计划的数据来源，并在导入/导出时校验 AIRAC 一致性。",
+
+  "settingsNavdataBundledTitle": "内置数据（免费开源）",
+  "settingsNavdataOurAirports": "OurAirports",
+  "settingsNavdataOurAirportsHint": "机场、跑道、频率与导航台（公共领域）。",
+  "settingsNavdataFaaCifp": "FAA CIFP / NASR",
+  "settingsNavdataFaaCifpHint": "美国仪表飞行程序（公共领域）。",
+  "settingsNavdataXplaneNative": "解析 X-Plane 原生文件",
+  "settingsNavdataXplaneNativeHint": "直接从安装目录读取 apt.dat、earth_nav.dat、earth_fix.dat 与 awy.dat。",
+  "settingsNavdataRefreshBundled": "刷新内置数据",
+
+  "settingsNavdataNavigraphTitle": "Navigraph（用户订阅）",
+  "settingsNavdataNavigraphHint": "使用你自己的 Navigraph 账户登录。航图与 AIRAC 数据不会被 Flight Studio 打包或再分发。",
+  "settingsNavdataNavigraphSignedIn": "已登录为 {user}",
+  "@settingsNavdataNavigraphSignedIn": {
+    "placeholders": {
+      "user": { "type": "String" }
+    }
+  },
+  "settingsNavdataNavigraphSignedOut": "未登录",
+  "settingsNavdataNavigraphSignIn": "使用 Navigraph 登录…",
+  "settingsNavdataNavigraphSignOut": "退出登录",
+  "settingsNavdataNavigraphAirac": "当前 AIRAC 周期",
+  "settingsNavdataNavigraphAiracNone": "不可用",
+
+  "settingsNavdataSimBriefTitle": "SimBrief（免费账户）",
+  "settingsNavdataSimBriefHint": "关联你的 SimBrief 账户以导入 OFP 与航路字符串。不会被再分发。",
+  "settingsNavdataSimBriefLinked": "已关联到 {username}",
+  "@settingsNavdataSimBriefLinked": {
+    "placeholders": {
+      "username": { "type": "String" }
+    }
+  },
+  "settingsNavdataSimBriefNotLinked": "未关联",
+  "settingsNavdataSimBriefLink": "关联 SimBrief 账户…",
+  "settingsNavdataSimBriefUnlink": "解除关联",
+
+  "settingsAiTitle": "AI 副驾驶",
+  "settingsAiDesc": "助理对任何具有副作用的操作都只能调用 MCP 工具——它本身从不计算航路或写入文件。航路计算、导出与模拟器指令均由确定性的 Dart 代码执行。",
+
+  "settingsAiProvider": "提供商",
+  "settingsAiProviderOpenAi": "OpenAI 兼容",
+  "settingsAiProviderAnthropic": "Anthropic",
+  "settingsAiProviderOllama": "本地（Ollama）",
+  "settingsAiProviderHint": "‘OpenAI 兼容’涵盖 OpenAI、Groq、Together、OpenRouter、LM Studio 等。",
+
+  "settingsAiApiKey": "API 密钥",
+  "settingsAiApiKeyHint": "仅存储在本设备，且只会发送给你选择的提供商。",
+  "settingsAiApiKeyHidden": "已设置密钥（隐藏）",
+  "settingsAiClearApiKey": "清除",
+
+  "settingsAiEndpoint": "端点 URL",
+  "settingsAiEndpointHint": "覆盖提供商的默认基础 URL（例如 Ollama 为 http://localhost:11434）。",
+  "settingsAiEndpointPlaceholder": "https://api.openai.com/v1",
+
+  "settingsAiModel": "模型",
+  "settingsAiModelHint": "示例：gpt-4o-mini、claude-3-5-sonnet、llama3.1。",
+  "settingsAiModelPlaceholder": "模型 ID",
+
+  "settingsAiToolPolicy": "工具策略",
+  "settingsAiConfirmWrites": "写入操作需要确认",
+  "settingsAiConfirmWritesHint": "导出、模拟器指令与文件写入在执行前需要你批准。",
+  "settingsAiAutoRead": "允许读工具无需确认",
+  "settingsAiAutoReadHint": "导航数据、天气、遥测与飞行记录无需提示即可提供给模型。",
+
+  "settingsRemoteTitle": "远程访问",
+  "settingsRemoteDesc": "在桌面端进程内托管内嵌的 HTTP/WebSocket 服务器，让配套的手机与网页客户端可以通过局域网查看移动地图、暂停模拟器并远程操作 MCDU。",
+
+  "settingsRemoteEnable": "启用内嵌服务器",
+  "settingsRemotePort": "监听端口",
+  "settingsRemotePortHint": "桌面端监听的 TCP 端口（默认 48080）。",
+  "settingsRemoteToken": "访问令牌",
+  "settingsRemoteTokenHint": "每个手机/网页客户端都必须出示的共享密钥。",
+  "settingsRemoteRegenerateToken": "重新生成令牌",
+  "settingsRemoteStatusTitle": "服务器状态",
+  "settingsRemoteNotRunning": "未运行",
+  "settingsRemoteRunningOn": "正在监听 http://{host}:{port}",
+  "@settingsRemoteRunningOn": {
+    "placeholders": {
+      "host": { "type": "String" },
+      "port": { "type": "int" }
+    }
+  },
+  "settingsRemoteMdns": "在局域网广播（mDNS）",
+  "settingsRemoteMdnsHint": "让配套应用可以自动发现本机。",
+
+  "settingsAboutTitle": "关于 Flight Studio",
+  "settingsAboutVersion": "版本",
+  "settingsAboutLicense": "许可证",
+  "settingsAboutLicenseValue": "MIT — 宽松许可，净室重写",
+  "settingsAboutViewLicense": "查看完整许可证",
+  "settingsAboutThirdParty": "第三方数据",
+  "settingsAboutThirdPartyDesc": "Navigraph 与 SimBrief 数据由用户授权，绝不打包再分发。OpenStreetMap 图块版权归 OSM 贡献者（ODbL）。OurAirports 与 FAA CIFP/NASR 属公共领域。",
+  "settingsAboutViewThirdParty": "查看第三方声明",
+  "settingsAboutHomepage": "主页",
+  "settingsAboutOpenSource": "在 GitHub 上开源",
+  "settingsAboutInspiredBy": "灵感来自 Little Navmap（未复用任何 GPL 源码）。",
+
+  "tabSettings": "设置",
+  "welcomeSubtitle": "飞行规划器",
+
+  "ttNewFlightPlan": "新建飞行计划",
+  "ttOpenFlightPlan": "打开飞行计划",
+  "ttExport": "导出",
+  "ttCalculateRoute": "计算航线",
+  "ttConnectSim": "连接模拟器",
+  "ttPauseSim": "暂停模拟器",
+  "ttToggleProjection": "切换投影",
+  "ttCalculatePlan": "计算计划",
+  "ttResetForm": "重置表单",
+  "ttImportRoute": "导入航路",
+  "ttExportPlan": "导出计划",
+  "ttFetchSimBrief": "从 SimBrief 获取",
+  "ttSavePlan": "保存计划",
+
+  "mapPlaceholder": "地图",
+  "mapApiKeyCta": "绑定你的地图 API 密钥以启用实时瓦片",
+  "mapLoadError": "地图加载失败",
+  "mapErrorNoNetwork": "无网络连接 —— 请检查网络后重试。",
+  "mapError404": "瓦片服务器返回 404。瓦片 URL 可能不正确或服务器已关闭。",
+  "mapErrorGeneric": "错误 {code}",
+  "@mapErrorGeneric": {
+    "placeholders": {
+      "code": { "type": "String" }
+    }
+  },
+  "mapRetry": "重试",
+  "mapZoomIn": "放大",
+  "mapZoomOut": "缩小",
+
+  "statusConnected": "已连接",
+  "statusNoNavdata": "未加载导航数据",
+  "statusCpu": "CPU",
+  "statusMem": "内存",
+
+  "panelFlightPlans": "飞行计划",
+  "panelInspector": "检查器",
+  "panelProfile": "剖面",
+  "hidePanel": "隐藏",
+
+  "inspectorHint": "在地图上选择一个航点或航段以查看其详情。",
+  "treeNoPlans": "没有飞行计划",
+  "treeCreateHint": "点击创建",
+  "profileTabAltitude": "高度",
+  "profileTabFuel": "燃油",
+  "profileTabSpeed": "速度",
+  "profileTabWeather": "天气",
+  "profileHint": "高度/燃油剖面将在此处显示"
+}

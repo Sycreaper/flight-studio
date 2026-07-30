@@ -54,6 +54,11 @@ dependencies:
   path: ^1.9.1
   collection: ^1.19.1
   window_manager: ^0.5.2
+
+  # Key-value persistence for user settings (theme, locale, connections, BYOK
+  # provider config). Lightweight, plugin-backed, works on every Flight Studio
+  # target platform (Windows / macOS / Linux / Android / iOS / Web).
+  shared_preferences: ^2.3.3
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -68,6 +73,7 @@ dev_dependencies:
   # Testing
   mocktail: ^1.0.4
   checks: ^0.3.0
+  shared_preferences_platform_interface: ^2.4.2
 
 flutter:
   uses-material-design: true

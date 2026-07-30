@@ -69,6 +69,34 @@ class AppColors extends ThemeExtension<AppColors> {
     danger: Color(0xFFF9844A),
   );
 
+  /// Light palette — soft cool-gray surfaces instead of stark white, so the
+  /// UI reads as a single calm layer rather than bright white panels on a
+  /// near-white background. Brand orange stays; surfaces step through three
+  /// closely-spaced grays so cards stay subtly distinguishable from the
+  /// app background without ever going pure white.
+  ///
+  /// Reference values (all hover around `#E9EAEE`):
+  /// - `surfaceLowered` is the darkest of the three — recessed inputs, wells.
+  /// - `surfaceBase` is the app background, a touch darker than panels.
+  /// - `surfaceRaised` is the user-requested `#E9EAEE` — cards, panels,
+  ///   drawers, the floating window body.
+  static const AppColors light = AppColors(
+    accent: Color(0xFFFF7F27),
+    accentMuted: Color(0xFFE0742C),
+    surfaceBase: Color(0xFFE2E4E8),
+    surfaceRaised: Color(0xFFE9EAEE),
+    surfaceLowered: Color(0xFFD4D7DC),
+    chrome: Color(0xFFD8DBE0),
+    border: Color(0xFFC6CAD1),
+    borderStrong: Color(0xFFAEB3BB),
+    textPrimary: Color(0xFF1F2024),
+    textSecondary: Color(0xFF5F6368),
+    textDisabled: Color(0xFF8B9197),
+    success: Color(0xFF1E8E3E),
+    warning: Color(0xFFB26A00),
+    danger: Color(0xFFD93025),
+  );
+
   @override
   AppColors copyWith({
     Color? accent,

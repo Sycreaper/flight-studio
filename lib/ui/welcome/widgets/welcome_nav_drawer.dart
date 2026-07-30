@@ -3,26 +3,30 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../theme/app_colors.dart';
 import '../../../l10n/app_localizations.dart';
-import 'spinning_gear_button.dart';
+import '../../settings/settings_window.dart';
+import 'gear_button.dart';
 
-/// The section the welcome content area currently shows.
-enum WelcomeSection { recentFlights, pluginCenter, settings }
+/// The section the welcome content area currently shows. Settings is
+/// intentionally absent — it lives in its own floating window launched via the
+/// gear menu (see [showGearMenu]) so the entry point is identical on every
+/// screen.
+enum WelcomeSection { recentFlights, pluginCenter }
 
 /// Non-collapsible, card-style navigation drawer for the welcome screen.
 ///
-/// Top: app logo + name. Middle: nav items (Recent Flights / Plugin Center /
-/// Settings). Bottom-left: a gear that spins on hover and opens settings.
+/// Top: app logo + name. Middle: nav items (Recent Flights / Plugin Center).
+/// Bottom-left: a gear that spins on hover and opens a popup menu (Settings /
+/// About / Check for Updates / Help / Exit) — same menu the workspace toolbar
+/// gear shows.
 class WelcomeNavDrawer extends StatelessWidget {
   const WelcomeNavDrawer({
     super.key,
     required this.selected,
     required this.onSelect,
-    required this.onOpenSettings,
   });
 
   final WelcomeSection selected;
   final ValueChanged<WelcomeSection> onSelect;
-  final VoidCallback onOpenSettings;
 
   @override
   Widget build(BuildContext context) {
@@ -57,21 +61,11 @@ class WelcomeNavDrawer extends StatelessWidget {
                     selected: selected == WelcomeSection.pluginCenter,
                     onTap: () => onSelect(WelcomeSection.pluginCenter),
                   ),
-                  const SizedBox(height: 4),
-                  _NavItem(
-                    icon: Icons.tune_rounded,
-                    label: l10n.navSettings,
-                    selected: selected == WelcomeSection.settings,
-                    onTap: () => onSelect(WelcomeSection.settings),
-                  ),
                 ],
               ),
             ),
           ),
-          _DrawerFooter(
-            colors: colors,
-            onOpenSettings: onOpenSettings,
-          ),
+          const _DrawerFooter(),
         ],
       ),
     );
@@ -85,6 +79,7 @@ class _LogoHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 18, 16, 18),
       child: Row(
@@ -111,7 +106,7 @@ class _LogoHeader extends StatelessWidget {
                 ),
                 const SizedBox(height: 1),
                 Text(
-                  'Flight Planner',
+                  l10n.welcomeSubtitle,
                   style: TextStyle(
                     fontSize: 11,
                     color: colors.textSecondary,
@@ -160,6 +155,7 @@ class _NavItemState extends State<_NavItem> {
       onEnter: (_) => setState(() => _hovering = true),
       onExit: (_) => setState(() => _hovering = false),
       child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
         onTap: widget.onTap,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 120),
@@ -193,17 +189,22 @@ class _NavItemState extends State<_NavItem> {
 }
 
 class _DrawerFooter extends StatelessWidget {
-  const _DrawerFooter({required this.colors, required this.onOpenSettings});
-  final AppColors colors;
-  final VoidCallback onOpenSettings;
+  const _DrawerFooter();
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.fromLTRB(6, 8, 8, 8),
       child: Row(
         children: [
-          SpinningGearButton(onPressed: onOpenSettings),
+          Builder(
+            builder: (gearContext) =>
+                GearButton(
+                  tooltip: l10n.gearMenuTooltip,
+                  onPressed: () => showGearMenu(gearContext),
+                ),
+          ),
         ],
       ),
     );

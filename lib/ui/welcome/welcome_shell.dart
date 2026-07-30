@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../data/settings/settings_controller.dart';
 import '../../features/flights/flight_repository.dart';
 import '../../l10n/app_localizations.dart';
 import '../shell/app_shell.dart';
@@ -10,17 +11,24 @@ import 'pages/recent_flights_page.dart';
 import 'widgets/welcome_nav_drawer.dart';
 
 /// The welcome/home screen. A fixed left nav drawer (card style, non-collapsible)
-/// plus a borderless content area that swaps between the recent-flights,
-/// plugin-center and settings pages.
+/// plus a borderless content area that swaps between the recent-flights and
+/// plugin-center pages. Settings is intentionally NOT one of the swapped
+/// pages — it lives in a floating window launched via the gear menu so the
+/// entry point is identical on every screen.
 class WelcomeShell extends StatefulWidget {
   const WelcomeShell({
     super.key,
     required this.repository,
+    required this.settings,
     this.onCreateFlight,
     this.onFlightAcademy,
   });
 
   final FlightRepository repository;
+
+  /// Injected only so it can be threaded into the [AppShell] when the user
+  /// opens the world map; the welcome screen itself does not read settings.
+  final SettingsController settings;
   final VoidCallback? onCreateFlight;
   final VoidCallback? onFlightAcademy;
 
@@ -33,14 +41,15 @@ class _WelcomeShellState extends State<WelcomeShell> {
 
   void _openMainPage() {
     Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const AppShell()),
+      MaterialPageRoute(
+        builder: (_) => AppShell(settings: widget.settings),
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppColors>()!;
-    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: colors.surfaceBase,
       body: WindowDragArea(
@@ -54,14 +63,13 @@ class _WelcomeShellState extends State<WelcomeShell> {
                 child: WelcomeNavDrawer(
                   selected: _section,
                   onSelect: (s) => setState(() => _section = s),
-                  onOpenSettings: () {},
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: _buildContent(l10n),
+                  child: _buildContent(),
                 ),
               ),
             ],
@@ -71,7 +79,8 @@ class _WelcomeShellState extends State<WelcomeShell> {
     );
   }
 
-  Widget _buildContent(AppLocalizations l10n) {
+  Widget _buildContent() {
+    final l10n = AppLocalizations.of(context)!;
     switch (_section) {
       case WelcomeSection.recentFlights:
         return RecentFlightsPage(
@@ -85,12 +94,6 @@ class _WelcomeShellState extends State<WelcomeShell> {
           icon: Icons.extension_rounded,
           title: l10n.pluginCenterTitle,
           description: l10n.pluginCenterDesc,
-        );
-      case WelcomeSection.settings:
-        return PagePlaceholder(
-          icon: Icons.tune_rounded,
-          title: l10n.settingsTitle,
-          description: l10n.settingsDesc,
         );
     }
   }

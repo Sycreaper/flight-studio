@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../theme/app_colors.dart';
 
 /// The bottom status bar showing connection state, cursor coordinates, UTC time
@@ -25,6 +26,7 @@ class StatusBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppColors>()!;
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       height: 24,
       decoration: BoxDecoration(
@@ -39,15 +41,14 @@ class StatusBar extends StatelessWidget {
               children: [
                 _StatusChip(
                   connected: isConnected,
-                  label: isConnected
-                      ? 'X-Plane Connected'
-                      : 'Disconnected',
+                  label: l10n.statusConnected,
                 ),
-                if (dataCycle != null) _Divider(),
-                if (dataCycle != null)
+                if (dataCycle != null && dataCycle!.isNotEmpty) ...[
+                  _Divider(),
                   Flexible(
                     child: _Item(label: dataCycle!, dim: true),
                   ),
+                ],
               ],
             ),
           ),
@@ -62,9 +63,12 @@ class StatusBar extends StatelessWidget {
             _Item(label: utcTime!, icon: Icons.schedule_rounded),
           if (cpuUsage != null) _Divider(),
           if (cpuUsage != null)
-            _Item(label: 'CPU $cpuUsage', icon: Icons.memory_rounded),
+            _Item(
+                label: '${l10n.statusCpu} $cpuUsage',
+                icon: Icons.memory_rounded),
           if (memoryUsage != null) _Divider(),
-          if (memoryUsage != null) _Item(label: 'MEM $memoryUsage'),
+          if (memoryUsage != null)
+            _Item(label: '${l10n.statusMem} $memoryUsage'),
           const SizedBox(width: 8),
         ],
       ),

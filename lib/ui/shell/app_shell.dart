@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../../data/settings/settings_controller.dart';
 import '../../../l10n/app_localizations.dart';
+import '../settings/settings_page.dart';
 import '../theme/app_colors.dart';
 import '../workspace/defaults.dart';
 import '../workspace/workspace_controller.dart';
@@ -13,30 +15,68 @@ import 'tabs/app_tab_bar.dart';
 import 'tabs/app_tab_controller.dart';
 import 'tabs/flight_plan_form_tab.dart';
 import 'tabs/map_tab_view.dart';
+import 'tabs/settings_tab_view.dart';
 
 /// The main application window, laid out like JetBrains IDEA.
 ///
 /// The workspace (tool docks + drawers + sizes) is owned here and **shared**
-/// across all tabs; switching tabs only swaps the centre card (map / form),
-/// preserving drawer layout and drawer content state. Each tab's centre is kept
-/// alive in an [IndexedStack] so per-tab state (e.g. form fields) survives.
+/// across all tabs; switching tabs only swaps the centre card (map / form /
+/// settings), preserving drawer layout and drawer content state. Each tab's
+/// centre is kept alive in an [IndexedStack] so per-tab state survives.
 class AppShell extends StatefulWidget {
-  const AppShell({super.key});
+  const AppShell({
+    super.key,
+    required this.settings,
+    this.initialTab,
+    this.initialSettingsSection,
+  });
+
+  final SettingsController settings;
+
+  /// When non-null, the shell opens with this tab type instead of the default
+  /// map tab. Used by the gear menu to push a settings-only workspace from the
+  /// welcome screen.
+  final TabType? initialTab;
+
+  /// When [initialTab] is [TabType.settings], optionally land on this section.
+  final SettingsSection? initialSettingsSection;
 
   @override
-  State<AppShell> createState() => _AppShellState();
+  State<AppShell> createState() => AppShellState();
 }
 
-class _AppShellState extends State<AppShell> {
-  final AppTabController _tabController = AppTabController();
+/// Public so external callers (the gear-menu dispatcher) can ask the live
+/// workspace to open / switch to the settings tab.
+class AppShellState extends State<AppShell> {
+  late final AppTabController _tabController;
   late final WorkspaceController _workspace;
 
   @override
   void initState() {
     super.initState();
+    _tabController = AppTabController();
+    if (widget.initialTab != null && widget.initialTab != TabType.map) {
+      final seeded = _tabController.tabs.first;
+      _tabController.close(seeded.id);
+      if (widget.initialTab == TabType.settings) {
+        _tabController.openOrCreateSettingsTab();
+      } else {
+        _tabController.add(widget.initialTab!);
+      }
+    }
     _workspace = WorkspaceController();
+    // Default panels are registered on first build (see [_registerDefaults])
+    // so we have a BuildContext for localised titles.
+  }
+
+  bool _defaultsRegistered = false;
+
+  void _registerDefaults(BuildContext context) {
+    if (_defaultsRegistered) return;
+    _defaultsRegistered = true;
     for (final p in buildDefaultPanels(
-        onCreateFlightPlan: () => _tabController.add(TabType.flightPlan))) {
+      onCreateFlightPlan: () => _tabController.add(TabType.flightPlan),
+    )) {
       _workspace.register(p);
     }
   }
@@ -50,13 +90,36 @@ class _AppShellState extends State<AppShell> {
 
   void _newFormTab() => _tabController.add(TabType.flightPlan);
 
+  void _goHome() {
+    final nav = Navigator.of(context);
+    if (nav.canPop()) nav.pop();
+  }
+
+  /// Opens the settings tab (singleton). If a settings tab already exists it is
+  /// selected; otherwise a new one is created. When [section] is provided and
+  /// a settings tab is already visible, its state is asked to jump to that
+  /// section.
+  void openSettingsTab({SettingsSection? section}) {
+    final existed = _tabController.tabs.any((t) => t.type == TabType.settings);
+    _tabController.openOrCreateSettingsTab();
+    if (section != null && existed) {
+      // The IndexedStack keeps every tab's state alive, so we can find the
+      // SettingsTabView's state via its GlobalKey. However, we don't have a
+      // key reference here — instead, SettingsTabView reads the section from
+      // a value notifier. For now, the simpler approach: the section is only
+      // honoured on first open via initialSettingsSection. If the tab already
+      // existed, the user simply lands on whatever section was last visible.
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    _registerDefaults(context);
     return Scaffold(
       backgroundColor: Theme.of(context).extension<AppColors>()!.chrome,
       body: Column(
         children: [
-          AppTabBar(controller: _tabController),
+          AppTabBar(controller: _tabController, onHome: _goHome),
           ListenableBuilder(
             listenable: _tabController,
             builder: (context, _) => _buildToolbar(),
@@ -64,7 +127,7 @@ class _AppShellState extends State<AppShell> {
           Expanded(child: _buildBody()),
           StatusBar(
             isConnected: false,
-            dataCycle: 'No navdata loaded',
+            dataCycle: '',
             coordinate: "N00°00'00\" E000°00'00\"",
             utcTime: _utcNow(),
             cpuUsage: '0%',
@@ -82,9 +145,18 @@ class _AppShellState extends State<AppShell> {
     }
     switch (tab.type) {
       case TabType.map:
-        return MapToolbar(onNew: _newFormTab, onOpen: () {});
+        return MapToolbar(
+          onNew: _newFormTab,
+          onOpen: () {},
+        );
       case TabType.flightPlan:
-        return FormToolbar(onCalculate: () {}, onReset: () {});
+        return FormToolbar(
+          onCalculate: () {},
+          onReset: () {},
+        );
+      case TabType.settings:
+      // Settings tab has no toolbar — the page fills the workspace.
+        return const SizedBox(height: 0, width: 0);
     }
   }
 
@@ -121,6 +193,13 @@ class _AppShellState extends State<AppShell> {
         return MapTabView(key: ValueKey('map_${tab.id}'));
       case TabType.flightPlan:
         return FlightPlanFormTab(key: ValueKey('plan_${tab.id}'));
+      case TabType.settings:
+        return SettingsTabView(
+          key: const ValueKey('settings'),
+          controller: widget.settings,
+          initialSection:
+          widget.initialSettingsSection ?? SettingsSection.general,
+        );
     }
   }
 

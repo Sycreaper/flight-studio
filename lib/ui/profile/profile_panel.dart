@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../l10n/app_localizations.dart';
 import '../theme/app_colors.dart';
 
 /// Profile chart content (altitude / fuel / speed / weather). Rendered inside a
@@ -11,7 +12,13 @@ class ProfilePanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppColors>()!;
-    final tabs = ['Altitude', 'Fuel', 'Speed', 'Weather'];
+    final l10n = AppLocalizations.of(context)!;
+    final tabs = [
+      l10n.profileTabAltitude,
+      l10n.profileTabFuel,
+      l10n.profileTabSpeed,
+      l10n.profileTabWeather,
+    ];
     return Container(
       color: colors.surfaceRaised,
       padding: const EdgeInsets.all(12),
@@ -47,7 +54,7 @@ class ProfilePanel extends StatelessWidget {
                       size: 28, color: colors.textDisabled),
                   const SizedBox(height: 8),
                   Text(
-                    'Altitude/fuel profile will render here',
+                    l10n.profileHint,
                     style:
                         TextStyle(fontSize: 12, color: colors.textDisabled),
                   ),

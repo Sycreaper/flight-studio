@@ -9,13 +9,18 @@ import 'app_tab_controller.dart';
 /// A horizontal tab strip. Tabs flow on the left (scrollable); the "+"
 /// affordance sits to the RIGHT of all tabs and stays fixed at the strip end.
 class AppTabBar extends StatelessWidget {
-  const AppTabBar({super.key, required this.controller});
+  const AppTabBar({super.key, required this.controller, this.onHome});
 
   final AppTabController controller;
+
+  /// Invoked when the user clicks the "back to welcome" home button. When
+  /// `null`, the button is not shown.
+  final VoidCallback? onHome;
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppColors>()!;
+    final l10n = AppLocalizations.of(context)!;
     return WindowDragArea(
       child: Container(
         height: 38,
@@ -41,17 +46,35 @@ class AppTabBar extends StatelessWidget {
                             final tab = controller.tabs[i];
                             final selected =
                                 tab.id == controller.selectedOrNull?.id;
-                            return _TabChip(
+                            return _ReorderableTabChip(
+                              index: i,
                               tab: tab,
                               selected: selected,
                               onTap: () => controller.select(tab.id),
                               onClose: () => controller.close(tab.id),
+                              onReorder: (from, to) =>
+                                  controller.move(from, to),
                             );
                           },
                         ),
                 ),
                 const SizedBox(width: 2),
                 _AddTabButton(controller: controller),
+                if (onHome != null) ...[
+                  const SizedBox(width: 2),
+                  Tooltip(
+                    message: l10n.toolbarHome,
+                    child: IconButton(
+                      onPressed: onHome,
+                      icon: Icon(Icons.home_rounded,
+                          size: 18, color: colors.textSecondary),
+                      hoverColor: colors.accent.withValues(alpha: 0.12),
+                      constraints:
+                      const BoxConstraints(minWidth: 32, minHeight: 32),
+                      padding: EdgeInsets.zero,
+                    ),
+                  ),
+                ],
                 // Reserve space for the caption controls overlay so the "+"
                 // sits immediately to its left.
                 const SizedBox(width: kCaptionWidth),
@@ -59,6 +82,92 @@ class AppTabBar extends StatelessWidget {
             );
           },
         ),
+      ),
+    );
+  }
+}
+
+/// Wraps a [_TabChip] in a [LongPressDraggable] + [DragTarget] pair so the
+/// user can press-and-hold a tab to drag it onto another tab and reorder the
+/// list. The gesture fires after a ~250 ms hold so it never conflicts with
+/// the outer [WindowDragArea]'s immediate pan recogniser — the user must hold
+/// still for a moment before the reorder-drag begins.
+class _ReorderableTabChip extends StatefulWidget {
+  const _ReorderableTabChip({
+    required this.index,
+    required this.tab,
+    required this.selected,
+    required this.onTap,
+    required this.onClose,
+    required this.onReorder,
+  });
+
+  final int index;
+  final AppTab tab;
+  final bool selected;
+  final VoidCallback onTap;
+  final VoidCallback onClose;
+  final void Function(int from, int to) onReorder;
+
+  @override
+  State<_ReorderableTabChip> createState() => _ReorderableTabChipState();
+}
+
+class _ReorderableTabChipState extends State<_ReorderableTabChip> {
+  bool _hoveringAsDropTarget = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<AppColors>()!;
+    return LongPressDraggable<int>(
+      data: widget.index,
+      delay: const Duration(milliseconds: 250),
+      feedback: Material(
+        color: Colors.transparent,
+        child: _TabChip(
+          tab: widget.tab,
+          selected: true,
+          onTap: () {},
+          onClose: () {},
+        ),
+      ),
+      childWhenDragging: Opacity(
+        opacity: 0.35,
+        child: _TabChip(
+          tab: widget.tab,
+          selected: widget.selected,
+          onTap: () {},
+          onClose: () {},
+        ),
+      ),
+      child: DragTarget<int>(
+        onWillAcceptWithDetails: (details) {
+          final accept = details.data != widget.index;
+          if (accept) setState(() => _hoveringAsDropTarget = true);
+          return accept;
+        },
+        onLeave: (_) => setState(() => _hoveringAsDropTarget = false),
+        onAcceptWithDetails: (details) {
+          setState(() => _hoveringAsDropTarget = false);
+          widget.onReorder(details.data, widget.index);
+        },
+        builder: (context, candidate, rejected) {
+          return AnimatedContainer(
+            duration: const Duration(milliseconds: 100),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              border: _hoveringAsDropTarget
+                  ? Border.all(color: colors.accent, width: 1.5)
+                  : null,
+            ),
+            child: _TabChip(
+              tab: widget.tab,
+              selected: widget.selected,
+              onTap: widget.onTap,
+              onClose: widget.onClose,
+            ),
+          );
+        },
       ),
     );
   }
@@ -90,6 +199,7 @@ class _TabChipState extends State<_TabChip> {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppColors>()!;
+    final l10n = AppLocalizations.of(context)!;
     final fg = widget.selected ? colors.accent : colors.textPrimary;
 
     final border = widget.selected
@@ -133,19 +243,21 @@ class _TabChipState extends State<_TabChip> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
-                widget.tab.type == TabType.map
-                    ? Icons.map_outlined
-                    : Icons.description_outlined,
+                switch (widget.tab.type) {
+                  TabType.map => Icons.map_outlined,
+                  TabType.flightPlan => Icons.description_outlined,
+                  TabType.settings => Icons.settings_rounded,
+                },
                 size: 15,
                 color: fg,
               ),
               const SizedBox(width: 7),
               Text(
-                widget.tab.title,
+                _tabTitle(widget.tab.type, l10n),
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight:
-                      widget.selected ? FontWeight.w600 : FontWeight.w400,
+                  widget.selected ? FontWeight.w600 : FontWeight.w400,
                   color: fg,
                 ),
               ),
@@ -274,5 +386,18 @@ class _MenuItemRow extends StatelessWidget {
         Text(label, style: TextStyle(fontSize: 13, color: colors.textPrimary)),
       ],
     );
+  }
+}
+
+/// Resolves a tab's visible label from its [TabType] at render time, so the
+/// title tracks the active locale without the controller needing a context.
+String _tabTitle(TabType type, AppLocalizations l10n) {
+  switch (type) {
+    case TabType.map:
+      return l10n.tabMap;
+    case TabType.flightPlan:
+      return l10n.tabFlightPlan;
+    case TabType.settings:
+      return l10n.tabSettings;
   }
 }

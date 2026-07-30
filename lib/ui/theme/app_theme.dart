@@ -4,9 +4,15 @@ import 'app_colors.dart';
 
 /// Centralised theme for Flight Studio.
 ///
-/// A dense, dark, JetBrains IDEA-inspired palette with the brand orange
-/// `#ff7f27` as the single accent. Rounded corners are generous throughout
-/// per the project's UI direction.
+/// A dense, JetBrains IDEA-inspired palette with the brand orange `#ff7f27` as
+/// the single accent. Rounded corners are generous throughout per the project's
+/// UI direction.
+///
+/// Two brightness variants are built from the same template: [dark] (the
+/// default the app shipped with) and [light] (added so the settings page can
+/// offer a theme switch — see README's "light-theme readiness" promise). Use
+/// [resolve] to pick one based on the user's [ThemeMode] preference plus the
+/// platform brightness reported by `MediaQuery`.
 ///
 /// Note: theme-data constructors intentionally avoid the `const` keyword where
 /// they reference the local `colors` token, because Dart's constant evaluation
@@ -17,20 +23,44 @@ class AppTheme {
 
   static const Color _seed = Color(0xFFFF7F27);
 
-  static ThemeData dark() {
-    const colors = AppColors.dark;
+  /// User-facing dark theme.
+  static ThemeData dark() =>
+      _build(colors: AppColors.dark, brightness: Brightness.dark);
+
+  /// User-facing light theme.
+  static ThemeData light() =>
+      _build(colors: AppColors.light, brightness: Brightness.light);
+
+  /// Pick the effective theme based on user preference and platform brightness.
+  ///
+  /// `platformBrightness` is what the OS currently reports (e.g.
+  /// `MediaQuery.platformBrightnessOf(context)`); when the user picks
+  /// [ThemeMode.system], this is what decides which variant is used.
+  static ThemeData resolve(ThemeMode mode, Brightness platformBrightness) {
+    switch (mode) {
+      case ThemeMode.light:
+        return light();
+      case ThemeMode.dark:
+        return dark();
+      case ThemeMode.system:
+        return platformBrightness == Brightness.light ? light() : dark();
+    }
+  }
+
+  static ThemeData _build(
+      {required AppColors colors, required Brightness brightness}) {
     final colorScheme = ColorScheme.fromSeed(
       seedColor: _seed,
-      brightness: Brightness.dark,
+      brightness: brightness,
     ).copyWith(
       surface: colors.surfaceBase,
       primary: colors.accent,
-      onPrimary: Colors.black,
+      onPrimary: brightness == Brightness.light ? Colors.white : Colors.black,
     );
 
     return ThemeData(
       useMaterial3: true,
-      brightness: Brightness.dark,
+      brightness: brightness,
       colorScheme: colorScheme,
       scaffoldBackgroundColor: colors.surfaceBase,
       canvasColor: colors.surfaceBase,
@@ -78,7 +108,9 @@ class AppTheme {
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           backgroundColor: colors.accent,
-          foregroundColor: Colors.black,
+          foregroundColor: brightness == Brightness.light
+              ? Colors.white
+              : Colors.black,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(_radiusMd),
           ),
@@ -175,7 +207,26 @@ class AppTheme {
   }
 
   static TextTheme _textTheme(AppColors colors) {
-    const base = TextStyle(fontSize: 13, height: 1.4);
+    // `fontFamilyFallback` lists CJK-capable system fonts in priority order so
+    // Chinese (and other CJK) glyphs render with a single, consistent face
+    // instead of the mixed-weight fallback that Flutter's default produces on
+    // Windows. The first font on the list that exists on the platform wins; on
+    // Windows that's Microsoft YaHei UI, on macOS PingFang SC, on Linux Noto
+    // Sans CJK. Latin glyphs keep their default (Segoe UI / SF / Roboto).
+    const base = TextStyle(
+      fontSize: 13,
+      height: 1.4,
+      fontFamilyFallback: [
+        'Microsoft YaHei UI',
+        'Microsoft YaHei',
+        'PingFang SC',
+        'Heiti SC',
+        'Noto Sans CJK SC',
+        'Source Han Sans SC',
+        'WenQuanYi Micro Hei',
+        'SimSun',
+      ],
+    );
     return TextTheme(
       displayLarge: base.copyWith(
           fontSize: 28, fontWeight: FontWeight.w600, color: colors.textPrimary),

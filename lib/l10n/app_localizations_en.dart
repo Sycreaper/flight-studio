@@ -184,4 +184,608 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get resetForm => 'Reset';
+
+  @override
+  String get settingsSearchHint => 'Search settings…';
+
+  @override
+  String get settingsResetDefaults => 'Reset to defaults';
+
+  @override
+  String get settingsResetDefaultsConfirm =>
+      'Reset all settings to their defaults? This cannot be undone.';
+
+  @override
+  String get settingsReset => 'Reset';
+
+  @override
+  String get settingsCancel => 'Cancel';
+
+  @override
+  String get settingsClose => 'Close';
+
+  @override
+  String get settingsSave => 'Save';
+
+  @override
+  String get settingsEdit => 'Edit';
+
+  @override
+  String get settingsBrowse => 'Browse…';
+
+  @override
+  String get settingsNotSet => 'Not set';
+
+  @override
+  String get settingsRestartHint =>
+      'Restart Flight Studio for this change to take full effect.';
+
+  @override
+  String get settingsPlannedBadge => 'Planned';
+
+  @override
+  String get settingsConnectedBadge => 'Connected';
+
+  @override
+  String get settingsDisconnectedBadge => 'Disconnected';
+
+  @override
+  String get gearMenuTooltip => 'Open menu';
+
+  @override
+  String get gearMenuSettings => 'Settings…';
+
+  @override
+  String get gearMenuAbout => 'About Flight Studio';
+
+  @override
+  String get gearMenuCheckUpdates => 'Check for Updates…';
+
+  @override
+  String get gearMenuCheckUpdatesNone => 'You are running the latest version.';
+
+  @override
+  String get gearMenuHelp => 'Help';
+
+  @override
+  String get gearMenuExit => 'Exit';
+
+  @override
+  String get toolbarHome => 'Back to welcome';
+
+  @override
+  String get aboutDialogTitle => 'About Flight Studio';
+
+  @override
+  String get settingsCategoryGeneral => 'General';
+
+  @override
+  String get settingsCategoryGeneralDesc =>
+      'Appearance, language and startup behaviour.';
+
+  @override
+  String get settingsCategorySimulator => 'Simulator';
+
+  @override
+  String get settingsCategorySimulatorDesc =>
+      'X-Plane, MSFS and Prepar3D bridges.';
+
+  @override
+  String get settingsCategoryNavdata => 'Navigation Data';
+
+  @override
+  String get settingsCategoryNavdataDesc =>
+      'Airports, airways, procedures and AIRAC sources.';
+
+  @override
+  String get settingsCategoryAi => 'AI Copilot';
+
+  @override
+  String get settingsCategoryAiDesc =>
+      'Bring your own LLM key and configure tool access.';
+
+  @override
+  String get settingsCategoryRemote => 'Remote Access';
+
+  @override
+  String get settingsCategoryRemoteDesc =>
+      'Embedded server for phone and web clients.';
+
+  @override
+  String get settingsCategoryAbout => 'About';
+
+  @override
+  String get settingsCategoryAboutDesc => 'Version, license and credits.';
+
+  @override
+  String get settingsAppearanceTitle => 'Appearance';
+
+  @override
+  String get settingsTheme => 'Theme';
+
+  @override
+  String get settingsThemeDark => 'Dark';
+
+  @override
+  String get settingsThemeLight => 'Light';
+
+  @override
+  String get settingsThemeSystem => 'Follow system';
+
+  @override
+  String get settingsThemeHint =>
+      'Dark is recommended for cockpit use at night.';
+
+  @override
+  String get settingsLanguage => 'Language';
+
+  @override
+  String get settingsLanguageHint => 'Application interface language.';
+
+  @override
+  String get settingsLanguageEn => 'English';
+
+  @override
+  String get settingsLanguageZh => '中文（简体）';
+
+  @override
+  String get settingsStartupTitle => 'Startup';
+
+  @override
+  String get settingsReopenLastWorkspace => 'Reopen last workspace on launch';
+
+  @override
+  String get settingsReopenLastWorkspaceHint =>
+      'Skip the welcome screen and jump straight into your last session.';
+
+  @override
+  String get settingsCheckUpdatesOnLaunch => 'Check for updates on launch';
+
+  @override
+  String get settingsCheckUpdatesOnLaunchHint =>
+      'Notify when a new Flight Studio build is available.';
+
+  @override
+  String get settingsUnitsTitle => 'Default units';
+
+  @override
+  String get settingsUnitsMetric => 'Metric (kg, km)';
+
+  @override
+  String get settingsUnitsImperial => 'Imperial (lb, nm)';
+
+  @override
+  String get settingsUnitsHint =>
+      'Used by new flight plans and the fuel planner.';
+
+  @override
+  String get settingsSimulatorTitle => 'Simulator connections';
+
+  @override
+  String get settingsSimulatorDesc =>
+      'Flight Studio reads telemetry and sends commands through per-simulator bridges. Only one simulator needs to be connected at a time.';
+
+  @override
+  String get settingsXplaneTitle => 'X-Plane 12';
+
+  @override
+  String settingsXplaneStatusConnected(int port) {
+    return 'Bridge detected on port $port';
+  }
+
+  @override
+  String get settingsXplaneStatusDisconnected => 'Not connected';
+
+  @override
+  String get settingsXplaneInstallPath => 'X-Plane install folder';
+
+  @override
+  String get settingsXplaneInstallHint =>
+      'Location of the X-Plane 12 root (contains ‘Resources’ and ‘Aircraft’).';
+
+  @override
+  String get settingsXplaneInstallPick => 'Choose folder…';
+
+  @override
+  String get settingsXplaneInstallClear => 'Clear';
+
+  @override
+  String get settingsXplaneUdpPort => 'Telemetry UDP port';
+
+  @override
+  String get settingsXplaneUdpPortHint =>
+      'Port X-Plane sends Data Output to (default 49000).';
+
+  @override
+  String get settingsXplaneBridgePort => 'Bridge command port';
+
+  @override
+  String get settingsXplaneBridgePortHint =>
+      'Port the bundled FlyWithLua script listens on (default 49001).';
+
+  @override
+  String get settingsXplaneInstallBridge => 'Install FlyWithLua bridge…';
+
+  @override
+  String get settingsXplaneInstallBridgeHint =>
+      'Copies FlightStudioBridge.lua into the FlyWithLua Scripts folder.';
+
+  @override
+  String get settingsXplaneTestConnection => 'Test connection';
+
+  @override
+  String get settingsMsfsTitle => 'MSFS 2020 / 2024 & Prepar3D';
+
+  @override
+  String get settingsMsfsPlanned =>
+      'The C++ SimConnect bridge daemon is planned for a later phase. Telemetry and command support for MSFS and Prepar3D will share this adapter.';
+
+  @override
+  String get settingsMsfsBridgePath => 'SimConnect bridge daemon';
+
+  @override
+  String get settingsMsfsBridgePathHint =>
+      'Auto-discovered when the daemon ships.';
+
+  @override
+  String get settingsNavdataTitle => 'Navigation data sources';
+
+  @override
+  String get settingsNavdataDesc =>
+      'Mix and match sources. The trust layer shows where each plan’s data came from and validates AIRAC consistency on import/export.';
+
+  @override
+  String get settingsNavdataBundledTitle => 'Bundled (free & open)';
+
+  @override
+  String get settingsNavdataOurAirports => 'OurAirports';
+
+  @override
+  String get settingsNavdataOurAirportsHint =>
+      'Airports, runways, frequencies and navaids (Public Domain).';
+
+  @override
+  String get settingsNavdataFaaCifp => 'FAA CIFP / NASR';
+
+  @override
+  String get settingsNavdataFaaCifpHint =>
+      'U.S. instrument procedures (Public Domain).';
+
+  @override
+  String get settingsNavdataXplaneNative => 'Parse X-Plane native files';
+
+  @override
+  String get settingsNavdataXplaneNativeHint =>
+      'Reads apt.dat, earth_nav.dat, earth_fix.dat and awy.dat directly from the install folder.';
+
+  @override
+  String get settingsNavdataRefreshBundled => 'Refresh bundled data';
+
+  @override
+  String get settingsNavdataNavigraphTitle => 'Navigraph (user subscription)';
+
+  @override
+  String get settingsNavdataNavigraphHint =>
+      'Sign in with your own Navigraph account. Charts and AIRAC are never bundled or redistributed by Flight Studio.';
+
+  @override
+  String settingsNavdataNavigraphSignedIn(String user) {
+    return 'Signed in as $user';
+  }
+
+  @override
+  String get settingsNavdataNavigraphSignedOut => 'Not signed in';
+
+  @override
+  String get settingsNavdataNavigraphSignIn => 'Sign in with Navigraph…';
+
+  @override
+  String get settingsNavdataNavigraphSignOut => 'Sign out';
+
+  @override
+  String get settingsNavdataNavigraphAirac => 'Active AIRAC cycle';
+
+  @override
+  String get settingsNavdataNavigraphAiracNone => 'Not available';
+
+  @override
+  String get settingsNavdataSimBriefTitle => 'SimBrief (free account)';
+
+  @override
+  String get settingsNavdataSimBriefHint =>
+      'Link your SimBrief account to import OFPs and route strings. Nothing is redistributed.';
+
+  @override
+  String settingsNavdataSimBriefLinked(String username) {
+    return 'Linked to $username';
+  }
+
+  @override
+  String get settingsNavdataSimBriefNotLinked => 'Not linked';
+
+  @override
+  String get settingsNavdataSimBriefLink => 'Link SimBrief account…';
+
+  @override
+  String get settingsNavdataSimBriefUnlink => 'Unlink';
+
+  @override
+  String get settingsAiTitle => 'AI Copilot';
+
+  @override
+  String get settingsAiDesc =>
+      'The assistant is constrained to call MCP tools for anything with side effects — it never computes routes or writes files itself. Route calculation, export and simulator commands run as deterministic Dart.';
+
+  @override
+  String get settingsAiProvider => 'Provider';
+
+  @override
+  String get settingsAiProviderOpenAi => 'OpenAI-compatible';
+
+  @override
+  String get settingsAiProviderAnthropic => 'Anthropic';
+
+  @override
+  String get settingsAiProviderOllama => 'Local (Ollama)';
+
+  @override
+  String get settingsAiProviderHint =>
+      'OpenAI-compatible covers OpenAI, Groq, Together, OpenRouter, LM Studio, etc.';
+
+  @override
+  String get settingsAiApiKey => 'API key';
+
+  @override
+  String get settingsAiApiKeyHint =>
+      'Stored locally on this device and only ever sent to the provider you pick.';
+
+  @override
+  String get settingsAiApiKeyHidden => 'Key set (hidden)';
+
+  @override
+  String get settingsAiClearApiKey => 'Clear';
+
+  @override
+  String get settingsAiEndpoint => 'Endpoint URL';
+
+  @override
+  String get settingsAiEndpointHint =>
+      'Override the provider’s default base URL (e.g. http://localhost:11434 for Ollama).';
+
+  @override
+  String get settingsAiEndpointPlaceholder => 'https://api.openai.com/v1';
+
+  @override
+  String get settingsAiModel => 'Model';
+
+  @override
+  String get settingsAiModelHint =>
+      'Example: gpt-4o-mini, claude-3-5-sonnet, llama3.1.';
+
+  @override
+  String get settingsAiModelPlaceholder => 'model-id';
+
+  @override
+  String get settingsAiToolPolicy => 'Tool policy';
+
+  @override
+  String get settingsAiConfirmWrites =>
+      'Require confirmation for write actions';
+
+  @override
+  String get settingsAiConfirmWritesHint =>
+      'Export, simulator commands and file writes need your approval before they run.';
+
+  @override
+  String get settingsAiAutoRead => 'Allow read tools without confirmation';
+
+  @override
+  String get settingsAiAutoReadHint =>
+      'Navdata, weather, telemetry and flight records are surfaced to the model without prompting.';
+
+  @override
+  String get settingsRemoteTitle => 'Remote access';
+
+  @override
+  String get settingsRemoteDesc =>
+      'Host an embedded HTTP/WebSocket server in-process so the companion phone and web clients can watch the moving map, pause the sim and operate the MCDU over LAN.';
+
+  @override
+  String get settingsRemoteEnable => 'Enable embedded server';
+
+  @override
+  String get settingsRemotePort => 'Listen port';
+
+  @override
+  String get settingsRemotePortHint =>
+      'TCP port the desktop app listens on (default 48080).';
+
+  @override
+  String get settingsRemoteToken => 'Access token';
+
+  @override
+  String get settingsRemoteTokenHint =>
+      'Shared secret every phone/web client must present.';
+
+  @override
+  String get settingsRemoteRegenerateToken => 'Regenerate token';
+
+  @override
+  String get settingsRemoteStatusTitle => 'Server status';
+
+  @override
+  String get settingsRemoteNotRunning => 'Not running';
+
+  @override
+  String settingsRemoteRunningOn(String host, int port) {
+    return 'Listening on http://$host:$port';
+  }
+
+  @override
+  String get settingsRemoteMdns => 'Advertise on local network (mDNS)';
+
+  @override
+  String get settingsRemoteMdnsHint =>
+      'Lets the companion apps discover this machine automatically.';
+
+  @override
+  String get settingsAboutTitle => 'About Flight Studio';
+
+  @override
+  String get settingsAboutVersion => 'Version';
+
+  @override
+  String get settingsAboutLicense => 'License';
+
+  @override
+  String get settingsAboutLicenseValue =>
+      'MIT — permissive, clean-room reimplementation';
+
+  @override
+  String get settingsAboutViewLicense => 'View full license';
+
+  @override
+  String get settingsAboutThirdParty => 'Third-party data';
+
+  @override
+  String get settingsAboutThirdPartyDesc =>
+      'Navigraph and SimBrief data is user-licensed and never redistributed. OpenStreetMap tiles are © OSM contributors (ODbL). OurAirports and FAA CIFP/NASR are Public Domain.';
+
+  @override
+  String get settingsAboutViewThirdParty => 'View third-party notices';
+
+  @override
+  String get settingsAboutHomepage => 'Homepage';
+
+  @override
+  String get settingsAboutOpenSource => 'Open source on GitHub';
+
+  @override
+  String get settingsAboutInspiredBy =>
+      'Inspired by Little Navmap (no GPL source reused).';
+
+  @override
+  String get tabSettings => 'Settings';
+
+  @override
+  String get welcomeSubtitle => 'Flight Planner';
+
+  @override
+  String get ttNewFlightPlan => 'New flight plan';
+
+  @override
+  String get ttOpenFlightPlan => 'Open flight plan';
+
+  @override
+  String get ttExport => 'Export';
+
+  @override
+  String get ttCalculateRoute => 'Calculate route';
+
+  @override
+  String get ttConnectSim => 'Connect simulator';
+
+  @override
+  String get ttPauseSim => 'Pause simulator';
+
+  @override
+  String get ttToggleProjection => 'Toggle projection';
+
+  @override
+  String get ttCalculatePlan => 'Calculate plan';
+
+  @override
+  String get ttResetForm => 'Reset form';
+
+  @override
+  String get ttImportRoute => 'Import route';
+
+  @override
+  String get ttExportPlan => 'Export plan';
+
+  @override
+  String get ttFetchSimBrief => 'Fetch from SimBrief';
+
+  @override
+  String get ttSavePlan => 'Save plan';
+
+  @override
+  String get mapPlaceholder => 'Map';
+
+  @override
+  String get mapApiKeyCta => 'Bind your map API key to enable live tiles';
+
+  @override
+  String get mapLoadError => 'Map failed to load';
+
+  @override
+  String get mapErrorNoNetwork =>
+      'No network connection — check your internet and retry.';
+
+  @override
+  String get mapError404 =>
+      'Tile server returned 404. The tile URL may be incorrect or the server is down.';
+
+  @override
+  String mapErrorGeneric(String code) {
+    return 'Error $code';
+  }
+
+  @override
+  String get mapRetry => 'Retry';
+
+  @override
+  String get mapZoomIn => 'Zoom in';
+
+  @override
+  String get mapZoomOut => 'Zoom out';
+
+  @override
+  String get statusConnected => 'Connected';
+
+  @override
+  String get statusNoNavdata => 'No navdata loaded';
+
+  @override
+  String get statusCpu => 'CPU';
+
+  @override
+  String get statusMem => 'MEM';
+
+  @override
+  String get panelFlightPlans => 'Flight Plans';
+
+  @override
+  String get panelInspector => 'Inspector';
+
+  @override
+  String get panelProfile => 'Profile';
+
+  @override
+  String get hidePanel => 'Hide';
+
+  @override
+  String get inspectorHint =>
+      'Select a waypoint or leg on the map to inspect its details.';
+
+  @override
+  String get treeNoPlans => 'No flight plans';
+
+  @override
+  String get treeCreateHint => 'Click to create one';
+
+  @override
+  String get profileTabAltitude => 'Altitude';
+
+  @override
+  String get profileTabFuel => 'Fuel';
+
+  @override
+  String get profileTabSpeed => 'Speed';
+
+  @override
+  String get profileTabWeather => 'Weather';
+
+  @override
+  String get profileHint => 'Altitude/fuel profile will render here';
 }

@@ -1,12 +1,17 @@
 /// The kind of content a main-window tab hosts.
-enum TabType { map, flightPlan }
+///
+/// `settings` is a singleton — [AppTabController.openOrCreateSettingsTab]
+/// guarantees at most one settings tab exists at any time.
+enum TabType { map, flightPlan, settings }
 
-/// A single tab in the main window. Map tabs show the chart + profile; flight
-/// plan tabs host the detailed route-building form.
+/// A single tab in the main window.
+///
+/// `title` is intentionally omitted — the visible label is resolved from
+/// [type] at render time (in `_TabChip.build`) via `AppLocalizations` so it
+/// tracks the active locale without the controller needing a `BuildContext`.
 class AppTab {
-  AppTab({required this.id, required this.type, required this.title});
+  AppTab({required this.id, required this.type});
 
   final String id;
   final TabType type;
-  String title;
 }

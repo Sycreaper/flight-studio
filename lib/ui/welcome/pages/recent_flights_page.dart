@@ -136,7 +136,7 @@ class _EmptyState extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     return Center(
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 520),
+        constraints: const BoxConstraints(maxWidth: 560),
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(vertical: 24),
           child: Column(
@@ -155,33 +155,39 @@ class _EmptyState extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 28),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _ActionTile(
-                      icon: Icons.edit_note_rounded,
-                      label: l10n.createFlight,
-                      hint: l10n.createFlightHint,
-                      onTap: onCreateFlight,
-                    ),
-                    const SizedBox(width: 16),
-                    _ActionTile(
-                      icon: Icons.public_rounded,
-                      label: l10n.worldMap,
-                      hint: l10n.worldMapHint,
-                      onTap: onWorldMap,
-                    ),
-                    const SizedBox(width: 16),
-                    _ActionTile(
-                      icon: Icons.school_rounded,
-                      label: l10n.flightAcademy,
-                      hint: l10n.flightAcademyHint,
-                      onTap: onFlightAcademy,
-                    ),
-                  ],
+              // Three identical-sized action tiles. Wrap in an
+              // [IntrinsicHeight] with `CrossAxisAlignment.stretch` so every
+              // tile expands to match the tallest — and each tile also gets a
+              // fixed `width` and `height` so they look uniform regardless of
+              // how the hint text wraps in either language.
+              Center(
+                child: IntrinsicHeight(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _ActionTile(
+                        icon: Icons.edit_note_rounded,
+                        label: l10n.createFlight,
+                        hint: l10n.createFlightHint,
+                        onTap: onCreateFlight,
+                      ),
+                      const SizedBox(width: 16),
+                      _ActionTile(
+                        icon: Icons.public_rounded,
+                        label: l10n.worldMap,
+                        hint: l10n.worldMapHint,
+                        onTap: onWorldMap,
+                      ),
+                      const SizedBox(width: 16),
+                      _ActionTile(
+                        icon: Icons.school_rounded,
+                        label: l10n.flightAcademy,
+                        hint: l10n.flightAcademyHint,
+                        onTap: onFlightAcademy,
+                      ),
+                    ],
+                  ),
                 ),
               ),
           ],
@@ -220,9 +226,13 @@ class _ActionTileState extends State<_ActionTile> {
       onEnter: (_) => setState(() => _hovering = true),
       onExit: (_) => setState(() => _hovering = false),
       child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
         onTap: widget.onTap,
         child: AnimatedContainer(
-          width: 140,
+          width: 168,
+          // Fixed height so all three tiles line up even if the hint text
+          // wraps differently per language.
+          height: 168,
           duration: const Duration(milliseconds: 120),
           padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 12),
           decoration: BoxDecoration(
@@ -235,12 +245,13 @@ class _ActionTileState extends State<_ActionTile> {
             borderRadius: BorderRadius.circular(12),
           ),
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(widget.icon,
-                  size: 26,
+                  size: 30,
                   color: _hovering ? colors.accent : colors.textPrimary),
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
               Text(
                 widget.label,
                 style: TextStyle(
@@ -250,7 +261,7 @@ class _ActionTileState extends State<_ActionTile> {
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 6),
               Text(
                 widget.hint,
                 style: TextStyle(fontSize: 11, color: colors.textSecondary),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../features/flights/flight_record.dart';
+import '../../../l10n/app_localizations.dart';
 import '../theme/app_colors.dart';
 
 /// A JetBrains-IDEA "Project"-style tree listing saved flight plans, shown in
@@ -20,6 +21,7 @@ class FlightPlanTree extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     if (plans.isEmpty) {
       return _EmptyPlans(onCreate: onCreate);
     }
@@ -34,7 +36,7 @@ class FlightPlanTree extends StatelessWidget {
             children: [
               _TreeNode(
                 icon: Icons.flight_rounded,
-                label: 'Flight Plans (${plans.length})',
+                label: '${l10n.panelFlightPlans} (${plans.length})',
                 bold: true,
                 expanded: true,
                 children: plans
@@ -56,12 +58,13 @@ class _CreateRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppColors>()!;
+    final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
       child: Row(
         children: [
           Text(
-            'FLIGHT PLANS',
+            l10n.panelFlightPlans.toUpperCase(),
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w700,
@@ -71,7 +74,7 @@ class _CreateRow extends StatelessWidget {
           ),
           const Spacer(),
           IconButton(
-            tooltip: 'New flight plan',
+            tooltip: l10n.ttNewFlightPlan,
             onPressed: onCreate,
             icon: const Icon(Icons.add_rounded, size: 16),
             color: colors.textSecondary,
@@ -91,6 +94,7 @@ class _EmptyPlans extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppColors>()!;
+    final l10n = AppLocalizations.of(context)!;
     return InkWell(
       onTap: onCreate,
       borderRadius: BorderRadius.circular(8),
@@ -106,7 +110,7 @@ class _EmptyPlans extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             Text(
-              'No flight plans',
+              l10n.treeNoPlans,
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
@@ -115,7 +119,7 @@ class _EmptyPlans extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              'Click to create one',
+              l10n.treeCreateHint,
               style: TextStyle(fontSize: 11, color: colors.accent),
             ),
           ],

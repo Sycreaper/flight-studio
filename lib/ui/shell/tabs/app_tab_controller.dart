@@ -7,10 +7,15 @@ import 'app_tab.dart';
 /// Follows the project's ChangeNotifier + MVVM convention; widgets rebuild via
 /// `ListenableBuilder` on this controller. Closing the last tab is allowed and
 /// yields an empty state (no open tabs).
+///
+/// Tab **titles are not stored** — they are resolved from `TabType` at render
+/// time (in `_TabChip.build`) via `AppLocalizations`. This keeps the tab label
+/// in sync with the active locale without the controller needing a
+/// `BuildContext`.
 class AppTabController extends ChangeNotifier {
   AppTabController() {
     // Always start with a single map tab so the window is never empty.
-    _tabs.add(AppTab(id: _nextId(), type: TabType.map, title: 'Map'));
+    _tabs.add(AppTab(id: _nextId(), type: TabType.map));
     _selectedId = _tabs.first.id;
   }
 
@@ -32,13 +37,36 @@ class AppTabController extends ChangeNotifier {
 
   /// Opens a new tab of [type] and selects it.
   void add(TabType type) {
-    final tab = AppTab(
-      id: _nextId(),
-      type: type,
-      title: type == TabType.map ? 'Map' : 'Flight Plan',
-    );
+    final tab = AppTab(id: _nextId(), type: type);
     _tabs.add(tab);
     _selectedId = tab.id;
+    notifyListeners();
+  }
+
+  /// Opens the settings tab. Unlike [add], the settings tab is a **singleton**
+  /// — if one already exists it is simply selected; if not, a new one is
+  /// created. This matches VS Code's behaviour where the gear → Settings
+  /// always lands on the same tab regardless of how many times it's clicked.
+  void openOrCreateSettingsTab() {
+    final existing =
+    _tabs.cast<AppTab?>().firstWhere((t) => t?.type == TabType.settings,
+        orElse: () => null);
+    if (existing != null) {
+      select(existing.id);
+      return;
+    }
+    add(TabType.settings);
+  }
+
+  /// Moves the tab at [fromIndex] to [toIndex], keeping the selection on the
+  /// same tab (by id). Used by the drag-to-reorder gesture in the tab bar —
+  /// the open windows / content are not affected, only the visual order.
+  void move(int fromIndex, int toIndex) {
+    if (fromIndex == toIndex) return;
+    if (fromIndex < 0 || fromIndex >= _tabs.length) return;
+    if (toIndex < 0 || toIndex >= _tabs.length) return;
+    final tab = _tabs.removeAt(fromIndex);
+    _tabs.insert(toIndex, tab);
     notifyListeners();
   }
 
