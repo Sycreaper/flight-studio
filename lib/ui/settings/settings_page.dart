@@ -5,6 +5,7 @@ import '../../../l10n/app_localizations.dart';
 import '../theme/app_colors.dart';
 import 'sections/about_section.dart';
 import 'sections/ai_copilot_section.dart';
+import 'sections/api_keys_section.dart';
 import 'sections/general_section.dart';
 import 'sections/navdata_section.dart';
 import 'sections/remote_access_section.dart';
@@ -12,7 +13,7 @@ import 'sections/simulator_section.dart';
 
 /// The categories shown in the settings nav rail. Public so the gear-menu can
 /// request a landing section without re-implementing the list.
-enum SettingsSection { general, simulator, navdata, ai, remote, about }
+enum SettingsSection { general, apiKeys, simulator, navdata, ai, remote, about }
 
 /// Top-level settings screen, designed to live inside a [FloatingWindow].
 ///
@@ -76,6 +77,8 @@ class SettingsPage extends StatelessWidget {
     switch (section) {
       case SettingsSection.general:
         return GeneralSection(controller: controller);
+      case SettingsSection.apiKeys:
+        return ApiKeysSection(controller: controller);
       case SettingsSection.simulator:
         return SimulatorSection(controller: controller);
       case SettingsSection.navdata:
@@ -146,6 +149,12 @@ class _SettingsNavRail extends StatelessWidget {
         label: l10n.settingsCategoryGeneral,
         description: l10n.settingsCategoryGeneralDesc,
         section: SettingsSection.general,
+      ),
+      _NavItem(
+        icon: Icons.vpn_key_rounded,
+        label: l10n.settingsCategoryApiKeys,
+        description: l10n.settingsCategoryApiKeysDesc,
+        section: SettingsSection.apiKeys,
       ),
       _NavItem(
         icon: Icons.flight_takeoff_rounded,

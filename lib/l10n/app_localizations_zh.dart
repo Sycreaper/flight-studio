@@ -760,4 +760,236 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get profileHint => '高度/燃油剖面将在此处显示';
+
+  @override
+  String get settingsCategoryApiKeys => 'API 密钥';
+
+  @override
+  String get settingsCategoryApiKeysDesc => '地图瓦片、AI 副驾驶和航班追踪的凭证。';
+
+  @override
+  String get apiKeysSecurityNote => '密钥仅存储于本设备，保存后不再完整显示。';
+
+  @override
+  String get apiTileProvider => '地图瓦片提供商';
+
+  @override
+  String get apiTileProviderHint => '选择光栅地图瓦片来源。OSM 免费且无需密钥。';
+
+  @override
+  String get apiTileProviderOsm => 'OSM';
+
+  @override
+  String get apiTileProviderMapboxStreets => 'Mapbox 街道';
+
+  @override
+  String get apiTileProviderMapboxSatellite => 'Mapbox 卫星';
+
+  @override
+  String get apiTileProviderCustom => '自定义';
+
+  @override
+  String get apiMapboxToken => 'Mapbox 访问令牌';
+
+  @override
+  String get apiMapboxTokenHint => '在 mapbox.com 获取免费令牌。使用 Mapbox 瓦片时必需。';
+
+  @override
+  String get apiCustomTileUrl => '自定义瓦片 URL';
+
+  @override
+  String get apiCustomTileUrlHint =>
+      '包含 z/x/y 坐标段的 URL 模板，用于自建瓦片服务器。使用花括号包裹 z、x、y 以表示动态值。';
+
+  @override
+  String get apiCustomTileUrlPlaceholder =>
+      'https://tiles.example.com/14/8560/12745.png';
+
+  @override
+  String get apiFlightAwareKey => 'FlightAware API 密钥';
+
+  @override
+  String get apiFlightAwareKeyHint => '用于查询真实世界航班和航线灵感。';
+
+  @override
+  String get apiKeySet => '密钥已设置';
+
+  @override
+  String get apiKeyAdd => '添加 API 密钥';
+
+  @override
+  String get apiKeyAddTitle => '添加 API 密钥';
+
+  @override
+  String get apiKeyType => '类型';
+
+  @override
+  String get apiKeyTypeHint => '选择 API 凭证类型';
+
+  @override
+  String get apiKeyValue => 'API 密钥';
+
+  @override
+  String get apiKeyValueHint => '在此粘贴你的密钥。保存后将自动掩码。';
+
+  @override
+  String get apiKeyLabel => '标签（可选）';
+
+  @override
+  String get apiKeyLabelHint => '帮助你识别此密钥的名称';
+
+  @override
+  String get apiKeyEmpty => '未存储 API 密钥';
+
+  @override
+  String get apiKeyEmptyHint => '点击 + 添加';
+
+  @override
+  String get apiKeyTypeMapboxToken => 'Mapbox 令牌';
+
+  @override
+  String get apiKeyTypeOsmToken => 'OSM 瓦片令牌';
+
+  @override
+  String get apiKeyTypeAiCopilot => 'AI 副驾驶密钥';
+
+  @override
+  String get apiKeyTypeFlightAware => 'FlightAware 密钥';
+
+  @override
+  String get apiKeyTypeCustomTileUrl => '自定义瓦片 URL';
+
+  @override
+  String get mapTheme => '地图主题';
+
+  @override
+  String get mapProjectionFlat => '平面（2D）';
+
+  @override
+  String get mapProjectionGlobe => '球体（3D）';
+
+  @override
+  String get mapNetworkRepair => '网络修复';
+
+  @override
+  String get apiKeyConfirmDelete => '删除此 API 密钥？';
+
+  @override
+  String get apiKeyConfirmDeleteDesc => '此操作无法撤销。';
+
+  @override
+  String get simAddTitle => '添加模拟器';
+
+  @override
+  String get simType => '模拟器类型';
+
+  @override
+  String get simTypeHint => '选择模拟器类型';
+
+  @override
+  String get simInstallPath => '安装路径';
+
+  @override
+  String get simInstallPathHint => '浏览选择模拟器根目录';
+
+  @override
+  String get simBrowse => '浏览';
+
+  @override
+  String get simPathPlaceholder => 'D:\\Resources\\Softwares\\X-Plane12';
+
+  @override
+  String get simValidating => '验证中';
+
+  @override
+  String get simValid => '找到有效安装';
+
+  @override
+  String get simInvalid => '此目录中未找到 X-Plane.exe';
+
+  @override
+  String get simLabel => '标签（可选）';
+
+  @override
+  String get simLabelHint => '用于识别此安装的名称';
+
+  @override
+  String get simXplane12 => 'X-Plane 12';
+
+  @override
+  String get simMsfs2020 => 'MSFS 2020';
+
+  @override
+  String get simMsfs2024 => 'MSFS 2024';
+
+  @override
+  String get simPrepar3dV4 => 'Prepar3D v4';
+
+  @override
+  String get simPrepar3dV5 => 'Prepar3D v5';
+
+  @override
+  String get simPrepar3dV6 => 'Prepar3D v6';
+
+  @override
+  String get simComingSoon => '敬请期待 —— 将在后续阶段支持';
+
+  @override
+  String get simEmpty => '未添加模拟器';
+
+  @override
+  String get simEmptyHint => '点击 + 添加';
+
+  @override
+  String get navAddTitle => '添加导航数据源';
+
+  @override
+  String get navSelectSimulator => '选择模拟器';
+
+  @override
+  String get navNoSimulator => '未找到模拟器，请先添加一个模拟器。';
+
+  @override
+  String get navDataType => '数据类型';
+
+  @override
+  String get navDefaultData => '默认数据';
+
+  @override
+  String get navCustomData => '自定义数据';
+
+  @override
+  String get navCustomPath => '自定义数据路径';
+
+  @override
+  String get navScan => '扫描';
+
+  @override
+  String get navScanning => '扫描中';
+
+  @override
+  String get navEmpty => '无导航数据源';
+
+  @override
+  String get navEmptyHint => '点击 + 添加';
+
+  @override
+  String simInvalidNotFound(String exe) {
+    return '此目录中未找到 $exe';
+  }
+
+  @override
+  String get simConfirmDelete => '移除此模拟器？';
+
+  @override
+  String get simConfirmDeleteDesc => '关联的导航数据源也会被移除。';
+
+  @override
+  String get navConfirmDelete => '移除此导航数据源？';
+
+  @override
+  String get navConfirmDeleteDesc => '此操作无法撤销。';
+
+  @override
+  String get navCheckAll => '检查全部导航数据';
 }

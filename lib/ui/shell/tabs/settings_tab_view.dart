@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../data/settings/settings_controller.dart';
 import '../../settings/settings_page.dart';
-import '../../theme/app_colors.dart';
+import '../../widgets/center_card.dart';
 
 /// Renders the [SettingsPage] as a workspace centre card.
 ///
@@ -46,14 +46,7 @@ class SettingsTabViewState extends State<SettingsTabView> {
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).extension<AppColors>()!;
-    return Container(
-      decoration: BoxDecoration(
-        color: colors.surfaceRaised,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: colors.border),
-      ),
-      clipBehavior: Clip.antiAlias,
+    return CenterCard(
       child: SettingsPage(
         controller: widget.controller,
         section: _section,

@@ -50,6 +50,7 @@ class AppShell extends StatefulWidget {
 class AppShellState extends State<AppShell> {
   late final AppTabController _tabController;
   late final WorkspaceController _workspace;
+  final GlobalKey<SettingsTabViewState> _settingsTabKey = GlobalKey();
 
   @override
   void initState() {
@@ -96,19 +97,17 @@ class AppShellState extends State<AppShell> {
   }
 
   /// Opens the settings tab (singleton). If a settings tab already exists it is
-  /// selected; otherwise a new one is created. When [section] is provided and
-  /// a settings tab is already visible, its state is asked to jump to that
-  /// section.
+  /// selected and [goToSection] is called on its live state; if not, a new one
+  /// is created with [section] as the initial landing spot.
   void openSettingsTab({SettingsSection? section}) {
-    final existed = _tabController.tabs.any((t) => t.type == TabType.settings);
     _tabController.openOrCreateSettingsTab();
-    if (section != null && existed) {
-      // The IndexedStack keeps every tab's state alive, so we can find the
-      // SettingsTabView's state via its GlobalKey. However, we don't have a
-      // key reference here — instead, SettingsTabView reads the section from
-      // a value notifier. For now, the simpler approach: the section is only
-      // honoured on first open via initialSettingsSection. If the tab already
-      // existed, the user simply lands on whatever section was last visible.
+    if (section != null) {
+      // Use a post-frame callback so the widget is mounted before we call
+      // its state method (especially important when the tab was just created
+      // and hasn't built yet).
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _settingsTabKey.currentState?.goToSection(section);
+      });
     }
   }
 
@@ -195,7 +194,7 @@ class AppShellState extends State<AppShell> {
         return FlightPlanFormTab(key: ValueKey('plan_${tab.id}'));
       case TabType.settings:
         return SettingsTabView(
-          key: const ValueKey('settings'),
+          key: _settingsTabKey,
           controller: widget.settings,
           initialSection:
           widget.initialSettingsSection ?? SettingsSection.general,

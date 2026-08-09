@@ -180,10 +180,14 @@ lib/
 **MVP boundary = Phases 1–4** (X-Plane 12 planner + tracker). Phases 5+ are growth.
 
 - [x] **Phase 0** — Project foundation: layered `lib/`, JetBrains-style workspace (tabs, tool docks, drawers, resizable
-  cards, custom window chrome), theme, i18n.
-- [ ] **Phase 1** — Domain core & data models: four cloud-ready objects (`PilotProfile`/`AircraftState`/`FlightIntent`/
+  cards, custom window chrome), theme, i18n. Settings system with live theme/locale switch, gear popup menu,
+  floating-window dialogs, API key vault, map tile provider integration (flutter_map + OSM/Mapbox/custom), workspace
+  layout persistence (drawer sizes + visibility survive restart).
+- [/] **Phase 1** — Domain core & data models: four cloud-ready objects (`PilotProfile`/`AircraftState`/`FlightIntent`/
   `FlightRecord`), abstract repositories, drift schema, coordinate/unit utils. Reserves the `lib/ai/`
-  scaffold (`McpTool` registry, BYOK `LlmProvider` interface, credential hook).
+  scaffold (`McpTool` registry, BYOK `LlmProvider` interface, credential hook). Domain models, geo/unit utils, drift
+  schema, repository interfaces, and AI scaffold are **done**; remaining work wires the drift database to real data and
+  populates the MCP tool registry.
 - [ ] **Phase 2** — X-Plane navdata + map: stream-parse `apt.dat`/`earth_nav`/
   `fix`/`awy`/CIFP → SQLite, flutter_map rendering, airport search. Registers read-only MCP tools.
 - [ ] **Phase 3** — Route planning (dual source): local A\* engine + SimBrief import behind one `RouteSource`,

@@ -5,34 +5,28 @@ import '../../../data/settings/settings_enums.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../theme/app_colors.dart';
 import '../settings_page.dart';
+import '../settings_window.dart';
 import '../widgets/settings_text_field.dart';
 import '../widgets/settings_tile.dart';
 
 /// AI Copilot (BYOK) configuration.
 ///
-/// Every field is fully interactive and persists locally. The actual LLM
-/// transport and MCP tool registry ship in later phases — these values are the
-/// inputs those phases will read.
-class AiCopilotSection extends StatefulWidget {
+/// The API key itself is managed centrally in the **API Keys** settings
+/// section — this section only configures which provider / endpoint / model
+/// the key is for, plus the tool-policy toggles.
+class AiCopilotSection extends StatelessWidget {
   const AiCopilotSection({super.key, required this.controller});
 
   final SettingsController controller;
-
-  @override
-  State<AiCopilotSection> createState() => _AiCopilotSectionState();
-}
-
-class _AiCopilotSectionState extends State<AiCopilotSection> {
-  bool _obscureKey = true;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final colors = Theme.of(context).extension<AppColors>()!;
     return ListenableBuilder(
-      listenable: widget.controller,
+      listenable: controller,
       builder: (context, _) {
-        final s = widget.controller.value;
+        final s = controller.value;
         return SettingsSectionBody(
           title: l10n.settingsAiTitle,
           description: l10n.settingsAiDesc,
@@ -47,7 +41,7 @@ class _AiCopilotSectionState extends State<AiCopilotSection> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   trailing: SettingsSegmentedControl<AiProvider>(
                     value: s.aiProvider,
-                    onChanged: widget.controller.setAiProvider,
+                    onChanged: controller.setAiProvider,
                     items: [
                       SettingsSegment(
                         value: AiProvider.openAi,
@@ -66,18 +60,15 @@ class _AiCopilotSectionState extends State<AiCopilotSection> {
                 ),
                 SettingsTile(
                   title: l10n.settingsAiApiKey,
-                  subtitle: l10n.settingsAiApiKeyHint,
+                  subtitle: s.aiConfigured
+                      ? l10n.settingsAiApiKeyHidden
+                      : l10n.settingsAiApiKeyHint,
                   leading: const Icon(Icons.key_rounded),
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  trailing: SizedBox(
-                    width: 320,
-                    child: _ApiKeyField(
-                      controller: widget.controller,
-                      obscure: _obscureKey,
-                      onToggleObscure: () =>
-                          setState(() => _obscureKey = !_obscureKey),
-                    ),
-                  ),
+                  trailing: s.aiConfigured
+                      ? SettingsBadge.connected(label: l10n.apiKeySet)
+                      : const SettingsBadge.disconnected(label: '—'),
+                  onTap: () =>
+                      openSettingsTab(context, SettingsLanding.apiKeys),
                 ),
                 SettingsTile(
                   title: l10n.settingsAiEndpoint,
@@ -90,7 +81,7 @@ class _AiCopilotSectionState extends State<AiCopilotSection> {
                       initialValue: s.aiEndpoint,
                       placeholder: l10n.settingsAiEndpointPlaceholder,
                       keyboardType: TextInputType.url,
-                      onCommit: widget.controller.setAiEndpoint,
+                      onCommit: controller.setAiEndpoint,
                     ),
                   ),
                 ),
@@ -104,7 +95,7 @@ class _AiCopilotSectionState extends State<AiCopilotSection> {
                     child: SettingsTextField(
                       initialValue: s.aiModel,
                       placeholder: l10n.settingsAiModelPlaceholder,
-                      onCommit: widget.controller.setAiModel,
+                      onCommit: controller.setAiModel,
                     ),
                   ),
                 ),
@@ -119,14 +110,14 @@ class _AiCopilotSectionState extends State<AiCopilotSection> {
                   subtitle: l10n.settingsAiConfirmWritesHint,
                   leading: const Icon(Icons.verified_user_outlined),
                   value: s.aiConfirmWrites,
-                  onChanged: widget.controller.setAiConfirmWrites,
+                  onChanged: controller.setAiConfirmWrites,
                 ),
                 SettingsSwitchTile(
                   title: l10n.settingsAiAutoRead,
                   subtitle: l10n.settingsAiAutoReadHint,
                   leading: const Icon(Icons.menu_book_outlined),
                   value: s.aiAutoRead,
-                  onChanged: widget.controller.setAiAutoRead,
+                  onChanged: controller.setAiAutoRead,
                 ),
               ],
             ),
@@ -135,14 +126,11 @@ class _AiCopilotSectionState extends State<AiCopilotSection> {
                 padding: const EdgeInsets.only(top: 14),
                 child: Row(
                   children: [
-                    Icon(
-                      Icons.check_circle_rounded,
-                      size: 14,
-                      color: colors.success,
-                    ),
+                    Icon(Icons.check_circle_rounded,
+                        size: 14, color: colors.success),
                     const SizedBox(width: 6),
                     Text(
-                      l10n.settingsAiProvider,
+                      l10n.apiKeySet,
                       style: TextStyle(
                         fontSize: 11.5,
                         color: colors.textSecondary,
@@ -154,55 +142,6 @@ class _AiCopilotSectionState extends State<AiCopilotSection> {
           ],
         );
       },
-    );
-  }
-}
-
-class _ApiKeyField extends StatelessWidget {
-  const _ApiKeyField({
-    required this.controller,
-    required this.obscure,
-    required this.onToggleObscure,
-  });
-
-  final SettingsController controller;
-  final bool obscure;
-  final VoidCallback onToggleObscure;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final s = controller.value;
-    return SettingsTextField(
-      initialValue: s.aiApiKey,
-      placeholder: l10n.settingsAiApiKeyHidden,
-      obscure: obscure,
-      onCommit: controller.setAiApiKey,
-      suffix: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (s.aiApiKey != null && s.aiApiKey!.isNotEmpty)
-            IconButton(
-              tooltip: l10n.settingsAiClearApiKey,
-              icon: const Icon(Icons.close_rounded, size: 14),
-              visualDensity: VisualDensity.compact,
-              onPressed: () => controller.setAiApiKey(null),
-            ),
-          IconButton(
-            tooltip: obscure
-                ? MaterialLocalizations.of(context).showAccountsLabel
-                : MaterialLocalizations.of(context).hideAccountsLabel,
-            icon: Icon(
-              obscure
-                  ? Icons.visibility_outlined
-                  : Icons.visibility_off_outlined,
-              size: 16,
-            ),
-            visualDensity: VisualDensity.compact,
-            onPressed: onToggleObscure,
-          ),
-        ],
-      ),
     );
   }
 }

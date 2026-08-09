@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../l10n/app_localizations.dart';
-import '../settings/settings_window.dart';
 import '../theme/app_colors.dart';
 import '../widgets/tool_button.dart';
 
@@ -72,14 +71,6 @@ class FormToolbar extends StatelessWidget {
             icon: Icons.save_rounded,
             tooltip: l10n.ttSavePlan,
             onPressed: onSave ?? () {},
-          ),
-          Builder(
-            builder: (gearContext) =>
-                ToolButton(
-                  icon: Icons.settings_rounded,
-                  tooltip: l10n.gearMenuTooltip,
-                  onPressed: () => showGearMenu(gearContext),
-                ),
           ),
         ],
       ),

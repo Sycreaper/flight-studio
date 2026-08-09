@@ -59,6 +59,7 @@ dependencies:
   # provider config). Lightweight, plugin-backed, works on every Flight Studio
   # target platform (Windows / macOS / Linux / Android / iOS / Web).
   shared_preferences: ^2.3.3
+  file_picker: ^11.0.3
 dev_dependencies:
   flutter_test:
     sdk: flutter

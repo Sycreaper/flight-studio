@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart';
 
+import '../../../data/background_tasks.dart';
 import '../../../data/settings/settings_controller.dart';
 import '../../../l10n/app_localizations.dart';
 import '../shell/app_shell.dart';
@@ -13,7 +14,7 @@ import 'settings_page.dart';
 ///
 /// Lets the gear-menu map "About" / "Settings" entries to specific landing
 /// spots without exposing the page's section enum.
-enum SettingsLanding { general, simulator, navdata, ai, remote, about }
+enum SettingsLanding { general, apiKeys, simulator, navdata, ai, remote, about }
 
 /// Carries the user [SettingsController] (theme/locale/BYOK/…) down to any
 /// widget below [FlightStudioApp]. Looked up via [AppScope.of].
@@ -100,7 +101,7 @@ RelativeRect _computeMenuPosition(BuildContext anchorContext) {
 }
 
 List<PopupMenuEntry<GearMenuAction>> _buildMenuItems(AppLocalizations l10n) {
-  return [
+  final items = <PopupMenuEntry<GearMenuAction>>[
     PopupMenuItem<GearMenuAction>(
       value: GearMenuAction.settings,
       height: 36,
@@ -144,6 +145,99 @@ List<PopupMenuEntry<GearMenuAction>> _buildMenuItems(AppLocalizations l10n) {
       ),
     ),
   ];
+
+  // Append live progress bars for active background tasks.
+  final tasks = BackgroundTaskManager.instance.tasks;
+  if (tasks.isNotEmpty) {
+    items.add(const PopupMenuDivider(height: 1));
+    for (final task in tasks) {
+      items.add(PopupMenuItem<GearMenuAction>(
+        enabled: false,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        child: _ProgressEntry(task: task),
+      ));
+    }
+  }
+
+  return items;
+}
+
+/// A live-updating progress bar shown inside the gear popup menu. Listens to
+/// [BackgroundTaskManager] so the bar animates while the menu is open.
+class _ProgressEntry extends StatefulWidget {
+  const _ProgressEntry({required this.task});
+
+  final ScanTask task;
+
+  @override
+  State<_ProgressEntry> createState() => _ProgressEntryState();
+}
+
+class _ProgressEntryState extends State<_ProgressEntry> {
+  @override
+  void initState() {
+    super.initState();
+    BackgroundTaskManager.instance.addListener(_onUpdate);
+  }
+
+  void _onUpdate() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    BackgroundTaskManager.instance.removeListener(_onUpdate);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<AppColors>()!;
+    final pct = (widget.task.progress * 100).round();
+    return SizedBox(
+      width: 200,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              Icon(widget.task.isComplete
+                  ? Icons.check_circle_rounded
+                  : Icons.radar_rounded,
+                  size: 13,
+                  color: widget.task.isComplete ? colors.success : colors
+                      .accent),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  widget.task.label,
+                  style: TextStyle(fontSize: 11, color: colors.textSecondary),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              Text('$pct%',
+                  style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: colors.textSecondary)),
+            ],
+          ),
+          const SizedBox(height: 4),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(3),
+            child: LinearProgressIndicator(
+              value: widget.task.progress,
+              minHeight: 4,
+              backgroundColor: colors.surfaceLowered,
+              valueColor: AlwaysStoppedAnimation(colors.accent),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 Future<void> _dispatchGearAction(
@@ -174,6 +268,11 @@ Future<void> _dispatchGearAction(
   }
 }
 
+/// Public version of [_openSettingsTab] for callers outside this file (e.g.
+/// MapCanvas's click-to-API-settings shortcut).
+void openSettingsTab(BuildContext context, SettingsLanding landing) =>
+    _openSettingsTab(context, landing);
+
 /// Opens the settings tab — either in the currently-mounted [AppShell] or, if
 /// the user is still on the welcome screen, by pushing a new [AppShell] with
 /// the settings tab as its initial content.
@@ -203,6 +302,8 @@ SettingsSection _mapSection(SettingsLanding landing) {
   switch (landing) {
     case SettingsLanding.general:
       return SettingsSection.general;
+    case SettingsLanding.apiKeys:
+      return SettingsSection.apiKeys;
     case SettingsLanding.simulator:
       return SettingsSection.simulator;
     case SettingsLanding.navdata:

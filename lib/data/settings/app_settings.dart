@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'api_key_entry.dart';
 import 'settings_enums.dart';
+import 'simulator_install.dart';
 
 /// Immutable snapshot of every user-facing setting in Flight Studio.
 ///
@@ -27,7 +29,6 @@ class AppSettings {
     this.navigraphAirac,
     this.simbriefUsername,
     this.aiProvider = AiProvider.openAi,
-    this.aiApiKey,
     this.aiEndpoint,
     this.aiModel,
     this.aiConfirmWrites = true,
@@ -36,6 +37,12 @@ class AppSettings {
     this.remotePort = 48080,
     this.remoteToken = '',
     this.remoteMdns = true,
+    this.mapTileProvider = MapTileProvider.osm,
+    this.mapTheme = MapTheme.system,
+    this.selectedMapApiKeyId,
+    this.apiKeys = const [],
+    this.simulators = const [],
+    this.navdataSources = const [],
   });
 
   // --- General ---------------------------------------------------------------
@@ -60,7 +67,6 @@ class AppSettings {
 
   // --- AI Copilot (BYOK) -----------------------------------------------------
   final AiProvider aiProvider;
-  final String? aiApiKey;
   final String? aiEndpoint;
   final String? aiModel;
   final bool aiConfirmWrites;
@@ -72,11 +78,13 @@ class AppSettings {
   final String remoteToken;
   final bool remoteMdns;
 
-  /// `true` when the user has configured at least one BYOK provider with a key.
-  bool get aiConfigured {
-    final key = aiApiKey;
-    return key != null && key.isNotEmpty;
-  }
+  // --- Map tiles + API keys --------------------------------------------------
+  final MapTileProvider mapTileProvider;
+  final MapTheme mapTheme;
+  final String? selectedMapApiKeyId;
+  final List<ApiKeyEntry> apiKeys;
+  final List<SimulatorInstall> simulators;
+  final List<NavdataSource> navdataSources;
 
   /// `true` when Navigraph OAuth2 has produced a signed-in session.
   bool get navigraphSignedIn {
@@ -90,6 +98,54 @@ class AppSettings {
     return user != null && user.isNotEmpty;
   }
 
+  // --- API key convenience getters -------------------------------------------
+  // These search the [apiKeys] list for the first entry of each type. The
+  // downstream consumers (tile provider, LLM client, …) call these instead
+  // of touching the list directly.
+
+  String? _firstKey(ApiKeyType type) {
+    for (final entry in apiKeys) {
+      if (entry.type == type) return entry.value;
+    }
+    return null;
+  }
+
+  String? get firstMapboxToken => _firstKey(ApiKeyType.mapboxToken);
+
+  String? get firstOsmToken => _firstKey(ApiKeyType.osmToken);
+
+  String? get firstCustomTileUrl => _firstKey(ApiKeyType.customTileUrl);
+
+  String? get firstAiKey => _firstKey(ApiKeyType.aiCopilot);
+
+  String? get firstFlightAwareKey => _firstKey(ApiKeyType.flightAware);
+
+  /// `true` when at least one AI Copilot key exists.
+  bool get aiConfigured => firstAiKey != null && firstAiKey!.isNotEmpty;
+
+  /// The token/URL actually used by the tile provider factory. If
+  /// [selectedMapApiKeyId] points to a valid entry, that entry's value wins.
+  /// Otherwise falls back to the first entry matching the current provider.
+  String? get activeMapToken {
+    if (selectedMapApiKeyId != null) {
+      for (final entry in apiKeys) {
+        if (entry.id == selectedMapApiKeyId) return entry.value;
+      }
+    }
+    return switch (mapTileProvider) {
+      MapTileProvider.osm => firstOsmToken,
+      MapTileProvider.mapboxStreets => firstMapboxToken,
+      MapTileProvider.mapboxSatellite => firstMapboxToken,
+      MapTileProvider.custom => firstCustomTileUrl,
+    };
+  }
+
+  /// `true` when the current tile provider has everything it needs.
+  bool get mapReady {
+    final token = activeMapToken;
+    return token != null && token.isNotEmpty;
+  }
+
   AppSettings copyWith({
     ThemeMode? themeMode,
     AppLocaleCode? localeCode,
@@ -100,7 +156,6 @@ class AppSettings {
     Object? navigraphUser = _sentinel,
     Object? navigraphAirac = _sentinel,
     Object? simbriefUsername = _sentinel,
-    Object? aiApiKey = _sentinel,
     Object? aiEndpoint = _sentinel,
     Object? aiModel = _sentinel,
     int? xplaneUdpPort,
@@ -115,6 +170,12 @@ class AppSettings {
     int? remotePort,
     String? remoteToken,
     bool? remoteMdns,
+    MapTileProvider? mapTileProvider,
+    MapTheme? mapTheme,
+    Object? selectedMapApiKeyId = _sentinel,
+    List<ApiKeyEntry>? apiKeys,
+    List<SimulatorInstall>? simulators,
+    List<NavdataSource>? navdataSources,
   }) {
     return AppSettings(
       themeMode: themeMode ?? this.themeMode,
@@ -141,7 +202,6 @@ class AppSettings {
         this.simbriefUsername,
       ),
       aiProvider: aiProvider ?? this.aiProvider,
-      aiApiKey: _unwrapNullable<String>(aiApiKey, this.aiApiKey),
       aiEndpoint: _unwrapNullable<String>(aiEndpoint, this.aiEndpoint),
       aiModel: _unwrapNullable<String>(aiModel, this.aiModel),
       aiConfirmWrites: aiConfirmWrites ?? this.aiConfirmWrites,
@@ -150,6 +210,13 @@ class AppSettings {
       remotePort: remotePort ?? this.remotePort,
       remoteToken: remoteToken ?? this.remoteToken,
       remoteMdns: remoteMdns ?? this.remoteMdns,
+      mapTileProvider: mapTileProvider ?? this.mapTileProvider,
+      mapTheme: mapTheme ?? this.mapTheme,
+      selectedMapApiKeyId: _unwrapNullable<String>(
+          selectedMapApiKeyId, this.selectedMapApiKeyId),
+      apiKeys: apiKeys ?? this.apiKeys,
+      simulators: simulators ?? this.simulators,
+      navdataSources: navdataSources ?? this.navdataSources,
     );
   }
 

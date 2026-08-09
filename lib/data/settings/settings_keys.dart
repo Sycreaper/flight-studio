@@ -29,7 +29,6 @@ class SettingsKeys {
 
   // AI Copilot
   static const aiProvider = 'ai.provider';
-  static const aiApiKey = 'ai.apiKey';
   static const aiEndpoint = 'ai.endpoint';
   static const aiModel = 'ai.model';
   static const aiConfirmWrites = 'ai.confirmWrites';
@@ -40,4 +39,13 @@ class SettingsKeys {
   static const remotePort = 'remote.port';
   static const remoteToken = 'remote.token';
   static const remoteMdns = 'remote.mdns';
+
+  // Map tiles + API keys
+  static const mapTileProvider = 'map.tileProvider';
+  static const mapTheme = 'map.theme';
+  static const selectedMapApiKeyId = 'map.selectedApiKeyId';
+  static const apiKeys = 'api.keys';
+  static const simulators = 'simulators.list';
+  static const navdataSources =
+      'navdata.sources'; // JSON-encoded List<ApiKeyEntry>
 }

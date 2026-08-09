@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../../l10n/app_localizations.dart';
+import '../../settings/settings_window.dart';
 import '../../theme/app_colors.dart';
+import '../../welcome/widgets/gear_button.dart';
 import '../window_chrome.dart';
 import 'app_tab.dart';
 import 'app_tab_controller.dart';
@@ -75,6 +77,17 @@ class AppTabBar extends StatelessWidget {
                     ),
                   ),
                 ],
+                // Gear button — visible on ALL tabs (map, form, settings).
+                const SizedBox(width: 2),
+                Builder(
+                  builder: (gearCtx) =>
+                      GearButton(
+                        tooltip: l10n.gearMenuTooltip,
+                        size: 18,
+                        onPressed: () =>
+                            showGearMenu(gearCtx),
+                      ),
+                ),
                 // Reserve space for the caption controls overlay so the "+"
                 // sits immediately to its left.
                 const SizedBox(width: kCaptionWidth),

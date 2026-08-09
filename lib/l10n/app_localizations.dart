@@ -1555,6 +1555,462 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Altitude/fuel profile will render here'**
   String get profileHint;
+
+  /// No description provided for @settingsCategoryApiKeys.
+  ///
+  /// In en, this message translates to:
+  /// **'API Keys'**
+  String get settingsCategoryApiKeys;
+
+  /// No description provided for @settingsCategoryApiKeysDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Credentials for map tiles, AI copilot and flight tracking.'**
+  String get settingsCategoryApiKeysDesc;
+
+  /// No description provided for @apiKeysSecurityNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Keys are stored locally on this device and never displayed in full after saving.'**
+  String get apiKeysSecurityNote;
+
+  /// No description provided for @apiTileProvider.
+  ///
+  /// In en, this message translates to:
+  /// **'Map tile provider'**
+  String get apiTileProvider;
+
+  /// No description provided for @apiTileProviderHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose where raster map tiles come from. OSM is free and needs no key.'**
+  String get apiTileProviderHint;
+
+  /// No description provided for @apiTileProviderOsm.
+  ///
+  /// In en, this message translates to:
+  /// **'OSM'**
+  String get apiTileProviderOsm;
+
+  /// No description provided for @apiTileProviderMapboxStreets.
+  ///
+  /// In en, this message translates to:
+  /// **'Mapbox Streets'**
+  String get apiTileProviderMapboxStreets;
+
+  /// No description provided for @apiTileProviderMapboxSatellite.
+  ///
+  /// In en, this message translates to:
+  /// **'Mapbox Satellite'**
+  String get apiTileProviderMapboxSatellite;
+
+  /// No description provided for @apiTileProviderCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get apiTileProviderCustom;
+
+  /// No description provided for @apiMapboxToken.
+  ///
+  /// In en, this message translates to:
+  /// **'Mapbox access token'**
+  String get apiMapboxToken;
+
+  /// No description provided for @apiMapboxTokenHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Get a free token at mapbox.com. Required for Mapbox tile providers.'**
+  String get apiMapboxTokenHint;
+
+  /// No description provided for @apiCustomTileUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom tile URL'**
+  String get apiCustomTileUrl;
+
+  /// No description provided for @apiCustomTileUrlHint.
+  ///
+  /// In en, this message translates to:
+  /// **'URL template with z/x/y coordinate segments for self-hosted tiles. Use curly braces around z, x, y for dynamic values.'**
+  String get apiCustomTileUrlHint;
+
+  /// No description provided for @apiCustomTileUrlPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'https://tiles.example.com/14/8560/12745.png'**
+  String get apiCustomTileUrlPlaceholder;
+
+  /// No description provided for @apiFlightAwareKey.
+  ///
+  /// In en, this message translates to:
+  /// **'FlightAware API key'**
+  String get apiFlightAwareKey;
+
+  /// No description provided for @apiFlightAwareKeyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'For querying real-world flights and route inspiration.'**
+  String get apiFlightAwareKeyHint;
+
+  /// No description provided for @apiKeySet.
+  ///
+  /// In en, this message translates to:
+  /// **'Key set'**
+  String get apiKeySet;
+
+  /// No description provided for @apiKeyAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add API Key'**
+  String get apiKeyAdd;
+
+  /// No description provided for @apiKeyAddTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add API Key'**
+  String get apiKeyAddTitle;
+
+  /// No description provided for @apiKeyType.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get apiKeyType;
+
+  /// No description provided for @apiKeyTypeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Select the type of API credential'**
+  String get apiKeyTypeHint;
+
+  /// No description provided for @apiKeyValue.
+  ///
+  /// In en, this message translates to:
+  /// **'API Key'**
+  String get apiKeyValue;
+
+  /// No description provided for @apiKeyValueHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste your key here. It will be masked after saving.'**
+  String get apiKeyValueHint;
+
+  /// No description provided for @apiKeyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Label (optional)'**
+  String get apiKeyLabel;
+
+  /// No description provided for @apiKeyLabelHint.
+  ///
+  /// In en, this message translates to:
+  /// **'A name to help you identify this key'**
+  String get apiKeyLabelHint;
+
+  /// No description provided for @apiKeyEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No API keys stored'**
+  String get apiKeyEmpty;
+
+  /// No description provided for @apiKeyEmptyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Click + to add one'**
+  String get apiKeyEmptyHint;
+
+  /// No description provided for @apiKeyTypeMapboxToken.
+  ///
+  /// In en, this message translates to:
+  /// **'Mapbox Token'**
+  String get apiKeyTypeMapboxToken;
+
+  /// No description provided for @apiKeyTypeOsmToken.
+  ///
+  /// In en, this message translates to:
+  /// **'OSM Tile Token'**
+  String get apiKeyTypeOsmToken;
+
+  /// No description provided for @apiKeyTypeAiCopilot.
+  ///
+  /// In en, this message translates to:
+  /// **'AI Copilot Key'**
+  String get apiKeyTypeAiCopilot;
+
+  /// No description provided for @apiKeyTypeFlightAware.
+  ///
+  /// In en, this message translates to:
+  /// **'FlightAware Key'**
+  String get apiKeyTypeFlightAware;
+
+  /// No description provided for @apiKeyTypeCustomTileUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom Tile URL'**
+  String get apiKeyTypeCustomTileUrl;
+
+  /// No description provided for @mapTheme.
+  ///
+  /// In en, this message translates to:
+  /// **'Map Theme'**
+  String get mapTheme;
+
+  /// No description provided for @mapProjectionFlat.
+  ///
+  /// In en, this message translates to:
+  /// **'Flat (2D)'**
+  String get mapProjectionFlat;
+
+  /// No description provided for @mapProjectionGlobe.
+  ///
+  /// In en, this message translates to:
+  /// **'Globe (3D)'**
+  String get mapProjectionGlobe;
+
+  /// No description provided for @mapNetworkRepair.
+  ///
+  /// In en, this message translates to:
+  /// **'Network Repair'**
+  String get mapNetworkRepair;
+
+  /// No description provided for @apiKeyConfirmDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this API key?'**
+  String get apiKeyConfirmDelete;
+
+  /// No description provided for @apiKeyConfirmDeleteDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'This action cannot be undone.'**
+  String get apiKeyConfirmDeleteDesc;
+
+  /// No description provided for @simAddTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Simulator'**
+  String get simAddTitle;
+
+  /// No description provided for @simType.
+  ///
+  /// In en, this message translates to:
+  /// **'Simulator Type'**
+  String get simType;
+
+  /// No description provided for @simTypeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Select the type of simulator'**
+  String get simTypeHint;
+
+  /// No description provided for @simInstallPath.
+  ///
+  /// In en, this message translates to:
+  /// **'Install Path'**
+  String get simInstallPath;
+
+  /// No description provided for @simInstallPathHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse for the simulator root folder'**
+  String get simInstallPathHint;
+
+  /// No description provided for @simBrowse.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse'**
+  String get simBrowse;
+
+  /// No description provided for @simPathPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'D:\\Resources\\Softwares\\X-Plane12'**
+  String get simPathPlaceholder;
+
+  /// No description provided for @simValidating.
+  ///
+  /// In en, this message translates to:
+  /// **'Validating'**
+  String get simValidating;
+
+  /// No description provided for @simValid.
+  ///
+  /// In en, this message translates to:
+  /// **'Valid install found'**
+  String get simValid;
+
+  /// No description provided for @simInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'X-Plane.exe not found in this folder'**
+  String get simInvalid;
+
+  /// No description provided for @simLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Label (optional)'**
+  String get simLabel;
+
+  /// No description provided for @simLabelHint.
+  ///
+  /// In en, this message translates to:
+  /// **'A name to identify this install'**
+  String get simLabelHint;
+
+  /// No description provided for @simXplane12.
+  ///
+  /// In en, this message translates to:
+  /// **'X-Plane 12'**
+  String get simXplane12;
+
+  /// No description provided for @simMsfs2020.
+  ///
+  /// In en, this message translates to:
+  /// **'MSFS 2020'**
+  String get simMsfs2020;
+
+  /// No description provided for @simMsfs2024.
+  ///
+  /// In en, this message translates to:
+  /// **'MSFS 2024'**
+  String get simMsfs2024;
+
+  /// No description provided for @simPrepar3dV4.
+  ///
+  /// In en, this message translates to:
+  /// **'Prepar3D v4'**
+  String get simPrepar3dV4;
+
+  /// No description provided for @simPrepar3dV5.
+  ///
+  /// In en, this message translates to:
+  /// **'Prepar3D v5'**
+  String get simPrepar3dV5;
+
+  /// No description provided for @simPrepar3dV6.
+  ///
+  /// In en, this message translates to:
+  /// **'Prepar3D v6'**
+  String get simPrepar3dV6;
+
+  /// No description provided for @simComingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Coming soon — supported in a future phase'**
+  String get simComingSoon;
+
+  /// No description provided for @simEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No simulators added'**
+  String get simEmpty;
+
+  /// No description provided for @simEmptyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Click + to add one'**
+  String get simEmptyHint;
+
+  /// No description provided for @navAddTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Navigation Data Source'**
+  String get navAddTitle;
+
+  /// No description provided for @navSelectSimulator.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Simulator'**
+  String get navSelectSimulator;
+
+  /// No description provided for @navNoSimulator.
+  ///
+  /// In en, this message translates to:
+  /// **'No simulator found. Please add a simulator first.'**
+  String get navNoSimulator;
+
+  /// No description provided for @navDataType.
+  ///
+  /// In en, this message translates to:
+  /// **'Data Type'**
+  String get navDataType;
+
+  /// No description provided for @navDefaultData.
+  ///
+  /// In en, this message translates to:
+  /// **'Default Data'**
+  String get navDefaultData;
+
+  /// No description provided for @navCustomData.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom Data'**
+  String get navCustomData;
+
+  /// No description provided for @navCustomPath.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom Data Path'**
+  String get navCustomPath;
+
+  /// No description provided for @navScan.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan'**
+  String get navScan;
+
+  /// No description provided for @navScanning.
+  ///
+  /// In en, this message translates to:
+  /// **'Scanning'**
+  String get navScanning;
+
+  /// No description provided for @navEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No navigation data sources'**
+  String get navEmpty;
+
+  /// No description provided for @navEmptyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Click + to add one'**
+  String get navEmptyHint;
+
+  /// No description provided for @simInvalidNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'{exe} not found in this folder'**
+  String simInvalidNotFound(String exe);
+
+  /// No description provided for @simConfirmDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove this simulator?'**
+  String get simConfirmDelete;
+
+  /// No description provided for @simConfirmDeleteDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Associated navdata sources will also be removed.'**
+  String get simConfirmDeleteDesc;
+
+  /// No description provided for @navConfirmDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove this navdata source?'**
+  String get navConfirmDelete;
+
+  /// No description provided for @navConfirmDeleteDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'This action cannot be undone.'**
+  String get navConfirmDeleteDesc;
+
+  /// No description provided for @navCheckAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Check All Navdata'**
+  String get navCheckAll;
 }
 
 class _AppLocalizationsDelegate

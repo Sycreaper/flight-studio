@@ -50,6 +50,56 @@ enum AppLocaleCode {
   }
 }
 
+/// Map appearance mode — system-following, forced light or forced dark.
+/// When dark, the tile provider factory swaps to dark-variant tile URLs.
+enum MapTheme {
+  system,
+  light,
+  dark;
+
+  String get persistedName => name;
+
+  static MapTheme fromPersistedName(String? name) {
+    switch (name) {
+      case 'light':
+        return MapTheme.light;
+      case 'dark':
+        return MapTheme.dark;
+      case 'system':
+      default:
+        return MapTheme.system;
+    }
+  }
+}
+
+/// Which map tile provider flutter_map should fetch raster tiles from.
+///
+/// [osm] works out of the box (no key). [mapboxStreets] and [mapboxSatellite]
+/// require a Mapbox access token stored in [AppSettings.mapboxAccessToken].
+/// [custom] uses a user-supplied URL template for self-hosted tile servers.
+enum MapTileProvider {
+  osm,
+  mapboxStreets,
+  mapboxSatellite,
+  custom;
+
+  String get persistedName => name;
+
+  static MapTileProvider fromPersistedName(String? name) {
+    switch (name) {
+      case 'mapboxStreets':
+        return MapTileProvider.mapboxStreets;
+      case 'mapboxSatellite':
+        return MapTileProvider.mapboxSatellite;
+      case 'custom':
+        return MapTileProvider.custom;
+      case 'osm':
+      default:
+        return MapTileProvider.osm;
+    }
+  }
+}
+
 /// Which BYOK LLM provider the AI Copilot should talk to.
 ///
 /// The [openAi] bucket is intentionally broad: it covers OpenAI itself plus any

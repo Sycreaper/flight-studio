@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../l10n/app_localizations.dart';
 import '../../theme/app_colors.dart';
+import '../../widgets/center_card.dart';
 
 /// The center card for a Flight Plan tab: a sticky summary header plus the
 /// scrollable route-building form. The surrounding workspace (drawers, docks,
@@ -67,18 +68,20 @@ class _FlightPlanFormTabState extends State<FlightPlanFormTab> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        _StickyHeader(
-          departure: _departure,
-          destination: _destination,
-          aircraft: _aircraft,
-          onCalculate: () {},
-          onReset: _reset,
-        ),
-        Expanded(child: _buildFormBody(l10n)),
-      ],
+    return CenterCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _StickyHeader(
+            departure: _departure,
+            destination: _destination,
+            aircraft: _aircraft,
+            onCalculate: () {},
+            onReset: _reset,
+          ),
+          Expanded(child: _buildFormBody(l10n)),
+        ],
+      ),
     );
   }
 

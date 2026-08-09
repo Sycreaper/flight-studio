@@ -1,6 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
+import '../../../data/background_tasks.dart';
 import '../../theme/app_colors.dart';
 
 /// A static gear icon used as the affordance for the gear popup menu
@@ -44,6 +45,7 @@ class GearButton extends StatefulWidget {
 class GearButtonState extends State<GearButton> with TickerProviderStateMixin {
   late final AnimationController _controller;
   bool _hovering = false;
+  bool _isSpinning = false;
 
   @override
   void initState() {
@@ -52,38 +54,44 @@ class GearButtonState extends State<GearButton> with TickerProviderStateMixin {
       vsync: this,
       duration: const Duration(seconds: 4),
     );
-    if (widget.spinning) _controller.repeat();
+    _isSpinning = widget.spinning;
+    if (_isSpinning) _controller.repeat();
+    BackgroundTaskManager.instance.addListener(_onTasksChanged);
+    _onTasksChanged();
+  }
+
+  void _onTasksChanged() {
+    if (!mounted) return;
+    final shouldSpin =
+        widget.spinning || BackgroundTaskManager.instance.hasActiveTasks;
+    if (shouldSpin != _isSpinning) {
+      setState(() => _isSpinning = shouldSpin);
+    }
+    if (shouldSpin && !_controller.isAnimating) {
+      _controller.repeat();
+    } else if (!shouldSpin && _controller.isAnimating) {
+      _controller.stop();
+    }
   }
 
   @override
   void didUpdateWidget(covariant GearButton oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.spinning != oldWidget.spinning) {
-      if (widget.spinning) {
-        _controller.repeat();
-      } else {
-        _controller.stop();
-      }
-    }
+    _onTasksChanged();
   }
 
-  /// Toggle the spinning indicator at runtime (e.g. when a long-running
-  /// background task starts or finishes). The new state is held in widget
-  /// state, so subsequent rebuilds preserve it.
   void setSpinning(bool value) {
-    if (value == widget.spinning) return;
-    // Rebuild with the new flag — didUpdateWidget will start/stop the controller.
-    setState(() {});
+    _onTasksChanged();
   }
 
   @override
   void dispose() {
+    BackgroundTaskManager.instance.removeListener(_onTasksChanged);
     _controller.dispose();
     super.dispose();
   }
 
   void _onEnter(PointerEnterEvent _) => setState(() => _hovering = true);
-
   void _onExit(PointerExitEvent _) => setState(() => _hovering = false);
 
   @override
@@ -92,8 +100,7 @@ class GearButtonState extends State<GearButton> with TickerProviderStateMixin {
     final tooltip =
         widget.tooltip ?? MaterialLocalizations.of(context).moreButtonTooltip;
     final iconColor = _hovering
-        ? colors.accent
-        : (widget.spinning ? colors.accent : colors.textSecondary);
+        ? colors.accent : colors.textSecondary;
     final icon = Icon(
       Icons.settings_rounded,
       size: widget.size,
@@ -102,19 +109,18 @@ class GearButtonState extends State<GearButton> with TickerProviderStateMixin {
     final button = IconButton(
       onPressed: widget.onPressed,
       tooltip: tooltip,
-      icon: widget.spinning
+      icon: _isSpinning
           ? RotationTransition(turns: _controller, child: icon)
           : icon,
       constraints: BoxConstraints(
-        minWidth: widget.size + 8,
-        minHeight: widget.size + 8,
+        minWidth: widget.size + 12,
+        minHeight: widget.size + 12,
       ),
       padding: EdgeInsets.zero,
       hoverColor: Colors.transparent,
       highlightColor: Colors.transparent,
       splashRadius: widget.size,
     );
-    // MouseRegion only drives the hover tint; it never starts the spin.
     return MouseRegion(onEnter: _onEnter, onExit: _onExit, child: button);
   }
 }

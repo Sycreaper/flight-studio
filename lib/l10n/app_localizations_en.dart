@@ -788,4 +788,244 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profileHint => 'Altitude/fuel profile will render here';
+
+  @override
+  String get settingsCategoryApiKeys => 'API Keys';
+
+  @override
+  String get settingsCategoryApiKeysDesc =>
+      'Credentials for map tiles, AI copilot and flight tracking.';
+
+  @override
+  String get apiKeysSecurityNote =>
+      'Keys are stored locally on this device and never displayed in full after saving.';
+
+  @override
+  String get apiTileProvider => 'Map tile provider';
+
+  @override
+  String get apiTileProviderHint =>
+      'Choose where raster map tiles come from. OSM is free and needs no key.';
+
+  @override
+  String get apiTileProviderOsm => 'OSM';
+
+  @override
+  String get apiTileProviderMapboxStreets => 'Mapbox Streets';
+
+  @override
+  String get apiTileProviderMapboxSatellite => 'Mapbox Satellite';
+
+  @override
+  String get apiTileProviderCustom => 'Custom';
+
+  @override
+  String get apiMapboxToken => 'Mapbox access token';
+
+  @override
+  String get apiMapboxTokenHint =>
+      'Get a free token at mapbox.com. Required for Mapbox tile providers.';
+
+  @override
+  String get apiCustomTileUrl => 'Custom tile URL';
+
+  @override
+  String get apiCustomTileUrlHint =>
+      'URL template with z/x/y coordinate segments for self-hosted tiles. Use curly braces around z, x, y for dynamic values.';
+
+  @override
+  String get apiCustomTileUrlPlaceholder =>
+      'https://tiles.example.com/14/8560/12745.png';
+
+  @override
+  String get apiFlightAwareKey => 'FlightAware API key';
+
+  @override
+  String get apiFlightAwareKeyHint =>
+      'For querying real-world flights and route inspiration.';
+
+  @override
+  String get apiKeySet => 'Key set';
+
+  @override
+  String get apiKeyAdd => 'Add API Key';
+
+  @override
+  String get apiKeyAddTitle => 'Add API Key';
+
+  @override
+  String get apiKeyType => 'Type';
+
+  @override
+  String get apiKeyTypeHint => 'Select the type of API credential';
+
+  @override
+  String get apiKeyValue => 'API Key';
+
+  @override
+  String get apiKeyValueHint =>
+      'Paste your key here. It will be masked after saving.';
+
+  @override
+  String get apiKeyLabel => 'Label (optional)';
+
+  @override
+  String get apiKeyLabelHint => 'A name to help you identify this key';
+
+  @override
+  String get apiKeyEmpty => 'No API keys stored';
+
+  @override
+  String get apiKeyEmptyHint => 'Click + to add one';
+
+  @override
+  String get apiKeyTypeMapboxToken => 'Mapbox Token';
+
+  @override
+  String get apiKeyTypeOsmToken => 'OSM Tile Token';
+
+  @override
+  String get apiKeyTypeAiCopilot => 'AI Copilot Key';
+
+  @override
+  String get apiKeyTypeFlightAware => 'FlightAware Key';
+
+  @override
+  String get apiKeyTypeCustomTileUrl => 'Custom Tile URL';
+
+  @override
+  String get mapTheme => 'Map Theme';
+
+  @override
+  String get mapProjectionFlat => 'Flat (2D)';
+
+  @override
+  String get mapProjectionGlobe => 'Globe (3D)';
+
+  @override
+  String get mapNetworkRepair => 'Network Repair';
+
+  @override
+  String get apiKeyConfirmDelete => 'Delete this API key?';
+
+  @override
+  String get apiKeyConfirmDeleteDesc => 'This action cannot be undone.';
+
+  @override
+  String get simAddTitle => 'Add Simulator';
+
+  @override
+  String get simType => 'Simulator Type';
+
+  @override
+  String get simTypeHint => 'Select the type of simulator';
+
+  @override
+  String get simInstallPath => 'Install Path';
+
+  @override
+  String get simInstallPathHint => 'Browse for the simulator root folder';
+
+  @override
+  String get simBrowse => 'Browse';
+
+  @override
+  String get simPathPlaceholder => 'D:\\Resources\\Softwares\\X-Plane12';
+
+  @override
+  String get simValidating => 'Validating';
+
+  @override
+  String get simValid => 'Valid install found';
+
+  @override
+  String get simInvalid => 'X-Plane.exe not found in this folder';
+
+  @override
+  String get simLabel => 'Label (optional)';
+
+  @override
+  String get simLabelHint => 'A name to identify this install';
+
+  @override
+  String get simXplane12 => 'X-Plane 12';
+
+  @override
+  String get simMsfs2020 => 'MSFS 2020';
+
+  @override
+  String get simMsfs2024 => 'MSFS 2024';
+
+  @override
+  String get simPrepar3dV4 => 'Prepar3D v4';
+
+  @override
+  String get simPrepar3dV5 => 'Prepar3D v5';
+
+  @override
+  String get simPrepar3dV6 => 'Prepar3D v6';
+
+  @override
+  String get simComingSoon => 'Coming soon — supported in a future phase';
+
+  @override
+  String get simEmpty => 'No simulators added';
+
+  @override
+  String get simEmptyHint => 'Click + to add one';
+
+  @override
+  String get navAddTitle => 'Add Navigation Data Source';
+
+  @override
+  String get navSelectSimulator => 'Select Simulator';
+
+  @override
+  String get navNoSimulator =>
+      'No simulator found. Please add a simulator first.';
+
+  @override
+  String get navDataType => 'Data Type';
+
+  @override
+  String get navDefaultData => 'Default Data';
+
+  @override
+  String get navCustomData => 'Custom Data';
+
+  @override
+  String get navCustomPath => 'Custom Data Path';
+
+  @override
+  String get navScan => 'Scan';
+
+  @override
+  String get navScanning => 'Scanning';
+
+  @override
+  String get navEmpty => 'No navigation data sources';
+
+  @override
+  String get navEmptyHint => 'Click + to add one';
+
+  @override
+  String simInvalidNotFound(String exe) {
+    return '$exe not found in this folder';
+  }
+
+  @override
+  String get simConfirmDelete => 'Remove this simulator?';
+
+  @override
+  String get simConfirmDeleteDesc =>
+      'Associated navdata sources will also be removed.';
+
+  @override
+  String get navConfirmDelete => 'Remove this navdata source?';
+
+  @override
+  String get navConfirmDeleteDesc => 'This action cannot be undone.';
+
+  @override
+  String get navCheckAll => 'Check All Navdata';
 }

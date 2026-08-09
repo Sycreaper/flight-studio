@@ -2,9 +2,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'api_key_entry.dart';
 import 'app_settings.dart';
 import 'settings_enums.dart';
 import 'settings_keys.dart';
+import 'simulator_install.dart';
 
 /// Owns the live [AppSettings] snapshot and persists every change to
 /// [SharedPreferences].
@@ -135,12 +137,6 @@ class SettingsController extends ChangeNotifier {
     value: provider.persistedName,
   );
 
-  Future<void> setAiApiKey(String? key) => _updateNullableString(
-    mutator: (s) => s.copyWith(aiApiKey: key),
-    key: SettingsKeys.aiApiKey,
-    value: key,
-  );
-
   Future<void> setAiEndpoint(String? endpoint) => _updateNullableString(
     mutator: (s) => s.copyWith(aiEndpoint: endpoint),
     key: SettingsKeys.aiEndpoint,
@@ -177,12 +173,138 @@ class SettingsController extends ChangeNotifier {
   Future<void> setRemoteMdns(bool v) =>
       _updateBool(remoteMdns: v, key: SettingsKeys.remoteMdns, value: v);
 
+  // --- Map tiles + API keys --------------------------------------------------
+
+  Future<void> setMapTileProvider(MapTileProvider provider) =>
+      _update(
+        mapTileProvider: provider,
+        key: SettingsKeys.mapTileProvider,
+        value: provider.persistedName,
+      );
+
+  Future<void> setMapTheme(MapTheme theme) =>
+      _update(
+        mapTheme: theme,
+        key: SettingsKeys.mapTheme,
+        value: theme.persistedName,
+      );
+
+  /// Atomically selects a specific API key entry for map tiles — sets both
+  /// [AppSettings.selectedMapApiKeyId] and [AppSettings.mapTileProvider].
+  Future<void> selectMapApiKey(String entryId, MapTileProvider provider) async {
+    _value = _value.copyWith(
+      selectedMapApiKeyId: entryId,
+      mapTileProvider: provider,
+    );
+    notifyListeners();
+    await _prefs.setString(SettingsKeys.selectedMapApiKeyId, entryId);
+    await _persist(SettingsKeys.mapTileProvider, provider.persistedName);
+  }
+
+  // --- API keys (dynamic list) ----------------------------------------------
+
+  /// Adds a new API key entry and persists the full list.
+  Future<void> addApiKey(ApiKeyType type, String value, {String? label}) async {
+    final entry = ApiKeyEntry(
+      id: ApiKeyEntry.generateId(),
+      type: type,
+      value: value,
+      label: label,
+    );
+    final updated = [..._value.apiKeys, entry];
+    _value = _value.copyWith(apiKeys: updated);
+    notifyListeners();
+    await _persistApiKeys(updated);
+  }
+
+  /// Removes the API key entry with [id] and persists the list.
+  Future<void> removeApiKey(String id) async {
+    final updated = _value.apiKeys.where((e) => e.id != id).toList();
+    _value = _value.copyWith(apiKeys: updated);
+    notifyListeners();
+    await _persistApiKeys(updated);
+  }
+
+  Future<void> _persistApiKeys(List<ApiKeyEntry> entries) async {
+    try {
+      await _prefs.setString(
+        SettingsKeys.apiKeys,
+        ApiKeyEntry.encodeList(entries),
+      );
+    } on Exception catch (_) {
+      if (kDebugMode) {
+        // ignore: avoid_print
+        print('SettingsController: failed to persist API keys');
+      }
+    }
+  }
+
+  // --- Simulator installs (dynamic list) -------------------------------------
+
+  Future<void> addSimulator(SimulatorType type, String path,
+      {String? name}) async {
+    final entry = SimulatorInstall(
+      id: SimulatorInstall.generateId(),
+      type: type,
+      path: path,
+      name: name,
+    );
+    final updated = [..._value.simulators, entry];
+    _value = _value.copyWith(simulators: updated);
+    notifyListeners();
+    await _persistJsonList(
+        SettingsKeys.simulators, SimulatorInstall.encodeList(updated));
+  }
+
+  Future<void> removeSimulator(String id) async {
+    final updated = _value.simulators.where((e) => e.id != id).toList();
+    _value = _value.copyWith(simulators: updated);
+    notifyListeners();
+    await _persistJsonList(
+        SettingsKeys.simulators, SimulatorInstall.encodeList(updated));
+  }
+
+  // --- Navdata sources (dynamic list) ----------------------------------------
+
+  Future<void> addNavdataSource(String simulatorId, NavdataDataType dataType,
+      {String? customPath}) async {
+    final entry = NavdataSource(
+      id: NavdataSource.generateId(),
+      simulatorId: simulatorId,
+      dataType: dataType,
+      customDataPath: customPath,
+    );
+    final updated = [..._value.navdataSources, entry];
+    _value = _value.copyWith(navdataSources: updated);
+    notifyListeners();
+    await _persistJsonList(
+        SettingsKeys.navdataSources, NavdataSource.encodeList(updated));
+  }
+
+  Future<void> removeNavdataSource(String id) async {
+    final updated = _value.navdataSources.where((e) => e.id != id).toList();
+    _value = _value.copyWith(navdataSources: updated);
+    notifyListeners();
+    await _persistJsonList(
+        SettingsKeys.navdataSources, NavdataSource.encodeList(updated));
+  }
+
+  Future<void> _persistJsonList(String key, String json) async {
+    try {
+      await _prefs.setString(key, json);
+    } on Exception catch (_) {
+      if (kDebugMode) print('SettingsController: failed to persist $key');
+    }
+  }
+
   // --- Internal helpers ------------------------------------------------------
 
   Future<void> _update({
     ThemeMode? themeMode,
     AppLocaleCode? localeCode,
     AiProvider? aiProvider,
+    MapTileProvider? mapTileProvider,
+    MapTheme? mapTheme,
     bool? reopenLastWorkspace,
     bool? checkUpdatesOnLaunch,
     bool? preferMetric,
@@ -201,6 +323,8 @@ class SettingsController extends ChangeNotifier {
       themeMode: themeMode,
       localeCode: localeCode,
       aiProvider: aiProvider,
+      mapTileProvider: mapTileProvider,
+      mapTheme: mapTheme,
       reopenLastWorkspace: reopenLastWorkspace,
       checkUpdatesOnLaunch: checkUpdatesOnLaunch,
       preferMetric: preferMetric,
@@ -325,7 +449,6 @@ class SettingsController extends ChangeNotifier {
       aiProvider: AiProvider.fromPersistedName(
         await p.getString(SettingsKeys.aiProvider),
       ),
-      aiApiKey: await p.getString(SettingsKeys.aiApiKey),
       aiEndpoint: await p.getString(SettingsKeys.aiEndpoint),
       aiModel: await p.getString(SettingsKeys.aiModel),
       aiConfirmWrites: await p.getBool(SettingsKeys.aiConfirmWrites) ?? true,
@@ -334,6 +457,16 @@ class SettingsController extends ChangeNotifier {
       remotePort: await p.getInt(SettingsKeys.remotePort) ?? 48080,
       remoteToken: await p.getString(SettingsKeys.remoteToken) ?? '',
       remoteMdns: await p.getBool(SettingsKeys.remoteMdns) ?? true,
+      mapTileProvider: MapTileProvider.fromPersistedName(
+          await p.getString(SettingsKeys.mapTileProvider)),
+      mapTheme: MapTheme.fromPersistedName(
+          await p.getString(SettingsKeys.mapTheme)),
+      selectedMapApiKeyId: await p.getString(SettingsKeys.selectedMapApiKeyId),
+      apiKeys: ApiKeyEntry.decodeList(await p.getString(SettingsKeys.apiKeys)),
+      simulators: SimulatorInstall.decodeList(
+          await p.getString(SettingsKeys.simulators)),
+      navdataSources: NavdataSource.decodeList(
+          await p.getString(SettingsKeys.navdataSources)),
     );
   }
 
@@ -354,7 +487,6 @@ class SettingsController extends ChangeNotifier {
       SettingsKeys.navigraphAirac,
       SettingsKeys.simbriefUsername,
       SettingsKeys.aiProvider,
-      SettingsKeys.aiApiKey,
       SettingsKeys.aiEndpoint,
       SettingsKeys.aiModel,
       SettingsKeys.aiConfirmWrites,
@@ -363,6 +495,10 @@ class SettingsController extends ChangeNotifier {
       SettingsKeys.remotePort,
       SettingsKeys.remoteToken,
       SettingsKeys.remoteMdns,
+      SettingsKeys.mapTileProvider,
+      SettingsKeys.mapTheme,
+      SettingsKeys.selectedMapApiKeyId,
+      SettingsKeys.apiKeys,
     ];
     for (final key in keys) {
       try {
