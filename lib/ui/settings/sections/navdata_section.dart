@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
-import '../../../data/background_tasks.dart';
+import '../../../data/navdata/navdata_service.dart';
 import '../../../data/settings/settings_controller.dart';
 import '../../../data/settings/simulator_install.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../theme/app_colors.dart';
-import '../settings_page.dart';
 import '../../widgets/floating_window.dart';
+import '../settings_page.dart';
 import 'add_navdata_dialog.dart';
 
 /// Navigation-data management section — a dynamic list of navdata sources,
@@ -45,20 +45,9 @@ class NavDataSection extends StatelessWidget {
                 ),
                 if (sources.isNotEmpty)
                   IconButton(
-                    onPressed: () {
-                      for (final src in sources) {
-                        final sim = sims.cast<SimulatorInstall?>().firstWhere(
-                              (s) => s?.id == src.simulatorId,
-                          orElse: () => null,
-                        );
-                        final label = sim != null
-                            ? '${sim.name ?? sim.type.persistedName} — ${src
-                            .dataType == NavdataDataType.defaultData ? l10n
-                            .navDefaultData : l10n.navCustomData}'
-                            : l10n.navScan;
-                        BackgroundTaskManager.instance.startFakeScan(label);
-                      }
-                    },
+                    onPressed: () =>
+                        NavdataService.instance
+                            .importFromSimulators(controller.value.simulators),
                     icon: Icon(
                         Icons.radar_rounded, size: 20, color: colors.accent),
                     tooltip: l10n.navCheckAll,

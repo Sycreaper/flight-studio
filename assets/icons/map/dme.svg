@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+    <!-- DME: small hexagon beacon (LNM style: standalone DME drawn as compact hex) -->
+    <path d="M32 10 L49 20 L49 44 L32 54 L15 44 L15 20 Z"
+          fill="none" stroke="currentColor" stroke-width="3"/>
+    <circle cx="32" cy="32" r="5" fill="currentColor"/>
+</svg>

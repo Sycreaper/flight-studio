@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:latlong2/latlong.dart';
 
+import '../../../core/navdata/navdata_types.dart';
 import '../../../data/settings/settings_controller.dart';
 import '../../../l10n/app_localizations.dart';
+import '../map/map_canvas.dart';
+import '../map/nav_markers.dart';
 import '../settings/settings_page.dart';
 import '../theme/app_colors.dart';
 import '../workspace/defaults.dart';
@@ -51,6 +55,13 @@ class AppShellState extends State<AppShell> {
   late final AppTabController _tabController;
   late final WorkspaceController _workspace;
   final GlobalKey<SettingsTabViewState> _settingsTabKey = GlobalKey();
+  final Set<NavPointCategory> _navVisible = NavPointCategory.values.toSet();
+
+  /// Live map zoom published by [MapCanvas]; drives legend-bar visibility.
+  final ValueNotifier<double> _mapZoom = ValueNotifier<double>(3);
+
+  /// Fly-to target published by the search drawer; [MapCanvas] consumes it.
+  final ValueNotifier<LatLng?> _flyToTarget = ValueNotifier<LatLng?>(null);
 
   @override
   void initState() {
@@ -77,9 +88,24 @@ class AppShellState extends State<AppShell> {
     _defaultsRegistered = true;
     for (final p in buildDefaultPanels(
       onCreateFlightPlan: () => _tabController.add(TabType.flightPlan),
+      onFlyTo: _flyTo,
     )) {
       _workspace.register(p);
     }
+  }
+
+  /// Ensures a Map tab exists and is selected, then flies the camera to
+  /// [target]. Invoked from the search drawer's result tiles.
+  void _flyTo(LatLng target) {
+    final mapTab = _tabController.tabs
+        .cast<AppTab?>()
+        .firstWhere((t) => t?.type == TabType.map, orElse: () => null);
+    if (mapTab != null) {
+      _tabController.select(mapTab.id);
+    } else {
+      _tabController.add(TabType.map);
+    }
+    _flyToTarget.value = target;
   }
 
   @override
@@ -122,6 +148,37 @@ class AppShellState extends State<AppShell> {
           ListenableBuilder(
             listenable: _tabController,
             builder: (context, _) => _buildToolbar(),
+          ),
+          // Nav legend bar — only shown on Map tabs, and only when zoomed in
+          // far enough for a viewport query to cover its visible area
+          // (matches the marker-layer zoom gate in MapCanvas).
+          ListenableBuilder(
+            listenable: _tabController,
+            builder: (context, _) {
+              final tab = _tabController.selectedOrNull;
+              if (tab == null || tab.type != TabType.map) {
+                return const SizedBox.shrink();
+              }
+              return ValueListenableBuilder<double>(
+                valueListenable: _mapZoom,
+                builder: (context, zoom, _) {
+                  if (zoom < MapCanvas.minMarkerZoom) {
+                    return const SizedBox.shrink();
+                  }
+                  return NavLegendBar(
+                    visible: _navVisible,
+                    onToggle: (cat) =>
+                        setState(() {
+                          if (_navVisible.contains(cat)) {
+                            _navVisible.remove(cat);
+                          } else {
+                            _navVisible.add(cat);
+                          }
+                        }),
+                  );
+                },
+              );
+            },
           ),
           Expanded(child: _buildBody()),
           StatusBar(
@@ -189,7 +246,12 @@ class AppShellState extends State<AppShell> {
   Widget _centerForTab(AppTab tab) {
     switch (tab.type) {
       case TabType.map:
-        return MapTabView(key: ValueKey('map_${tab.id}'));
+        return MapTabView(
+          key: ValueKey('map_${tab.id}'),
+          navVisible: _navVisible,
+          zoomNotifier: _mapZoom,
+          flyToTarget: _flyToTarget,
+        );
       case TabType.flightPlan:
         return FlightPlanFormTab(key: ValueKey('plan_${tab.id}'));
       case TabType.settings:

@@ -1,21 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:latlong2/latlong.dart';
 
 import '../panels/flight_plan_tree.dart';
 import '../panels/inspector_panel.dart';
+import '../panels/search_panel.dart';
 import '../profile/profile_panel.dart';
 import 'workspace_controller.dart';
 
 /// Builds the standard set of dockable drawers shared by every tab:
-/// Flight Plans (left), Inspector (right), Profile (bottom).
+/// Search (right), Flight Plans (left), Inspector (right), Profile (bottom).
 ///
 /// Panel **titles are resolved at render time** by `workspace_drawer.dart`
 /// (mapping panel `id` → `AppLocalizations` key), so they automatically track
 /// the active locale. The `title` field here is just a fallback for custom
-/// panels whose id is not one of the three defaults.
+/// panels whose id is not one of the defaults.
 List<DrawerPanelData> buildDefaultPanels({
   VoidCallback? onCreateFlightPlan,
+  ValueChanged<LatLng>? onFlyTo,
 }) {
   return [
+    DrawerPanelData(
+      id: 'search',
+      title: 'Search',
+      icon: Icons.search_rounded,
+      slot: DrawerSlot.right,
+      width: 280,
+      content: (_) => SearchPanel(onFlyTo: onFlyTo ?? (_) {}),
+    ),
     DrawerPanelData(
       id: 'flight_plans',
       title: 'Flight Plans',

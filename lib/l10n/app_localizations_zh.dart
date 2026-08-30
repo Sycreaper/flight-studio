@@ -1,5 +1,6 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
+
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -992,4 +993,49 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get navCheckAll => '检查全部导航数据';
+
+  @override
+  String get legendAirport => '机场';
+
+  @override
+  String get legendVor => 'VOR';
+
+  @override
+  String get legendVordme => 'VOR/DME';
+
+  @override
+  String get legendVortac => 'VORTAC';
+
+  @override
+  String get legendTacan => '塔康';
+
+  @override
+  String get legendDme => 'DME';
+
+  @override
+  String get legendNdb => 'NDB';
+
+  @override
+  String get legendWaypoint => '航路点';
+
+  @override
+  String get legendIls => 'ILS';
+
+  @override
+  String get legendGs => '下滑台';
+
+  @override
+  String get legendMarker => '信标';
+
+  @override
+  String get panelSearch => '搜索';
+
+  @override
+  String get searchHint => '搜索机场、导航台、航路点…';
+
+  @override
+  String get searchStart => '输入以开始搜索';
+
+  @override
+  String get searchNoResults => '无结果';
 }

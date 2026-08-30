@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+    <!-- GS glideslope: antenna mast with radiation lobe (LNM draws GS beside LOC) -->
+    <line x1="32" y1="12" x2="32" y2="50" stroke="currentColor" stroke-width="3"/>
+    <line x1="22" y1="20" x2="42" y2="20" stroke="currentColor" stroke-width="3"/>
+    <path d="M32 12 Q14 4 8 14 M32 12 Q50 4 56 14"
+          fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+    <line x1="24" y1="50" x2="40" y2="50" stroke="currentColor" stroke-width="3"/>
+</svg>

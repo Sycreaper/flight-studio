@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -5,6 +6,8 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../../../core/geo/tile_providers.dart';
+import '../../../core/navdata/navdata_types.dart';
+import '../../../data/navdata/navdata_service.dart';
 import '../../../data/settings/api_key_entry.dart';
 import '../../../data/settings/app_settings.dart';
 import '../../../data/settings/settings_enums.dart';
@@ -12,6 +15,7 @@ import '../../../l10n/app_localizations.dart';
 import '../settings/settings_window.dart';
 import '../theme/app_colors.dart';
 import '../widgets/center_card.dart';
+import 'nav_markers.dart';
 
 /// The central map canvas — a live `flutter_map` widget that renders raster
 /// tiles from the user's configured provider (OSM / Mapbox / custom).
@@ -22,7 +26,27 @@ import '../widgets/center_card.dart';
 /// **No-API state:** the original grid backdrop + CTA is shown. Clicking
 /// anywhere navigates to the API Keys settings.
 class MapCanvas extends StatefulWidget {
-  const MapCanvas({super.key});
+  const MapCanvas({
+    super.key,
+    required this.navVisible,
+    required this.zoomNotifier,
+    required this.flyToTarget,
+  });
+
+  final Set<NavPointCategory> navVisible;
+
+  /// Live map zoom, updated on every camera change. The app shell watches it
+  /// to show/hide the nav legend bar.
+  final ValueNotifier<double> zoomNotifier;
+
+  /// Fly-to requests from the search drawer — the latest non-null value is
+  /// flown to once the map is ready.
+  final ValueNotifier<LatLng?> flyToTarget;
+
+  /// Below this zoom the map shows no nav markers at all — at world views a
+  /// viewport query can only ever cover part of the globe, so partial
+  /// coverage would look broken.
+  static const double minMarkerZoom = 4;
 
   @override
   State<MapCanvas> createState() => _MapCanvasState();
@@ -33,10 +57,168 @@ class _MapCanvasState extends State<MapCanvas> {
   int _errorCount = 0;
   bool _showError = false;
 
+  /// `true` once the FlutterMap widget has rendered at least once. Accessing
+  /// [_mapController.camera] before that throws — every camera read is
+  /// gated behind this flag.
+  bool _mapReady = false;
+
+  /// Nav points in the current viewport, queried from the navdata database.
+  List<NavPoint> _navPoints = [];
+  StreamSubscription<MapEvent>? _mapEvents;
+  bool _queryScheduled = false;
+
+  bool get _markersAllowed =>
+      _mapReady &&
+          _mapController.camera.zoom >= MapCanvas.minMarkerZoom;
+
+  @override
+  void initState() {
+    super.initState();
+    NavdataService.instance.addListener(_onNavdataChanged);
+    _mapEvents = _mapController.mapEventStream.listen(_onMapEvent);
+    widget.flyToTarget.addListener(_onFlyTo);
+  }
+
+  @override
+  void didUpdateWidget(covariant MapCanvas oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.navVisible != widget.navVisible) {
+      // Legend toggles changed — the marker layer filters by category, so a
+      // rebuild is enough; no re-query needed.
+      setState(() {});
+    }
+  }
+
   @override
   void dispose() {
+    widget.flyToTarget.removeListener(_onFlyTo);
+    NavdataService.instance.removeListener(_onNavdataChanged);
+    _mapEvents?.cancel();
     _mapController.dispose();
     super.dispose();
+  }
+
+  /// Called from [MapOptions.onMapReady] — the first safe point to touch the
+  /// controller's camera.
+  void _onMapReady() {
+    _mapReady = true;
+    widget.zoomNotifier.value = _mapController.camera.zoom;
+    // If a fly-to request arrived before the map rendered, honour it now.
+    final pending = widget.flyToTarget.value;
+    if (pending != null) _flyTo(pending);
+    _scheduleQuery();
+  }
+
+  void _onFlyTo() {
+    final target = widget.flyToTarget.value;
+    if (target != null && _mapReady) _flyTo(target);
+  }
+
+  void _flyTo(LatLng target) {
+    _mapController.move(target, 11);
+    // Refresh the viewport for the new camera position.
+    _scheduleQuery();
+  }
+
+  void _onNavdataChanged() => _scheduleQuery();
+
+  void _onMapEvent(MapEvent event) {
+    if (!_mapReady) return;
+
+    // Publish live zoom for the legend-bar visibility (and general UI).
+    widget.zoomNotifier.value = _mapController.camera.zoom;
+
+    // Re-query when any camera movement settles (pan, fling, zoom).
+    if (event is MapEventMoveEnd ||
+        event is MapEventFlingAnimationEnd ||
+        event is MapEventDoubleTapZoomEnd ||
+        event is MapEventScrollWheelZoom) {
+      _scheduleQuery();
+    }
+  }
+
+  /// Debounced viewport query — avoids hammering the DB while dragging.
+  void _scheduleQuery() {
+    if (_queryScheduled) return;
+    _queryScheduled = true;
+    Future<void>.delayed(const Duration(milliseconds: 250), () {
+      _queryScheduled = false;
+      if (mounted) _queryViewport();
+    });
+  }
+
+  Future<void> _queryViewport() async {
+    final service = NavdataService.instance;
+    if (!_mapReady || !service.isLoaded) {
+      if (_navPoints.isNotEmpty) setState(() => _navPoints = []);
+      return;
+    }
+
+    final camera = _mapController.camera;
+    final zoom = camera.zoom;
+
+    // Little Navmap's MapLayer approach: progressively reveal detail with
+    // zoom. This bounds both query cost and on-screen marker count — fixes
+    // the "only a small patch near centre shows" issue (the old distance-
+    // ordered LIMIT clustered markers around the centre) and keeps panning
+    // smooth at world zoom levels.
+    //
+    //   z < 5   — airports + VOR family only (world/continent view)
+    //   5 ≤ z < 7 — + ILS family
+    //   7 ≤ z < 9 — + waypoints, more of everything
+    //   z ≥ 9   — + GS/markers, full detail
+    final showWaypoints = zoom >= 7;
+    final showIls = zoom >= 5;
+    final showMarkers = zoom >= 9;
+
+    // Expand the visible bounds slightly so markers near the edge appear.
+    final bounds = camera.visibleBounds;
+    final center = camera.center;
+    const pad = 0.5; // degrees
+
+    final airports = await service.queryAirports(
+      minLat: bounds.south - pad,
+      maxLat: bounds.north + pad,
+      minLon: bounds.west - pad,
+      maxLon: bounds.east + pad,
+      centerLat: center.latitude,
+      centerLon: center.longitude,
+      limit: zoom < 5 ? 300 : 700,
+    );
+    final navaids = await service.queryNavaids(
+      minLat: bounds.south - pad,
+      maxLat: bounds.north + pad,
+      minLon: bounds.west - pad,
+      maxLon: bounds.east + pad,
+      centerLat: center.latitude,
+      centerLon: center.longitude,
+      limit: zoom < 5 ? 400 : (zoom < 7 ? 700 : 1200),
+      types: [
+        'VOR',
+        'VOR/DME',
+        'VORTAC',
+        'TACAN',
+        'DME',
+        'NDB',
+        if (showIls) ...['ILS', 'LOC', 'GLS'],
+        if (showMarkers) ...['GS', 'OM', 'MM', 'IM'],
+      ],
+    );
+    var fixes = <NavPoint>[];
+    if (showWaypoints) {
+      fixes = await service.queryFixes(
+        minLat: bounds.south - pad,
+        maxLat: bounds.north + pad,
+        minLon: bounds.west - pad,
+        maxLon: bounds.east + pad,
+        centerLat: center.latitude,
+        centerLon: center.longitude,
+        limit: zoom < 9 ? 600 : 1200,
+      );
+    }
+    if (mounted) {
+      setState(() => _navPoints = [...airports, ...navaids, ...fixes]);
+    }
   }
 
   void _onTileError(Object error) {
@@ -106,16 +288,24 @@ class _MapCanvasState extends State<MapCanvas> {
     final colors = Theme.of(context).extension<AppColors>()!;
     return FlutterMap(
       mapController: _mapController,
-      options: const MapOptions(
-        initialCenter: LatLng(35.0, 0.0),
+      options: MapOptions(
+        initialCenter: const LatLng(35.0, 0.0),
         initialZoom: 3,
         minZoom: 2,
         maxZoom: 19,
+        // First safe point to touch the controller — gate all camera access
+        // behind this so no query ever runs before the map has rendered.
+        onMapReady: _onMapReady,
       ),
       children: [
         buildTileLayer(s,
             onError: (tile, error, stack) => _onTileError(error),
             dark: isMapDark(s, Theme.brightnessOf(context))),
+        // Real nav point markers — queried from the navdata database.
+        if (_markersAllowed &&
+            widget.navVisible.isNotEmpty &&
+            _navPoints.isNotEmpty)
+          buildNavMarkerLayer(context, _navPoints, widget.navVisible),
         SimpleAttributionWidget(
           source: Text(
             '© OpenStreetMap',

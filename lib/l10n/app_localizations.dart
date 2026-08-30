@@ -2011,6 +2011,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Check All Navdata'**
   String get navCheckAll;
+
+  /// No description provided for @legendAirport.
+  ///
+  /// In en, this message translates to:
+  /// **'Airport'**
+  String get legendAirport;
+
+  /// No description provided for @legendVor.
+  ///
+  /// In en, this message translates to:
+  /// **'VOR'**
+  String get legendVor;
+
+  /// No description provided for @legendVordme.
+  ///
+  /// In en, this message translates to:
+  /// **'VOR/DME'**
+  String get legendVordme;
+
+  /// No description provided for @legendVortac.
+  ///
+  /// In en, this message translates to:
+  /// **'VORTAC'**
+  String get legendVortac;
+
+  /// No description provided for @legendTacan.
+  ///
+  /// In en, this message translates to:
+  /// **'TACAN'**
+  String get legendTacan;
+
+  /// No description provided for @legendDme.
+  ///
+  /// In en, this message translates to:
+  /// **'DME'**
+  String get legendDme;
+
+  /// No description provided for @legendNdb.
+  ///
+  /// In en, this message translates to:
+  /// **'NDB'**
+  String get legendNdb;
+
+  /// No description provided for @legendWaypoint.
+  ///
+  /// In en, this message translates to:
+  /// **'Waypoint'**
+  String get legendWaypoint;
+
+  /// No description provided for @legendIls.
+  ///
+  /// In en, this message translates to:
+  /// **'ILS'**
+  String get legendIls;
+
+  /// No description provided for @legendGs.
+  ///
+  /// In en, this message translates to:
+  /// **'GS'**
+  String get legendGs;
+
+  /// No description provided for @legendMarker.
+  ///
+  /// In en, this message translates to:
+  /// **'Marker'**
+  String get legendMarker;
+
+  /// No description provided for @panelSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Search'**
+  String get panelSearch;
+
+  /// No description provided for @searchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search airports, navaids, waypoints…'**
+  String get searchHint;
+
+  /// No description provided for @searchStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start typing to search'**
+  String get searchStart;
+
+  /// No description provided for @searchNoResults.
+  ///
+  /// In en, this message translates to:
+  /// **'No results'**
+  String get searchNoResults;
 }
 
 class _AppLocalizationsDelegate

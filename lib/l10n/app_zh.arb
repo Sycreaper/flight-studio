@@ -391,5 +391,20 @@
   "simConfirmDeleteDesc": "关联的导航数据源也会被移除。",
   "navConfirmDelete": "移除此导航数据源？",
   "navConfirmDeleteDesc": "此操作无法撤销。",
-  "navCheckAll": "检查全部导航数据"
+  "navCheckAll": "检查全部导航数据",
+  "legendAirport": "机场",
+  "legendVor": "VOR",
+  "legendVordme": "VOR/DME",
+  "legendVortac": "VORTAC",
+  "legendTacan": "塔康",
+  "legendDme": "DME",
+  "legendNdb": "NDB",
+  "legendWaypoint": "航路点",
+  "legendIls": "ILS",
+  "legendGs": "下滑台",
+  "legendMarker": "信标",
+  "panelSearch": "搜索",
+  "searchHint": "搜索机场、导航台、航路点…",
+  "searchStart": "输入以开始搜索",
+  "searchNoResults": "无结果"
 }

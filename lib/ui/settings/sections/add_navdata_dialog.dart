@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../data/background_tasks.dart';
+import '../../../data/navdata/navdata_service.dart';
 import '../../../data/settings/settings_controller.dart';
 import '../../../data/settings/simulator_install.dart';
 import '../../../l10n/app_localizations.dart';
@@ -149,13 +149,9 @@ class _AddNavdataBodyState extends State<_AddNavdataBody> {
                             _selectedSimId!,
                             _dataType,
                           );
-                          // Start a fake scan.
-                          final simLabel = sims
-                              .firstWhere((s) => s.id == _selectedSimId!)
-                              .name;
-                          BackgroundTaskManager.instance.startFakeScan(
-                            '${l10n.navScanning}: ${simLabel ?? _selectedSimId}',
-                          );
+                          // Kick off the real navdata import in the background.
+                          NavdataService.instance
+                              .importFromSimulators(sims.toList());
                           widget.onClose();
                         },
                   child: Text(l10n.navScan),

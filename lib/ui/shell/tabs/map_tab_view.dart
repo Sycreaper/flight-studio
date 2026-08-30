@@ -1,13 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:latlong2/latlong.dart';
 
+import '../../../core/navdata/navdata_types.dart';
 import '../../map/map_canvas.dart';
 
-/// The center card for a Map tab: just the chart canvas. The surrounding
-/// workspace (drawers, docks, sizes) is owned by the app shell and shared
-/// across all tabs, so switching tabs only swaps this center.
 class MapTabView extends StatelessWidget {
-  const MapTabView({super.key});
+  const MapTabView({
+    super.key,
+    required this.navVisible,
+    required this.zoomNotifier,
+    required this.flyToTarget,
+  });
+
+  final Set<NavPointCategory> navVisible;
+  final ValueNotifier<double> zoomNotifier;
+  final ValueNotifier<LatLng?> flyToTarget;
 
   @override
-  Widget build(BuildContext context) => const MapCanvas();
+  Widget build(BuildContext context) => MapCanvas(
+    navVisible: navVisible,
+    zoomNotifier: zoomNotifier,
+    flyToTarget: flyToTarget,
+  );
 }

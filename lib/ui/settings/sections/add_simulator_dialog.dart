@@ -79,7 +79,6 @@ class _AddSimulatorBodyState extends State<_AddSimulatorBody> {
     final l10n = AppLocalizations.of(context)!;
     final result = await FilePicker.getDirectoryPath(
       dialogTitle: l10n.simInstallPathHint,
-      lockParentWindow: true,
     );
     if (result != null && mounted) {
       _pathCtrl.text = result;

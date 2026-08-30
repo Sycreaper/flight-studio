@@ -1,13 +1,13 @@
 import 'package:flutter/foundation.dart';
 
-/// Tracks one background scan operation (navdata import). Multiple scans can
+/// Tracks one background operation (e.g. navdata import). Multiple tasks can
 /// run concurrently; [BackgroundTaskManager] aggregates them so the gear
 /// button knows when to spin.
 class ScanTask {
   ScanTask({required this.id, required this.label});
 
   final String id;
-  final String label;
+  String label;
   double progress = 0; // 0.0 .. 1.0
   String? error;
 
@@ -29,25 +29,60 @@ class BackgroundTaskManager extends ChangeNotifier {
   bool get hasActiveTasks =>
       _tasks.any((t) => !t.isComplete && t.error == null);
 
-  /// Starts a fake 20-second scan task (placeholder for real navdata import).
-  ScanTask startFakeScan(String label) {
+  /// Starts a task whose progress is driven externally by the caller via the
+  /// returned [ScanTask]. Call [completeTask] when done (or [failTask]).
+  ScanTask startTask(String label) {
     final task = ScanTask(
-      id: 'scan_${DateTime.now().millisecondsSinceEpoch}',
+      id: 'task_${DateTime.now().millisecondsSinceEpoch}',
       label: label,
     );
     _tasks.add(task);
     notifyListeners();
+    return task;
+  }
+
+  /// Updates a running task's progress (0.0–1.0) and optional status label.
+  void updateTask(ScanTask task, double progress, {String? label}) {
+    task.progress = progress.clamp(0.0, 1.0);
+    if (label != null) task.label = label;
+    notifyListeners();
+  }
+
+  /// Marks a task complete. It is auto-removed 3 seconds later.
+  void completeTask(ScanTask task) {
+    task.progress = 1.0;
+    notifyListeners();
+    _scheduleRemoval(task);
+  }
+
+  /// Marks a task failed with an error message.
+  void failTask(ScanTask task, String error) {
+    task.error = error;
+    notifyListeners();
+    _scheduleRemoval(task);
+  }
+
+  void _scheduleRemoval(ScanTask task) {
+    () async {
+      await Future<void>.delayed(const Duration(seconds: 3));
+      _tasks.removeWhere((t) => t.id == task.id);
+      notifyListeners();
+    }();
+  }
+
+  /// Starts a fake 20-second scan task (placeholder for demos).
+  ScanTask startFakeScan(String label) {
+    final task = startTask(label);
 
     // Simulate progress over 20 seconds.
     () async {
       for (var i = 0; i <= 100; i++) {
-        await Future.delayed(const Duration(milliseconds: 200));
+        await Future<void>.delayed(const Duration(milliseconds: 200));
         task.progress = i / 100;
         notifyListeners();
         if (task.isComplete) break;
       }
-      // Auto-remove 3 seconds after completion.
-      await Future.delayed(const Duration(seconds: 3));
+      await Future<void>.delayed(const Duration(seconds: 3));
       _tasks.removeWhere((t) => t.id == task.id);
       notifyListeners();
     }();

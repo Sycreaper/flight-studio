@@ -11,6 +11,8 @@ import 'workspace_controller.dart';
 String _resolvePanelTitle(BuildContext context, DrawerPanelData panel) {
   final l10n = AppLocalizations.of(context)!;
   switch (panel.id) {
+    case 'search':
+      return l10n.panelSearch;
     case 'flight_plans':
       return l10n.panelFlightPlans;
     case 'inspector':

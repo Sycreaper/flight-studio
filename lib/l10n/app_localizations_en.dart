@@ -1,5 +1,6 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
+
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -1028,4 +1029,49 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get navCheckAll => 'Check All Navdata';
+
+  @override
+  String get legendAirport => 'Airport';
+
+  @override
+  String get legendVor => 'VOR';
+
+  @override
+  String get legendVordme => 'VOR/DME';
+
+  @override
+  String get legendVortac => 'VORTAC';
+
+  @override
+  String get legendTacan => 'TACAN';
+
+  @override
+  String get legendDme => 'DME';
+
+  @override
+  String get legendNdb => 'NDB';
+
+  @override
+  String get legendWaypoint => 'Waypoint';
+
+  @override
+  String get legendIls => 'ILS';
+
+  @override
+  String get legendGs => 'GS';
+
+  @override
+  String get legendMarker => 'Marker';
+
+  @override
+  String get panelSearch => 'Search';
+
+  @override
+  String get searchHint => 'Search airports, navaids, waypoints…';
+
+  @override
+  String get searchStart => 'Start typing to search';
+
+  @override
+  String get searchNoResults => 'No results';
 }

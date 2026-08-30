@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+    <!-- Marker beacon: LNM flame/teardrop shape (OM/MM/IM) -->
+    <path d="M32 8 C40 20 48 28 48 40 A16 16 0 1 1 16 40 C16 28 24 20 32 8 Z"
+          fill="none" stroke="currentColor" stroke-width="3"/>
+    <circle cx="32" cy="42" r="4" fill="currentColor"/>
+</svg>

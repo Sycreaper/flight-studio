@@ -391,5 +391,20 @@
   "simConfirmDeleteDesc": "Associated navdata sources will also be removed.",
   "navConfirmDelete": "Remove this navdata source?",
   "navConfirmDeleteDesc": "This action cannot be undone.",
-  "navCheckAll": "Check All Navdata"
+  "navCheckAll": "Check All Navdata",
+  "legendAirport": "Airport",
+  "legendVor": "VOR",
+  "legendVordme": "VOR/DME",
+  "legendVortac": "VORTAC",
+  "legendTacan": "TACAN",
+  "legendDme": "DME",
+  "legendNdb": "NDB",
+  "legendWaypoint": "Waypoint",
+  "legendIls": "ILS",
+  "legendGs": "GS",
+  "legendMarker": "Marker",
+  "panelSearch": "Search",
+  "searchHint": "Search airports, navaids, waypoints…",
+  "searchStart": "Start typing to search",
+  "searchNoResults": "No results"
 }
