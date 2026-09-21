@@ -5,9 +5,10 @@ import 'package:flutter/material.dart';
 import '../../../data/settings/settings_controller.dart';
 import '../../../data/settings/simulator_install.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../sim/simulator_connector.dart';
 import '../../theme/app_colors.dart';
-import '../settings_page.dart';
 import '../../widgets/floating_window.dart';
+import '../settings_page.dart';
 import 'add_simulator_dialog.dart';
 
 /// Simulator management section — a dynamic list of installed simulators with
@@ -169,9 +170,9 @@ class _SimListTileState extends State<_SimListTile> {
     final colors = Theme.of(context).extension<AppColors>()!;
     final l10n = AppLocalizations.of(context)!;
     final sim = widget.sim;
-    final exists = sim.type.isSupported
-        ? Directory(sim.path).existsSync()
-        : false;
+    final supported =
+    SimConnectorRegistry.instance.isSupported(sim.type);
+    final exists = supported ? Directory(sim.path).existsSync() : false;
     return MouseRegion(
       onEnter: (_) => setState(() => _hovering = true),
       onExit: (_) => setState(() => _hovering = false),
@@ -190,7 +191,7 @@ class _SimListTileState extends State<_SimListTile> {
           children: [
             Icon(_typeIcon(sim.type),
                 size: 18,
-                color: sim.type.isSupported
+                color: supported
                     ? colors.textSecondary
                     : colors.textDisabled),
             const SizedBox(width: 12),
@@ -225,7 +226,7 @@ class _SimListTileState extends State<_SimListTile> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  if (!sim.type.isSupported)
+                  if (!supported)
                     Padding(
                       padding: const EdgeInsets.only(top: 2),
                       child: Text(

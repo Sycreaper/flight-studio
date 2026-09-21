@@ -10,9 +10,12 @@ class SettingsKeys {
   // General / appearance
   static const themeMode = 'general.themeMode';
   static const localeCode = 'general.localeCode';
+  static const fontFamily = 'general.fontFamily';
   static const reopenLastWorkspace = 'general.reopenLastWorkspace';
   static const checkUpdatesOnLaunch = 'general.checkUpdatesOnLaunch';
   static const preferMetric = 'general.preferMetric';
+  static const splashEnabled = 'general.splashEnabled';
+  static const splashScanMode = 'general.splashScanMode';
 
   // X-Plane 12
   static const xplaneInstallPath = 'xplane.installPath';
@@ -26,6 +29,8 @@ class SettingsKeys {
   static const navigraphUser = 'navdata.navigraphUser';
   static const navigraphAirac = 'navdata.navigraphAirac';
   static const simbriefUsername = 'navdata.simbriefUsername';
+  static const navdataLastScanAt = 'navdata.lastScanAt';
+  static const navdataActiveSourceId = 'navdata.activeSourceId';
 
   // AI Copilot
   static const aiProvider = 'ai.provider';

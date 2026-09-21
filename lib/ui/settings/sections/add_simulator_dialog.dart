@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../../../data/settings/settings_controller.dart';
 import '../../../data/settings/simulator_install.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../sim/simulator_connector.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/floating_window.dart';
 
@@ -102,7 +103,7 @@ class _AddSimulatorBodyState extends State<_AddSimulatorBody> {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppColors>()!;
     final l10n = AppLocalizations.of(context)!;
-    final supported = _type.isSupported;
+    final supported = SimConnectorRegistry.instance.isSupported(_type);
     return Padding(
       padding: const EdgeInsets.all(24),
       child: SingleChildScrollView(
@@ -396,7 +397,7 @@ class _TypeDropdownState extends State<_TypeDropdown> {
                             ),
                           ),
                         ),
-                        if (!t.isSupported)
+                        if (!SimConnectorRegistry.instance.isSupported(t))
                           Padding(
                             padding: const EdgeInsets.only(left: 4),
                             child: Text(

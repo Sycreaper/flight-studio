@@ -12,19 +12,21 @@ import '../theme/app_colors.dart';
 ///
 /// Each marker is Little Navmap's own SVG icon ([NavPoint.svgAsset]). Hovering
 /// shows a tooltip with ident, name and frequency — there are no nameplates
-/// under the icons.
+/// under the icons. Double-tapping a marker reports it to [onInspect] (the
+/// inspector drawer).
 MarkerLayer buildNavMarkerLayer(
   BuildContext context,
   List<NavPoint> points,
-  Set<NavPointCategory> visible,
-) {
+    Set<NavPointCategory> visible, {
+      ValueChanged<NavPoint>? onInspect,
+    }) {
   final markers = <Marker>[];
   for (final point in points) {
     if (!visible.contains(point.category)) continue;
     markers.add(
       Marker(
         point: LatLng(point.latitude, point.longitude),
-        child: _NavMarker(point: point),
+        child: _NavMarker(point: point, onInspect: onInspect),
       ),
     );
   }
@@ -32,9 +34,10 @@ MarkerLayer buildNavMarkerLayer(
 }
 
 class _NavMarker extends StatelessWidget {
-  const _NavMarker({required this.point});
+  const _NavMarker({required this.point, this.onInspect});
 
   final NavPoint point;
+  final ValueChanged<NavPoint>? onInspect;
 
   @override
   Widget build(BuildContext context) {
@@ -43,14 +46,39 @@ class _NavMarker extends StatelessWidget {
           '${point.ident} — ${point.name}'
           '${point.frequency != null ? '\n${point.frequency}' : ''}',
       preferBelow: false,
-      child: SizedBox(
-        width: 22,
-        height: 22,
-        child: SvgPicture.asset(point.svgAsset, fit: BoxFit.contain),
+      child: GestureDetector(
+        // Double-tap opens the inspector (single taps fall through to the
+        // map); claiming the double-tap here also keeps the map's own
+        // double-tap-zoom from firing on markers.
+        onDoubleTap: onInspect == null
+            ? null
+            : () => onInspect!(point),
+        child: SizedBox(
+          width: 22,
+          height: 22,
+          child: SvgPicture.asset(point.svgAsset, fit: BoxFit.contain),
+        ),
       ),
     );
   }
 }
+
+/// Localized display name for a nav category — shared by the legend bar and
+/// the inspector's type row.
+String navCategoryLabel(AppLocalizations l10n, NavPointCategory cat) =>
+    switch (cat) {
+      NavPointCategory.airport => l10n.legendAirport,
+      NavPointCategory.vor => l10n.legendVor,
+      NavPointCategory.vordme => l10n.legendVordme,
+      NavPointCategory.vortac => l10n.legendVortac,
+      NavPointCategory.tacan => l10n.legendTacan,
+      NavPointCategory.dme => l10n.legendDme,
+      NavPointCategory.ndb => l10n.legendNdb,
+      NavPointCategory.waypoint => l10n.legendWaypoint,
+      NavPointCategory.ils => l10n.legendIls,
+      NavPointCategory.gs => l10n.legendGs,
+      NavPointCategory.marker => l10n.legendMarker,
+    };
 
 /// Horizontal legend / filter bar below the Map toolbar. One toggle per
 /// navaid category — clicking shows/hides that category's markers. Icons are
@@ -60,35 +88,73 @@ class NavLegendBar extends StatelessWidget {
     super.key,
     required this.visible,
     required this.onToggle,
+    this.wrap = false,
+    this.enabled = true,
   });
 
   final Set<NavPointCategory> visible;
   final ValueChanged<NavPointCategory> onToggle;
 
+  /// When `true`, toggles flow onto multiple lines instead of scrolling —
+  /// used by the search drawer where the narrow width would otherwise cut
+  /// the row off and the scrollbar would show as a dark strip.
+  final bool wrap;
+
+  /// When `false` the bar stays visible but is non-interactive: clicks are
+  /// swallowed, hover shows the OS "forbidden" cursor and contents are
+  /// dimmed — the native disabled-control feel.
+  final bool enabled;
+
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppColors>()!;
-    return Container(
-      height: 36,
-      decoration: BoxDecoration(color: colors.chrome),
-      padding: const EdgeInsets.symmetric(horizontal: 10),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: [
-            for (final cat in NavPointCategory.values) ...[
-              _LegendToggle(
-                category: cat,
-                active: visible.contains(cat),
-                colors: colors,
-                onTap: () => onToggle(cat),
-              ),
-              const SizedBox(width: 6),
-            ],
-          ],
+
+    final toggles = <Widget>[
+      for (final cat in NavPointCategory.values)
+        _LegendToggle(
+          category: cat,
+          active: visible.contains(cat),
+          colors: colors,
+          onTap: () => onToggle(cat),
         ),
-      ),
-    );
+    ];
+
+    Widget bar;
+    if (wrap) {
+      bar = Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        child: Wrap(spacing: 6, runSpacing: 4, children: toggles),
+      );
+    } else {
+      bar = Container(
+        height: 36,
+        decoration: BoxDecoration(color: colors.chrome),
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        alignment: Alignment.centerLeft,
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              for (var i = 0; i < toggles.length; i++) ...[
+                if (i > 0) const SizedBox(width: 8),
+                toggles[i],
+              ],
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (!enabled) {
+      return MouseRegion(
+        cursor: SystemMouseCursors.forbidden,
+        child: IgnorePointer(
+          child: Opacity(opacity: 0.5, child: bar),
+        ),
+      );
+    }
+    return bar;
   }
 }
 
@@ -162,19 +228,7 @@ class _LegendToggle extends StatelessWidget {
     );
   }
 
-  String _label(AppLocalizations l10n) => switch (category) {
-    NavPointCategory.airport => l10n.legendAirport,
-    NavPointCategory.vor => l10n.legendVor,
-    NavPointCategory.vordme => l10n.legendVordme,
-    NavPointCategory.vortac => l10n.legendVortac,
-    NavPointCategory.tacan => l10n.legendTacan,
-    NavPointCategory.dme => l10n.legendDme,
-    NavPointCategory.ndb => l10n.legendNdb,
-    NavPointCategory.waypoint => l10n.legendWaypoint,
-    NavPointCategory.ils => l10n.legendIls,
-    NavPointCategory.gs => l10n.legendGs,
-    NavPointCategory.marker => l10n.legendMarker,
-  };
+  String _label(AppLocalizations l10n) => navCategoryLabel(l10n, category);
 
   String get _svgAsset => switch (category) {
     NavPointCategory.airport => 'assets/icons/map/airport.svg',

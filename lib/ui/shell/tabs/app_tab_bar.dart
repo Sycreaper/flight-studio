@@ -7,6 +7,7 @@ import '../../welcome/widgets/gear_button.dart';
 import '../window_chrome.dart';
 import 'app_tab.dart';
 import 'app_tab_controller.dart';
+import 'tab_registry.dart';
 
 /// A horizontal tab strip. Tabs flow on the left (scrollable); the "+"
 /// affordance sits to the RIGHT of all tabs and stays fixed at the strip end.
@@ -51,6 +52,8 @@ class AppTabBar extends StatelessWidget {
                             return _ReorderableTabChip(
                               index: i,
                               tab: tab,
+                              descriptor: controller.registry
+                                  ?.descriptorOf(tab.typeId),
                               selected: selected,
                               onTap: () => controller.select(tab.id),
                               onClose: () => controller.close(tab.id),
@@ -109,6 +112,7 @@ class _ReorderableTabChip extends StatefulWidget {
   const _ReorderableTabChip({
     required this.index,
     required this.tab,
+    required this.descriptor,
     required this.selected,
     required this.onTap,
     required this.onClose,
@@ -117,6 +121,7 @@ class _ReorderableTabChip extends StatefulWidget {
 
   final int index;
   final AppTab tab;
+  final TabDescriptor? descriptor;
   final bool selected;
   final VoidCallback onTap;
   final VoidCallback onClose;
@@ -139,6 +144,7 @@ class _ReorderableTabChipState extends State<_ReorderableTabChip> {
         color: Colors.transparent,
         child: _TabChip(
           tab: widget.tab,
+          descriptor: widget.descriptor,
           selected: true,
           onTap: () {},
           onClose: () {},
@@ -148,6 +154,7 @@ class _ReorderableTabChipState extends State<_ReorderableTabChip> {
         opacity: 0.35,
         child: _TabChip(
           tab: widget.tab,
+          descriptor: widget.descriptor,
           selected: widget.selected,
           onTap: () {},
           onClose: () {},
@@ -175,6 +182,7 @@ class _ReorderableTabChipState extends State<_ReorderableTabChip> {
             ),
             child: _TabChip(
               tab: widget.tab,
+              descriptor: widget.descriptor,
               selected: widget.selected,
               onTap: widget.onTap,
               onClose: widget.onClose,
@@ -192,12 +200,17 @@ class _ReorderableTabChipState extends State<_ReorderableTabChip> {
 class _TabChip extends StatefulWidget {
   const _TabChip({
     required this.tab,
+    required this.descriptor,
     required this.selected,
     required this.onTap,
     required this.onClose,
   });
 
   final AppTab tab;
+
+  /// Resolved from the shell's [TabRegistry]; `null` when the controller was
+  /// constructed without one (bare tests) — falls back to a generic look.
+  final TabDescriptor? descriptor;
   final bool selected;
   final VoidCallback onTap;
   final VoidCallback onClose;
@@ -256,17 +269,13 @@ class _TabChipState extends State<_TabChip> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
-                switch (widget.tab.type) {
-                  TabType.map => Icons.map_outlined,
-                  TabType.flightPlan => Icons.description_outlined,
-                  TabType.settings => Icons.settings_rounded,
-                },
+                widget.descriptor?.icon ?? Icons.tab_rounded,
                 size: 15,
                 color: fg,
               ),
               const SizedBox(width: 7),
               Text(
-                _tabTitle(widget.tab.type, l10n),
+                _tabTitle(widget.descriptor, widget.tab.typeId, l10n),
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight:
@@ -350,7 +359,19 @@ class _AddTabButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppColors>()!;
     final l10n = AppLocalizations.of(context)!;
-    return PopupMenuButton<TabType>(
+    // Offer every registered tab kind flagged for the "+" menu; fall back to
+    // the built-in pair when the controller runs without a registry.
+    final registered =
+    controller.registry?.all.where((d) => d.showInNewTabMenu).toList();
+    final kinds = registered != null && registered.isNotEmpty
+        ? registered
+        .map((d) => (d.id, d.icon, d.title.call(l10n)))
+        .toList()
+        : <(String, IconData, String)>[
+      (TabIds.map, Icons.map_outlined, l10n.newMapTab),
+      (TabIds.flightPlan, Icons.description_outlined, l10n.newFlightPlanTab),
+    ];
+    return PopupMenuButton<String>(
       tooltip: l10n.addTab,
       icon: Icon(Icons.add_rounded, size: 20, color: colors.textSecondary),
       iconColor: Colors.transparent,
@@ -365,19 +386,13 @@ class _AddTabButton extends StatelessWidget {
       menuPadding: const EdgeInsets.symmetric(vertical: 4),
       position: PopupMenuPosition.under,
       offset: const Offset(0, 4),
-      onSelected: (type) => controller.add(type),
+      onSelected: (typeId) => controller.add(typeId),
       itemBuilder: (context) => [
-        PopupMenuItem(
-          value: TabType.map,
-          child: _MenuItemRow(
-              icon: Icons.map_outlined, label: l10n.newMapTab),
-        ),
-        PopupMenuItem(
-          value: TabType.flightPlan,
-          child: _MenuItemRow(
-              icon: Icons.description_outlined,
-              label: l10n.newFlightPlanTab),
-        ),
+        for (final (id, icon, label) in kinds)
+          PopupMenuItem(
+            value: id,
+            child: _MenuItemRow(icon: icon, label: label),
+          ),
       ],
     );
   }
@@ -402,15 +417,11 @@ class _MenuItemRow extends StatelessWidget {
   }
 }
 
-/// Resolves a tab's visible label from its [TabType] at render time, so the
+/// Resolves a tab's visible label from its descriptor at render time, so the
 /// title tracks the active locale without the controller needing a context.
-String _tabTitle(TabType type, AppLocalizations l10n) {
-  switch (type) {
-    case TabType.map:
-      return l10n.tabMap;
-    case TabType.flightPlan:
-      return l10n.tabFlightPlan;
-    case TabType.settings:
-      return l10n.tabSettings;
-  }
+String _tabTitle(TabDescriptor? descriptor, String typeId,
+    AppLocalizations l10n) {
+  final title = descriptor?.title;
+  if (title != null) return title(l10n);
+  return typeId;
 }

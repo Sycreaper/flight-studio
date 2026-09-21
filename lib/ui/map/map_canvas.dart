@@ -12,6 +12,7 @@ import '../../../data/settings/api_key_entry.dart';
 import '../../../data/settings/app_settings.dart';
 import '../../../data/settings/settings_enums.dart';
 import '../../../l10n/app_localizations.dart';
+import '../panels/inspector_service.dart';
 import '../settings/settings_window.dart';
 import '../theme/app_colors.dart';
 import '../widgets/center_card.dart';
@@ -116,6 +117,10 @@ class _MapCanvasState extends State<MapCanvas> {
 
   void _flyTo(LatLng target) {
     _mapController.move(target, 11);
+    // Consume the request: ValueNotifier doesn't notify when the SAME target
+    // is set again, so without this reset a second fly-to to the identical
+    // point (after panning away) would never fire.
+    widget.flyToTarget.value = null;
     // Refresh the viewport for the new camera position.
     _scheduleQuery();
   }
@@ -305,7 +310,12 @@ class _MapCanvasState extends State<MapCanvas> {
         if (_markersAllowed &&
             widget.navVisible.isNotEmpty &&
             _navPoints.isNotEmpty)
-          buildNavMarkerLayer(context, _navPoints, widget.navVisible),
+          buildNavMarkerLayer(
+            context,
+            _navPoints,
+            widget.navVisible,
+            onInspect: (point) => InspectorService.instance.inspect(point),
+          ),
         SimpleAttributionWidget(
           source: Text(
             '© OpenStreetMap',

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-import '../../theme/app_colors.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../settings/settings_window.dart';
+import '../../theme/app_colors.dart';
 import 'gear_button.dart';
 
 /// The section the welcome content area currently shows. Settings is
@@ -32,11 +32,28 @@ class WelcomeNavDrawer extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppColors>()!;
     final l10n = AppLocalizations.of(context)!;
+    // Word-style floating card: no border, just a soft ambient + drop shadow.
+    // Subtle by design — light theme gets a gentle grey shadow, dark theme a
+    // slightly stronger one (shadows vanish against dark surfaces).
+    final isDark = Theme
+        .of(context)
+        .brightness == Brightness.dark;
     return Container(
       decoration: BoxDecoration(
         color: colors.surfaceRaised,
-        border: Border.all(color: colors.border),
         borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.22 : 0.08),
+            blurRadius: 16,
+            offset: const Offset(0, 3),
+          ),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.14 : 0.04),
+            blurRadius: 4,
+            offset: const Offset(0, 1),
+          ),
+        ],
       ),
       clipBehavior: Clip.antiAlias,
       child: Column(
@@ -206,6 +223,138 @@ class _DrawerFooter extends StatelessWidget {
                 ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Narrow (phone) variant of the welcome nav: a single icon-only rail —
+/// logo on top, section icons in the middle, gear at the bottom. Tapping a
+/// section icon swaps the page shown across the rest of the screen.
+class WelcomeNavRail extends StatelessWidget {
+  const WelcomeNavRail({
+    super.key,
+    required this.selected,
+    required this.onSelect,
+  });
+
+  final WelcomeSection selected;
+  final ValueChanged<WelcomeSection> onSelect;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<AppColors>()!;
+    final l10n = AppLocalizations.of(context)!;
+    // Same Word-style floating card treatment as the wide [WelcomeNavDrawer]:
+    // no border, rounded corners, soft ambient + drop shadow (slightly
+    // stronger in dark theme where shadows vanish against dark surfaces).
+    final isDark = Theme
+        .of(context)
+        .brightness == Brightness.dark;
+    return Container(
+      width: 60,
+      decoration: BoxDecoration(
+        color: colors.surfaceRaised,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.22 : 0.08),
+            blurRadius: 16,
+            offset: const Offset(0, 3),
+          ),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.14 : 0.04),
+            blurRadius: 4,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const SizedBox(height: 10),
+          SvgPicture.asset('assets/icons/logo.svg', width: 28, height: 28),
+          const SizedBox(height: 10),
+          _RailItem(
+            icon: Icons.history_rounded,
+            tooltip: l10n.navRecentFlights,
+            selected: selected == WelcomeSection.recentFlights,
+            onTap: () => onSelect(WelcomeSection.recentFlights),
+          ),
+          const SizedBox(height: 4),
+          _RailItem(
+            icon: Icons.extension_rounded,
+            tooltip: l10n.navPluginCenter,
+            selected: selected == WelcomeSection.pluginCenter,
+            onTap: () => onSelect(WelcomeSection.pluginCenter),
+          ),
+          const Spacer(),
+          Builder(
+            builder: (gearContext) =>
+                GearButton(
+                  tooltip: l10n.gearMenuTooltip,
+                  onPressed: () => showGearMenu(gearContext),
+                ),
+          ),
+          const SizedBox(height: 8),
+        ],
+      ),
+    );
+  }
+}
+
+/// Icon button for [WelcomeNavRail] — accent pill + left bar when selected.
+class _RailItem extends StatefulWidget {
+  const _RailItem({
+    required this.icon,
+    required this.tooltip,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String tooltip;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  State<_RailItem> createState() => _RailItemState();
+}
+
+class _RailItemState extends State<_RailItem> {
+  bool _hovering = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<AppColors>()!;
+    final fg = widget.selected
+        ? colors.accent
+        : (_hovering ? colors.textPrimary : colors.textSecondary);
+    final bg = widget.selected
+        ? colors.accent.withValues(alpha: 0.14)
+        : (_hovering ? colors.surfaceLowered.withValues(alpha: 0.6)
+        : Colors.transparent);
+    return Tooltip(
+      message: widget.tooltip,
+      waitDuration: const Duration(milliseconds: 300),
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        onEnter: (_) => setState(() => _hovering = true),
+        onExit: (_) => setState(() => _hovering = false),
+        child: GestureDetector(
+          onTap: widget.onTap,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 120),
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: bg,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(widget.icon, size: 20, color: fg),
+          ),
+        ),
       ),
     );
   }

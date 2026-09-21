@@ -8,14 +8,6 @@
 // tap and only then `pumpAndSettle`, otherwise the tap callback never fires
 // before assertions run.
 
-import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
-import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
-
 import 'package:flight_studio/app.dart';
 import 'package:flight_studio/data/settings/settings_controller.dart';
 import 'package:flight_studio/data/settings/settings_enums.dart';
@@ -27,6 +19,13 @@ import 'package:flight_studio/ui/theme/app_theme.dart';
 import 'package:flight_studio/ui/welcome/widgets/gear_button.dart';
 import 'package:flight_studio/ui/workspace/workspace_controller.dart';
 import 'package:flight_studio/ui/workspace/workspace_drawer.dart';
+import 'package:flutter/gestures.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
+import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
 
 const Duration _tapSettleDelay = Duration(milliseconds: 400);
 
@@ -293,6 +292,9 @@ Future<void> _pumpWelcome(WidgetTester tester, {
   await tester.pumpWidget(FlightStudioApp(
     repository: repository,
     settings: controller,
+    // Land directly on the welcome screen — the splash's 3 s no-data hold
+    // and scan timers would keep pumpAndSettle from settling.
+    showSplash: false,
   ));
   await tester.pumpAndSettle();
 }

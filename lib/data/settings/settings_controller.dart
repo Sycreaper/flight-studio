@@ -65,6 +65,14 @@ class SettingsController extends ChangeNotifier {
     value: code.persistedName,
   );
 
+  /// Sets the interface font family; `null` restores the platform default.
+  Future<void> setFontFamily(String? family) =>
+      _updateNullableString(
+        mutator: (s) => s.copyWith(fontFamily: family),
+        key: SettingsKeys.fontFamily,
+        value: family,
+      );
+
   Future<void> setReopenLastWorkspace(bool v) => _updateBool(
     reopenLastWorkspace: v,
     key: SettingsKeys.reopenLastWorkspace,
@@ -79,6 +87,29 @@ class SettingsController extends ChangeNotifier {
 
   Future<void> setPreferMetric(bool v) =>
       _updateBool(preferMetric: v, key: SettingsKeys.preferMetric, value: v);
+
+  Future<void> setSplashEnabled(bool v) =>
+      _updateBool(
+        splashEnabled: v,
+        key: SettingsKeys.splashEnabled,
+        value: v,
+      );
+
+  Future<void> setSplashScanMode(SplashScanMode mode) =>
+      _update(
+        splashScanMode: mode,
+        key: SettingsKeys.splashScanMode,
+        value: mode.persistedName,
+      );
+
+  /// Selects the active navdata source (radio choice in the navdata
+  /// section); `null` restores the automatic fallback.
+  Future<void> setActiveNavdataSource(String? id) =>
+      _updateNullableString(
+        mutator: (s) => s.copyWith(activeNavdataSourceId: id),
+        key: SettingsKeys.navdataActiveSourceId,
+        value: id,
+      );
 
   Future<void> setXplaneInstallPath(String? path) => _updateNullableString(
     mutator: (s) => s.copyWith(xplaneInstallPath: path),
@@ -266,7 +297,9 @@ class SettingsController extends ChangeNotifier {
 
   // --- Navdata sources (dynamic list) ----------------------------------------
 
-  Future<void> addNavdataSource(String simulatorId, NavdataDataType dataType,
+  /// Adds a navdata source and returns its generated id (so callers can
+  /// auto-select it as the active source).
+  Future<String> addNavdataSource(String simulatorId, NavdataDataType dataType,
       {String? customPath}) async {
     final entry = NavdataSource(
       id: NavdataSource.generateId(),
@@ -279,6 +312,7 @@ class SettingsController extends ChangeNotifier {
     notifyListeners();
     await _persistJsonList(
         SettingsKeys.navdataSources, NavdataSource.encodeList(updated));
+    return entry.id;
   }
 
   Future<void> removeNavdataSource(String id) async {
@@ -305,9 +339,11 @@ class SettingsController extends ChangeNotifier {
     AiProvider? aiProvider,
     MapTileProvider? mapTileProvider,
     MapTheme? mapTheme,
+    SplashScanMode? splashScanMode,
     bool? reopenLastWorkspace,
     bool? checkUpdatesOnLaunch,
     bool? preferMetric,
+    bool? splashEnabled,
     bool? useOurAirports,
     bool? useFaaCifp,
     bool? useXplaneNative,
@@ -325,9 +361,11 @@ class SettingsController extends ChangeNotifier {
       aiProvider: aiProvider,
       mapTileProvider: mapTileProvider,
       mapTheme: mapTheme,
+      splashScanMode: splashScanMode,
       reopenLastWorkspace: reopenLastWorkspace,
       checkUpdatesOnLaunch: checkUpdatesOnLaunch,
       preferMetric: preferMetric,
+      splashEnabled: splashEnabled,
       useOurAirports: useOurAirports,
       useFaaCifp: useFaaCifp,
       useXplaneNative: useXplaneNative,
@@ -345,6 +383,7 @@ class SettingsController extends ChangeNotifier {
     bool? reopenLastWorkspace,
     bool? checkUpdatesOnLaunch,
     bool? preferMetric,
+    bool? splashEnabled,
     bool? useOurAirports,
     bool? useFaaCifp,
     bool? useXplaneNative,
@@ -358,6 +397,7 @@ class SettingsController extends ChangeNotifier {
     reopenLastWorkspace: reopenLastWorkspace,
     checkUpdatesOnLaunch: checkUpdatesOnLaunch,
     preferMetric: preferMetric,
+    splashEnabled: splashEnabled,
     useOurAirports: useOurAirports,
     useFaaCifp: useFaaCifp,
     useXplaneNative: useXplaneNative,
@@ -432,11 +472,21 @@ class SettingsController extends ChangeNotifier {
       localeCode: AppLocaleCode.fromPersistedName(
         await p.getString(SettingsKeys.localeCode),
       ),
+      fontFamily: await p.getString(SettingsKeys.fontFamily),
       reopenLastWorkspace:
           await p.getBool(SettingsKeys.reopenLastWorkspace) ?? false,
       checkUpdatesOnLaunch:
           await p.getBool(SettingsKeys.checkUpdatesOnLaunch) ?? true,
       preferMetric: await p.getBool(SettingsKeys.preferMetric) ?? true,
+      splashEnabled: await p.getBool(SettingsKeys.splashEnabled) ?? true,
+      splashScanMode: SplashScanMode.fromPersistedName(
+        await p.getString(SettingsKeys.splashScanMode),
+      ),
+      lastNavdataScanAt: _parseDateTime(
+        await p.getString(SettingsKeys.navdataLastScanAt),
+      ),
+      activeNavdataSourceId:
+      await p.getString(SettingsKeys.navdataActiveSourceId),
       xplaneInstallPath: await p.getString(SettingsKeys.xplaneInstallPath),
       xplaneUdpPort: await p.getInt(SettingsKeys.xplaneUdpPort) ?? 49000,
       xplaneBridgePort: await p.getInt(SettingsKeys.xplaneBridgePort) ?? 49001,
@@ -474,9 +524,14 @@ class SettingsController extends ChangeNotifier {
     final keys = [
       SettingsKeys.themeMode,
       SettingsKeys.localeCode,
+      SettingsKeys.fontFamily,
       SettingsKeys.reopenLastWorkspace,
       SettingsKeys.checkUpdatesOnLaunch,
       SettingsKeys.preferMetric,
+      SettingsKeys.splashEnabled,
+      SettingsKeys.splashScanMode,
+      SettingsKeys.navdataLastScanAt,
+      SettingsKeys.navdataActiveSourceId,
       SettingsKeys.xplaneInstallPath,
       SettingsKeys.xplaneUdpPort,
       SettingsKeys.xplaneBridgePort,
@@ -519,5 +574,10 @@ class SettingsController extends ChangeNotifier {
       default:
         return ThemeMode.system;
     }
+  }
+
+  static DateTime? _parseDateTime(String? iso) {
+    if (iso == null || iso.isEmpty) return null;
+    return DateTime.tryParse(iso)?.toUtc();
   }
 }

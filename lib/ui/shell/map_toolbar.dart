@@ -6,9 +6,8 @@ import '../widgets/tool_button.dart';
 
 /// Toolbar shown when a Map tab is active.
 ///
-/// Right side, in order: home (back to welcome), projection toggle, gear (opens
-/// the gear menu — Settings / About / Updates / Help / Exit). The gear is the
-/// single entry point for everything not on the toolbar.
+/// The gear lives in the tab bar (visible on every tab); this toolbar carries
+/// only the map-specific actions.
 class MapToolbar extends StatelessWidget {
   const MapToolbar({
     super.key,
@@ -18,7 +17,6 @@ class MapToolbar extends StatelessWidget {
     this.onCalculate,
     this.onConnect,
     this.onPause,
-    this.onProjection,
   });
 
   final VoidCallback onNew;
@@ -27,7 +25,6 @@ class MapToolbar extends StatelessWidget {
   final VoidCallback? onCalculate;
   final VoidCallback? onConnect;
   final VoidCallback? onPause;
-  final VoidCallback? onProjection;
 
   @override
   Widget build(BuildContext context) {
@@ -73,12 +70,6 @@ class MapToolbar extends StatelessWidget {
             icon: Icons.pause_circle_outline_rounded,
             tooltip: l10n.ttPauseSim,
             onPressed: onPause ?? () {},
-          ),
-          const Spacer(),
-          ToolButton(
-            icon: Icons.public_rounded,
-            tooltip: l10n.ttToggleProjection,
-            onPressed: onProjection ?? () {},
           ),
         ],
       ),

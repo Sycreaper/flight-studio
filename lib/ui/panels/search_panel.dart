@@ -7,14 +7,17 @@ import 'package:latlong2/latlong.dart';
 import '../../../core/navdata/navdata_types.dart';
 import '../../../data/navdata/navdata_service.dart';
 import '../../../l10n/app_localizations.dart';
+import '../map/nav_markers.dart';
 import '../theme/app_colors.dart';
+import 'inspector_service.dart';
 
-/// Dockable search drawer. A search input at the top, compact results below
-/// (no dividers). Queries the navdata database across airports, navaids and
-/// waypoints as the user types (250 ms debounce).
+/// Dockable search drawer. A pure-white search input at the top, the category
+/// selector (the former map legend, moved verbatim) beneath it, and compact
+/// results below — no dividers anywhere.
 ///
-/// Tapping a result invokes [onFlyTo] — the shell switches to / creates a map
-/// tab and flies the camera to the point.
+/// The category selector filters **search results only**; map markers are
+/// independent. Tapping a result invokes [onFlyTo] — the shell switches to /
+/// creates a map tab and flies the camera to the point.
 class SearchPanel extends StatefulWidget {
   const SearchPanel({super.key, required this.onFlyTo});
 
@@ -32,6 +35,11 @@ class _SearchPanelState extends State<SearchPanel> {
   List<NavPoint> _results = [];
   bool _searched = false;
   bool _busy = false;
+
+  /// Categories shown in the result list — defaults to all, toggled via the
+  /// embedded category selector. The set instance is final; contents are
+  /// mutated in place.
+  final Set<NavPointCategory> _visible = NavPointCategory.values.toSet();
 
   @override
   void initState() {
@@ -72,14 +80,28 @@ class _SearchPanelState extends State<SearchPanel> {
     });
   }
 
+  void _toggle(NavPointCategory cat) =>
+      setState(() {
+        if (_visible.contains(cat)) {
+          _visible.remove(cat);
+        } else {
+          _visible.add(cat);
+        }
+      });
+
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppColors>()!;
     final l10n = AppLocalizations.of(context)!;
+    final filtered =
+    _results.where((p) => _visible.contains(p.category)).toList();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // Search input.
+        // Search input — uses the global InputDecorationTheme (same style as
+        // the flight-plan form fields), so it adapts to light/dark themes
+        // automatically.
         Padding(
           padding: const EdgeInsets.fromLTRB(10, 10, 10, 6),
           child: TextField(
@@ -88,12 +110,8 @@ class _SearchPanelState extends State<SearchPanel> {
             style: TextStyle(fontSize: 13, color: colors.textPrimary),
             decoration: InputDecoration(
               hintText: l10n.searchHint,
-              hintStyle: TextStyle(fontSize: 12, color: colors.textDisabled),
-              prefixIcon: Icon(
-                Icons.search_rounded,
-                size: 16,
-                color: colors.textSecondary,
-              ),
+              prefixIcon: Icon(Icons.search_rounded,
+                  size: 16, color: colors.textSecondary),
               suffixIcon: _controller.text.isEmpty
                   ? null
                   : IconButton(
@@ -101,34 +119,22 @@ class _SearchPanelState extends State<SearchPanel> {
                         _controller.clear();
                         _focus.requestFocus();
                       },
-                      icon: Icon(
-                        Icons.close_rounded,
-                        size: 14,
-                        color: colors.textSecondary,
-                      ),
-                      constraints: const BoxConstraints(
-                        minWidth: 26,
-                        minHeight: 26,
-                      ),
+                icon: Icon(Icons.close_rounded,
+                    size: 14, color: colors.textSecondary),
+                constraints:
+                const BoxConstraints(minWidth: 26, minHeight: 26),
                       padding: EdgeInsets.zero,
                     ),
-              isDense: true,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 10,
-                vertical: 8,
-              ),
-              filled: true,
-              fillColor: colors.surfaceLowered,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: colors.border),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: colors.accent, width: 1.4),
-              ),
             ),
           ),
+        ),
+        // Category selector — filters the search results below (map markers
+        // are independent). Wrap mode: the narrow drawer can't fit one row,
+        // and a scrollbar would render as a dark strip.
+        NavLegendBar(
+          visible: _visible,
+          onToggle: _toggle,
+          wrap: true,
         ),
         // Results.
         Expanded(
@@ -138,30 +144,34 @@ class _SearchPanelState extends State<SearchPanel> {
                     width: 18,
                     height: 18,
                     child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: colors.accent,
-                    ),
+                        strokeWidth: 2, color: colors.accent),
                   ),
                 )
-              : _results.isEmpty
+              : filtered.isEmpty
               ? _Hint(
-                  text: _searched ? l10n.searchNoResults : l10n.searchStart,
-                  colors: colors,
-                )
+            text:
+            _searched ? l10n.searchNoResults : l10n.searchStart,
+            colors: colors,
+          )
               : ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 6),
-                  itemCount: _results.length,
-                  itemBuilder: (context, i) {
-                    final point = _results[i];
-                    return _ResultTile(
-                      point: point,
-                      colors: colors,
-                      onTap: () => widget.onFlyTo(
-                        LatLng(point.latitude, point.longitude),
-                      ),
-                    );
-                  },
-                ),
+            padding: const EdgeInsets.symmetric(horizontal: 6),
+            itemCount: filtered.length,
+            itemBuilder: (context, i) {
+              final point = filtered[i];
+              return _ResultTile(
+                point: point,
+                colors: colors,
+                // Single click opens the inspector (LNM's
+                // information dock); double-click opens the point
+                // on the map (switch to / create a map tab + fly).
+                onTap: () =>
+                    InspectorService.instance.inspect(point),
+                onDoubleTap: () =>
+                    widget.onFlyTo(
+                        LatLng(point.latitude, point.longitude)),
+              );
+            },
+          ),
         ),
       ],
     );
@@ -196,11 +206,13 @@ class _ResultTile extends StatefulWidget {
     required this.point,
     required this.colors,
     required this.onTap,
+    this.onDoubleTap,
   });
 
   final NavPoint point;
   final AppColors colors;
   final VoidCallback onTap;
+  final VoidCallback? onDoubleTap;
 
   @override
   State<_ResultTile> createState() => _ResultTileState();
@@ -219,6 +231,7 @@ class _ResultTileState extends State<_ResultTile> {
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: widget.onTap,
+        onDoubleTap: widget.onDoubleTap,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 80),
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
@@ -265,7 +278,7 @@ class _ResultTileState extends State<_ResultTile> {
                 ),
               ),
               Icon(
-                Icons.flight_takeoff_rounded,
+                Icons.info_outline_rounded,
                 size: 13,
                 color: _hovering ? colors.accent : colors.textDisabled,
               ),

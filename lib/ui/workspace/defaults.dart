@@ -41,7 +41,7 @@ List<DrawerPanelData> buildDefaultPanels({
       icon: Icons.tune_rounded,
       slot: DrawerSlot.right,
       width: 280,
-      content: (_) => const InspectorPanel(),
+      content: (_) => InspectorPanel(onFlyTo: onFlyTo ?? (_) {}),
     ),
     DrawerPanelData(
       id: 'profile',

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../data/settings/settings_controller.dart';
 import '../../features/flights/flight_repository.dart';
 import '../../l10n/app_localizations.dart';
+import '../adaptive/breakpoints.dart';
 import '../shell/app_shell.dart';
 import '../shell/window_chrome.dart';
 import '../theme/app_colors.dart';
@@ -50,6 +51,9 @@ class _WelcomeShellState extends State<WelcomeShell> {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppColors>()!;
+    // Narrow (phone): the card nav collapses to an icon-only rail; the
+    // selected section's page fills everything else. Wide: unchanged.
+    final narrow = isNarrowScreen(context);
     return Scaffold(
       backgroundColor: colors.surfaceBase,
       body: WindowDragArea(
@@ -58,14 +62,23 @@ class _WelcomeShellState extends State<WelcomeShell> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              SizedBox(
-                width: 264,
-                child: WelcomeNavDrawer(
+              if (narrow) ...[
+                WelcomeNavRail(
                   selected: _section,
                   onSelect: (s) => setState(() => _section = s),
                 ),
-              ),
-              const SizedBox(width: 12),
+                const SizedBox(width: 10),
+              ] else
+                ...[
+                  SizedBox(
+                    width: 264,
+                    child: WelcomeNavDrawer(
+                      selected: _section,
+                      onSelect: (s) => setState(() => _section = s),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                ],
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 4),

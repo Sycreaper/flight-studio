@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -5,11 +6,20 @@ import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart';
 
 import 'app.dart';
+import 'data/navdata/built_in_providers.dart';
+import 'data/navdata/startup_scan.dart';
 import 'data/settings/settings_controller.dart';
 import 'features/flights/flight_repository.dart';
+import 'sim/built_in_connectors.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Extension points: built-ins register through the same registries a
+  // future plugin manager will use (Phase 10). Must run before the first
+  // frame so capability lookups (connectors, navdata sources) are complete.
+  registerBuiltInSimConnectors();
+  registerBuiltInNavdataProviders();
 
   // Desktop window control. The native Windows title bar is hidden so the app
   // can draw its own caption controls via a top-level overlay; other platforms
@@ -26,8 +36,17 @@ void main() async {
   final settings = SettingsController();
   await settings.load();
 
+  final splashEnabled = settings.value.splashEnabled;
+
   runApp(FlightStudioApp(
     repository: FlightRepository(),
     settings: settings,
+    showSplash: splashEnabled,
   ));
+
+  // Splash disabled but a scan is due → run it headless (progress is
+  // visible via the spinning gear + gear menu entries).
+  if (!splashEnabled) {
+    unawaited(runStartupNavdataScanIfNeeded(settings));
+  }
 }

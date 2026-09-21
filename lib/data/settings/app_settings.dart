@@ -16,9 +16,14 @@ class AppSettings {
   const AppSettings({
     this.themeMode = ThemeMode.system,
     this.localeCode = AppLocaleCode.system,
+    this.fontFamily,
     this.reopenLastWorkspace = false,
     this.checkUpdatesOnLaunch = true,
     this.preferMetric = true,
+    this.splashEnabled = true,
+    this.splashScanMode = SplashScanMode.always,
+    this.lastNavdataScanAt,
+    this.activeNavdataSourceId,
     this.xplaneInstallPath,
     this.xplaneUdpPort = 49000,
     this.xplaneBridgePort = 49001,
@@ -48,9 +53,19 @@ class AppSettings {
   // --- General ---------------------------------------------------------------
   final ThemeMode themeMode;
   final AppLocaleCode localeCode;
+
+  /// User-selected UI font family, or `null` for the platform default.
+  /// Applied to both light and dark themes at the [MaterialApp] level.
+  final String? fontFamily;
   final bool reopenLastWorkspace;
   final bool checkUpdatesOnLaunch;
   final bool preferMetric;
+
+  /// Whether the startup splash screen (navdata scan) is shown at launch.
+  final bool splashEnabled;
+
+  /// When the automatic startup navdata scan should run.
+  final SplashScanMode splashScanMode;
 
   // --- X-Plane 12 ------------------------------------------------------------
   final String? xplaneInstallPath;
@@ -64,6 +79,15 @@ class AppSettings {
   final String? navigraphUser;
   final String? navigraphAirac;
   final String? simbriefUsername;
+
+  /// When the last successful navdata import finished (auto-updated after
+  /// every import — drives the splash scan thresholds).
+  final DateTime? lastNavdataScanAt;
+
+  /// The navdata source the user selected (radio) as the one to import on
+  /// startup / "check all". `null` = automatic (first provider-compatible
+  /// simulator install wins).
+  final String? activeNavdataSourceId;
 
   // --- AI Copilot (BYOK) -----------------------------------------------------
   final AiProvider aiProvider;
@@ -149,9 +173,14 @@ class AppSettings {
   AppSettings copyWith({
     ThemeMode? themeMode,
     AppLocaleCode? localeCode,
+    Object? fontFamily = _sentinel,
     bool? reopenLastWorkspace,
     bool? checkUpdatesOnLaunch,
     bool? preferMetric,
+    bool? splashEnabled,
+    SplashScanMode? splashScanMode,
+    Object? lastNavdataScanAt = _sentinel,
+    Object? activeNavdataSourceId = _sentinel,
     Object? xplaneInstallPath = _sentinel,
     Object? navigraphUser = _sentinel,
     Object? navigraphAirac = _sentinel,
@@ -180,9 +209,16 @@ class AppSettings {
     return AppSettings(
       themeMode: themeMode ?? this.themeMode,
       localeCode: localeCode ?? this.localeCode,
+      fontFamily: _unwrapNullable<String>(fontFamily, this.fontFamily),
       reopenLastWorkspace: reopenLastWorkspace ?? this.reopenLastWorkspace,
       checkUpdatesOnLaunch: checkUpdatesOnLaunch ?? this.checkUpdatesOnLaunch,
       preferMetric: preferMetric ?? this.preferMetric,
+      splashEnabled: splashEnabled ?? this.splashEnabled,
+      splashScanMode: splashScanMode ?? this.splashScanMode,
+      lastNavdataScanAt: _unwrapNullable<DateTime>(
+          lastNavdataScanAt, this.lastNavdataScanAt),
+      activeNavdataSourceId: _unwrapNullable<String>(
+          activeNavdataSourceId, this.activeNavdataSourceId),
       xplaneInstallPath: _unwrapNullable<String>(
         xplaneInstallPath,
         this.xplaneInstallPath,

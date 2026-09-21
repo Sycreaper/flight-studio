@@ -674,6 +674,30 @@ abstract class AppLocalizations {
   /// **'Theme'**
   String get settingsTheme;
 
+  /// No description provided for @languageSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow system'**
+  String get languageSystem;
+
+  /// No description provided for @settingsFontFamily.
+  ///
+  /// In en, this message translates to:
+  /// **'Interface font'**
+  String get settingsFontFamily;
+
+  /// No description provided for @settingsFontFamilyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Applies to the whole application. Takes effect immediately.'**
+  String get settingsFontFamilyHint;
+
+  /// No description provided for @settingsFontDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Default'**
+  String get settingsFontDefault;
+
   /// No description provided for @settingsThemeDark.
   ///
   /// In en, this message translates to:
@@ -1466,6 +1490,12 @@ abstract class AppLocalizations {
   /// **'Connected'**
   String get statusConnected;
 
+  /// No description provided for @statusDisconnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Disconnected'**
+  String get statusDisconnected;
+
   /// No description provided for @statusNoNavdata.
   ///
   /// In en, this message translates to:
@@ -1477,6 +1507,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'CPU'**
   String get statusCpu;
+
+  /// No description provided for @statusGpu.
+  ///
+  /// In en, this message translates to:
+  /// **'GPU'**
+  String get statusGpu;
 
   /// No description provided for @statusMem.
   ///
@@ -1511,8 +1547,290 @@ abstract class AppLocalizations {
   /// No description provided for @inspectorHint.
   ///
   /// In en, this message translates to:
-  /// **'Select a waypoint or leg on the map to inspect its details.'**
+  /// **'Double-click a map icon or a search result to see its details here.'**
   String get inspectorHint;
+
+  /// No description provided for @inspectorType.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get inspectorType;
+
+  /// No description provided for @inspectorCoordinates.
+  ///
+  /// In en, this message translates to:
+  /// **'Coordinates'**
+  String get inspectorCoordinates;
+
+  /// No description provided for @inspectorElevation.
+  ///
+  /// In en, this message translates to:
+  /// **'Elevation'**
+  String get inspectorElevation;
+
+  /// No description provided for @inspectorFrequency.
+  ///
+  /// In en, this message translates to:
+  /// **'Frequency'**
+  String get inspectorFrequency;
+
+  /// No description provided for @inspectorRunways.
+  ///
+  /// In en, this message translates to:
+  /// **'Runways'**
+  String get inspectorRunways;
+
+  /// No description provided for @inspectorIata.
+  ///
+  /// In en, this message translates to:
+  /// **'IATA'**
+  String get inspectorIata;
+
+  /// No description provided for @inspectorCity.
+  ///
+  /// In en, this message translates to:
+  /// **'City'**
+  String get inspectorCity;
+
+  /// No description provided for @inspectorFlyTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Fly to this point'**
+  String get inspectorFlyTo;
+
+  /// No description provided for @inspectorClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear inspector'**
+  String get inspectorClear;
+
+  /// No description provided for @inspectorFrequencies.
+  ///
+  /// In en, this message translates to:
+  /// **'ATC Frequencies'**
+  String get inspectorFrequencies;
+
+  /// No description provided for @inspectorWeather.
+  ///
+  /// In en, this message translates to:
+  /// **'Weather'**
+  String get inspectorWeather;
+
+  /// No description provided for @inspectorWeatherUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No weather available for this station.'**
+  String get inspectorWeatherUnavailable;
+
+  /// No description provided for @inspectorTabOverview.
+  ///
+  /// In en, this message translates to:
+  /// **'Overview'**
+  String get inspectorTabOverview;
+
+  /// No description provided for @inspectorTabComms.
+  ///
+  /// In en, this message translates to:
+  /// **'Comms'**
+  String get inspectorTabComms;
+
+  /// No description provided for @inspectorIcao.
+  ///
+  /// In en, this message translates to:
+  /// **'ICAO'**
+  String get inspectorIcao;
+
+  /// No description provided for @inspectorXplaneIdent.
+  ///
+  /// In en, this message translates to:
+  /// **'X-Plane ident'**
+  String get inspectorXplaneIdent;
+
+  /// No description provided for @inspectorRegion.
+  ///
+  /// In en, this message translates to:
+  /// **'Region'**
+  String get inspectorRegion;
+
+  /// No description provided for @inspectorCountry.
+  ///
+  /// In en, this message translates to:
+  /// **'Country/region code'**
+  String get inspectorCountry;
+
+  /// No description provided for @inspectorMagvar.
+  ///
+  /// In en, this message translates to:
+  /// **'Magnetic declination'**
+  String get inspectorMagvar;
+
+  /// No description provided for @inspectorSunTimes.
+  ///
+  /// In en, this message translates to:
+  /// **'Sunrise & sunset'**
+  String get inspectorSunTimes;
+
+  /// No description provided for @inspectorNotAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'—'**
+  String get inspectorNotAvailable;
+
+  /// No description provided for @inspectorRawReport.
+  ///
+  /// In en, this message translates to:
+  /// **'Raw report'**
+  String get inspectorRawReport;
+
+  /// No description provided for @inspectorWindCalm.
+  ///
+  /// In en, this message translates to:
+  /// **'Calm'**
+  String get inspectorWindCalm;
+
+  /// No description provided for @splashScanning.
+  ///
+  /// In en, this message translates to:
+  /// **'Scanning navigation data…'**
+  String get splashScanning;
+
+  /// No description provided for @splashNoNavdata.
+  ///
+  /// In en, this message translates to:
+  /// **'No navigation data found'**
+  String get splashNoNavdata;
+
+  /// No description provided for @settingsSplash.
+  ///
+  /// In en, this message translates to:
+  /// **'Splash screen'**
+  String get settingsSplash;
+
+  /// No description provided for @settingsSplashHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Show the startup screen while navigation data is scanned'**
+  String get settingsSplashHint;
+
+  /// No description provided for @settingsSplashScan.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-scan navigation data on startup'**
+  String get settingsSplashScan;
+
+  /// No description provided for @settingsSplashScanHint.
+  ///
+  /// In en, this message translates to:
+  /// **'How often the full navdata import runs at launch'**
+  String get settingsSplashScanHint;
+
+  /// No description provided for @splashScanAlways.
+  ///
+  /// In en, this message translates to:
+  /// **'Always'**
+  String get splashScanAlways;
+
+  /// No description provided for @splashScanAfter14.
+  ///
+  /// In en, this message translates to:
+  /// **'Last scan over 14 days ago'**
+  String get splashScanAfter14;
+
+  /// No description provided for @splashScanAfter28.
+  ///
+  /// In en, this message translates to:
+  /// **'Last scan over 28 days ago'**
+  String get splashScanAfter28;
+
+  /// No description provided for @splashScanNever.
+  ///
+  /// In en, this message translates to:
+  /// **'Never'**
+  String get splashScanNever;
+
+  /// No description provided for @navActiveSource.
+  ///
+  /// In en, this message translates to:
+  /// **'ACTIVE'**
+  String get navActiveSource;
+
+  /// No description provided for @inspectorDataSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Data source'**
+  String get inspectorDataSource;
+
+  /// No description provided for @inspectorRunwayCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Runways'**
+  String get inspectorRunwayCount;
+
+  /// No description provided for @inspectorLongestRunway.
+  ///
+  /// In en, this message translates to:
+  /// **'Longest runway'**
+  String get inspectorLongestRunway;
+
+  /// No description provided for @airportTypeAirport.
+  ///
+  /// In en, this message translates to:
+  /// **'Airport'**
+  String get airportTypeAirport;
+
+  /// No description provided for @airportTypeHeliport.
+  ///
+  /// In en, this message translates to:
+  /// **'Heliport'**
+  String get airportTypeHeliport;
+
+  /// No description provided for @airportTypeSeaplane.
+  ///
+  /// In en, this message translates to:
+  /// **'Seaplane'**
+  String get airportTypeSeaplane;
+
+  /// No description provided for @navFreqAtis.
+  ///
+  /// In en, this message translates to:
+  /// **'ATIS'**
+  String get navFreqAtis;
+
+  /// No description provided for @navFreqCtaf.
+  ///
+  /// In en, this message translates to:
+  /// **'CTAF'**
+  String get navFreqCtaf;
+
+  /// No description provided for @navFreqGnd.
+  ///
+  /// In en, this message translates to:
+  /// **'GND'**
+  String get navFreqGnd;
+
+  /// No description provided for @navFreqTwr.
+  ///
+  /// In en, this message translates to:
+  /// **'TWR'**
+  String get navFreqTwr;
+
+  /// No description provided for @navFreqCld.
+  ///
+  /// In en, this message translates to:
+  /// **'CLD'**
+  String get navFreqCld;
+
+  /// No description provided for @navFreqApp.
+  ///
+  /// In en, this message translates to:
+  /// **'APP'**
+  String get navFreqApp;
+
+  /// No description provided for @navFreqDep.
+  ///
+  /// In en, this message translates to:
+  /// **'DEP'**
+  String get navFreqDep;
 
   /// No description provided for @treeNoPlans.
   ///

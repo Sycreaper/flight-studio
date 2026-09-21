@@ -305,6 +305,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsTheme => 'Theme';
 
   @override
+  String get languageSystem => 'Follow system';
+
+  @override
+  String get settingsFontFamily => 'Interface font';
+
+  @override
+  String get settingsFontFamilyHint =>
+      'Applies to the whole application. Takes effect immediately.';
+
+  @override
+  String get settingsFontDefault => 'Default';
+
+  @override
   String get settingsThemeDark => 'Dark';
 
   @override
@@ -745,10 +758,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statusConnected => 'Connected';
 
   @override
+  String get statusDisconnected => 'Disconnected';
+
+  @override
   String get statusNoNavdata => 'No navdata loaded';
 
   @override
   String get statusCpu => 'CPU';
+
+  @override
+  String get statusGpu => 'GPU';
 
   @override
   String get statusMem => 'MEM';
@@ -767,7 +786,151 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get inspectorHint =>
-      'Select a waypoint or leg on the map to inspect its details.';
+      'Double-click a map icon or a search result to see its details here.';
+
+  @override
+  String get inspectorType => 'Type';
+
+  @override
+  String get inspectorCoordinates => 'Coordinates';
+
+  @override
+  String get inspectorElevation => 'Elevation';
+
+  @override
+  String get inspectorFrequency => 'Frequency';
+
+  @override
+  String get inspectorRunways => 'Runways';
+
+  @override
+  String get inspectorIata => 'IATA';
+
+  @override
+  String get inspectorCity => 'City';
+
+  @override
+  String get inspectorFlyTo => 'Fly to this point';
+
+  @override
+  String get inspectorClear => 'Clear inspector';
+
+  @override
+  String get inspectorFrequencies => 'ATC Frequencies';
+
+  @override
+  String get inspectorWeather => 'Weather';
+
+  @override
+  String get inspectorWeatherUnavailable =>
+      'No weather available for this station.';
+
+  @override
+  String get inspectorTabOverview => 'Overview';
+
+  @override
+  String get inspectorTabComms => 'Comms';
+
+  @override
+  String get inspectorIcao => 'ICAO';
+
+  @override
+  String get inspectorXplaneIdent => 'X-Plane ident';
+
+  @override
+  String get inspectorRegion => 'Region';
+
+  @override
+  String get inspectorCountry => 'Country/region code';
+
+  @override
+  String get inspectorMagvar => 'Magnetic declination';
+
+  @override
+  String get inspectorSunTimes => 'Sunrise & sunset';
+
+  @override
+  String get inspectorNotAvailable => '—';
+
+  @override
+  String get inspectorRawReport => 'Raw report';
+
+  @override
+  String get inspectorWindCalm => 'Calm';
+
+  @override
+  String get splashScanning => 'Scanning navigation data…';
+
+  @override
+  String get splashNoNavdata => 'No navigation data found';
+
+  @override
+  String get settingsSplash => 'Splash screen';
+
+  @override
+  String get settingsSplashHint =>
+      'Show the startup screen while navigation data is scanned';
+
+  @override
+  String get settingsSplashScan => 'Auto-scan navigation data on startup';
+
+  @override
+  String get settingsSplashScanHint =>
+      'How often the full navdata import runs at launch';
+
+  @override
+  String get splashScanAlways => 'Always';
+
+  @override
+  String get splashScanAfter14 => 'Last scan over 14 days ago';
+
+  @override
+  String get splashScanAfter28 => 'Last scan over 28 days ago';
+
+  @override
+  String get splashScanNever => 'Never';
+
+  @override
+  String get navActiveSource => 'ACTIVE';
+
+  @override
+  String get inspectorDataSource => 'Data source';
+
+  @override
+  String get inspectorRunwayCount => 'Runways';
+
+  @override
+  String get inspectorLongestRunway => 'Longest runway';
+
+  @override
+  String get airportTypeAirport => 'Airport';
+
+  @override
+  String get airportTypeHeliport => 'Heliport';
+
+  @override
+  String get airportTypeSeaplane => 'Seaplane';
+
+  @override
+  String get navFreqAtis => 'ATIS';
+
+  @override
+  String get navFreqCtaf => 'CTAF';
+
+  @override
+  String get navFreqGnd => 'GND';
+
+  @override
+  String get navFreqTwr => 'TWR';
+
+  @override
+  String get navFreqCld => 'CLD';
+
+  @override
+  String get navFreqApp => 'APP';
+
+  @override
+  String get navFreqDep => 'DEP';
 
   @override
   String get treeNoPlans => 'No flight plans';

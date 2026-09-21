@@ -155,39 +155,36 @@ class _EmptyState extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 28),
-              // Three identical-sized action tiles. Wrap in an
-              // [IntrinsicHeight] with `CrossAxisAlignment.stretch` so every
-              // tile expands to match the tallest — and each tile also gets a
-              // fixed `width` and `height` so they look uniform regardless of
-              // how the hint text wraps in either language.
+              // Three identical-sized action tiles. Tiles carry a fixed
+              // `width`/`height` so they look uniform regardless of how the
+              // hint text wraps in either language. [Wrap] keeps them on one
+              // row on wide screens and reflows onto multiple rows on
+              // narrow ones instead of overflowing.
               Center(
-                child: IntrinsicHeight(
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      _ActionTile(
-                        icon: Icons.edit_note_rounded,
-                        label: l10n.createFlight,
-                        hint: l10n.createFlightHint,
-                        onTap: onCreateFlight,
-                      ),
-                      const SizedBox(width: 16),
-                      _ActionTile(
-                        icon: Icons.public_rounded,
-                        label: l10n.worldMap,
-                        hint: l10n.worldMapHint,
-                        onTap: onWorldMap,
-                      ),
-                      const SizedBox(width: 16),
-                      _ActionTile(
-                        icon: Icons.school_rounded,
-                        label: l10n.flightAcademy,
-                        hint: l10n.flightAcademyHint,
-                        onTap: onFlightAcademy,
-                      ),
-                    ],
-                  ),
+                child: Wrap(
+                  spacing: 16,
+                  runSpacing: 16,
+                  alignment: WrapAlignment.center,
+                  children: [
+                    _ActionTile(
+                      icon: Icons.edit_note_rounded,
+                      label: l10n.createFlight,
+                      hint: l10n.createFlightHint,
+                      onTap: onCreateFlight,
+                    ),
+                    _ActionTile(
+                      icon: Icons.public_rounded,
+                      label: l10n.worldMap,
+                      hint: l10n.worldMapHint,
+                      onTap: onWorldMap,
+                    ),
+                    _ActionTile(
+                      icon: Icons.school_rounded,
+                      label: l10n.flightAcademy,
+                      hint: l10n.flightAcademyHint,
+                      onTap: onFlightAcademy,
+                    ),
+                  ],
                 ),
               ),
           ],

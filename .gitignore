@@ -56,3 +56,6 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Android module build output (problems reports etc.)
+/android/build/

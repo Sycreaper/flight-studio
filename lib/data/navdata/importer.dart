@@ -1,13 +1,14 @@
 import 'dart:io';
 
 import 'package:drift/drift.dart';
-import 'package:drift/native.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
 import '../../../core/navdata/navdata_types.dart';
 import '../../../core/parsing/apt_dat_parser.dart' as apt;
 import '../../../data/db/database.dart';
+import 'airport_details.dart';
+import 'db_opener.dart';
 
 typedef ProgressCallback =
     void Function(int current, int total, String message);
@@ -64,6 +65,10 @@ class NavdataImporter {
 
   NavdataDatabase? get database => _db;
 
+  /// Test-only: attaches an already-open database so query methods can be
+  /// exercised without touching the real on-disk store.
+  set attachForTest(NavdataDatabase db) => _db = db;
+
   /// Opens (or creates) the navdata database in the app support directory and
   /// clears all tables. Call once before running the per-file parsers.
   ///
@@ -74,6 +79,7 @@ class NavdataImporter {
     onProgress?.call(0, 1, 'Clearing database…');
     await db.delete(db.airports).go();
     await db.delete(db.runways).go();
+    await db.delete(db.frequencies).go();
     await db.delete(db.navaids).go();
     await db.delete(db.fixes).go();
     await db.delete(db.airways).go();
@@ -104,8 +110,7 @@ class NavdataImporter {
   Future<NavdataDatabase> _openDb() async {
     if (_db != null) return _db!;
     final dir = await getApplicationSupportDirectory();
-    final file = File(p.join(dir.path, 'navdata.sqlite'));
-    _db = NavdataDatabase(NativeDatabase.createInBackground(file));
+    _db = openNavdataDatabase(p.join(dir.path, 'navdata.sqlite'));
     return _db!;
   }
 
@@ -417,6 +422,113 @@ class NavdataImporter {
         .toList();
   }
 
+  /// Fetches LNM-style airport details (airport row + its runways) for the
+  /// inspector drawer. Returns `null` when the airport is unknown or no
+  /// database is open.
+  Future<AirportDetails?> queryAirportDetails(String icao) async {
+    final db = _db;
+    if (db == null) return null;
+
+    final airport = await (db.select(
+      db.airports,
+    )..where((t) => t.icao.equals(icao))).getSingleOrNull();
+    if (airport == null) return null;
+
+    final runwayRows =
+        await (db.select(db.runways)
+              ..where((t) => t.airportIcao.equals(icao))
+              ..orderBy([(t) => OrderingTerm.asc(t.ident)]))
+            .get();
+
+    final frequencyRows =
+        await (db.select(db.frequencies)
+              ..where((t) => t.airportIcao.equals(icao))
+              ..orderBy([
+                (t) => OrderingTerm.asc(t.type),
+                (t) => OrderingTerm.asc(t.frequencyKhz),
+              ]))
+            .get();
+
+    final runwayStrips = groupRunwayStrips([
+      for (final r in runwayRows)
+        RunwayDetails(
+          ident: r.ident,
+          headingDeg: r.headingDeg,
+          lengthFt: r.lengthFt,
+          widthFt: r.widthFt,
+          surface: r.surface,
+          stripIndex: r.stripIndex,
+        ),
+    ]);
+    RunwayDetails? longest;
+    for (final strip in runwayStrips) {
+      final candidate = strip.first;
+      if (longest == null || candidate.lengthFt > longest.lengthFt) {
+        longest = candidate;
+      }
+    }
+
+    return AirportDetails(
+      icao: airport.icao,
+      iata: airport.iata,
+      name: airport.name,
+      city: airport.city,
+      country: airport.country,
+      latitude: airport.latitude,
+      longitude: airport.longitude,
+      elevationFt: airport.elevationFt,
+      magvarDeg: airport.magvarDeg,
+      type: airport.type,
+      source: airport.source,
+      runwayStripCount: runwayStrips.length,
+      longestRunway: longest,
+      runways: [for (final strip in runwayStrips) ...strip],
+      frequencies: [
+        for (final f in frequencyRows)
+          FrequencyDetails(
+            type: f.type,
+            frequencyKhz: f.frequencyKhz,
+            description: f.description,
+          ),
+      ],
+    );
+  }
+
+  /// Opens the database (WITHOUT clearing) and returns the per-table row
+  /// counts. Used by the splash screen's startup scan — `null`/empty counts
+  /// mean no navdata has been imported yet.
+  Future<Map<String, int>> readRowCounts() async {
+    await _openDb();
+    return getRowCounts();
+  }
+
+  /// Reads the AIRAC cycle (e.g. `'2608'`) from an X-Plane install's
+  /// `cycle_info.txt` (Custom Data first, then the default data folder).
+  /// Returns `null` when missing or unparseable (e.g. stock install).
+  Future<String?> readAiracCycle(String installPath) async {
+    final candidates = [
+      p.join(installPath, 'Custom Data', 'cycle_info.txt'),
+      p.join(installPath, 'Resources', 'default data', 'cycle_info.txt'),
+    ];
+    for (final path in candidates) {
+      final file = File(path);
+      if (!await file.exists()) continue;
+      try {
+        final text = await file.readAsString();
+        // Navigraph style: 'AIRAC cycle    : 2608'. Also tolerate
+        // 'CYCLE 2609' one-liners from other vendors.
+        final match = RegExp(
+          r'AIRAC\s+cycle\s*[:\s]*(\d{4})',
+          caseSensitive: false,
+        ).firstMatch(text);
+        if (match != null) return match.group(1);
+      } on Exception catch (_) {
+        // Unreadable file — treat as no cycle info.
+      }
+    }
+    return null;
+  }
+
   /// Returns the total row counts per table for status display.
   Future<Map<String, int>> getRowCounts() async {
     final db = _db;
@@ -491,3 +603,4 @@ class NavdataImporter {
     }
   }
 }
+

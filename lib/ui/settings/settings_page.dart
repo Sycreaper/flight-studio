@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../data/settings/settings_controller.dart';
 import '../../../l10n/app_localizations.dart';
+import '../adaptive/breakpoints.dart';
 import '../theme/app_colors.dart';
 import 'sections/about_section.dart';
 import 'sections/ai_copilot_section.dart';
@@ -14,6 +15,65 @@ import 'sections/simulator_section.dart';
 /// The categories shown in the settings nav rail. Public so the gear-menu can
 /// request a landing section without re-implementing the list.
 enum SettingsSection { general, apiKeys, simulator, navdata, ai, remote, about }
+
+/// Per-section icon, shared by the nav rail and the narrow-screen detail page.
+IconData settingsSectionIcon(SettingsSection section) =>
+    switch (section) {
+      SettingsSection.general => Icons.tune_rounded,
+      SettingsSection.apiKeys => Icons.vpn_key_rounded,
+      SettingsSection.simulator => Icons.flight_takeoff_rounded,
+      SettingsSection.navdata => Icons.map_rounded,
+      SettingsSection.ai => Icons.auto_awesome_rounded,
+      SettingsSection.remote => Icons.devices_rounded,
+      SettingsSection.about => Icons.info_outline_rounded,
+    };
+
+/// Per-section localized title, shared by the nav rail and the narrow-screen
+/// detail page header.
+String settingsSectionTitle(AppLocalizations l10n, SettingsSection section) =>
+    switch (section) {
+      SettingsSection.general => l10n.settingsCategoryGeneral,
+      SettingsSection.apiKeys => l10n.settingsCategoryApiKeys,
+      SettingsSection.simulator => l10n.settingsCategorySimulator,
+      SettingsSection.navdata => l10n.settingsCategoryNavdata,
+      SettingsSection.ai => l10n.settingsCategoryAi,
+      SettingsSection.remote => l10n.settingsCategoryRemote,
+      SettingsSection.about => l10n.settingsCategoryAbout,
+    };
+
+/// Per-section localized one-line description (nav rail subtitle).
+String settingsSectionDesc(AppLocalizations l10n, SettingsSection section) =>
+    switch (section) {
+      SettingsSection.general => l10n.settingsCategoryGeneralDesc,
+      SettingsSection.apiKeys => l10n.settingsCategoryApiKeysDesc,
+      SettingsSection.simulator => l10n.settingsCategorySimulatorDesc,
+      SettingsSection.navdata => l10n.settingsCategoryNavdataDesc,
+      SettingsSection.ai => l10n.settingsCategoryAiDesc,
+      SettingsSection.remote => l10n.settingsCategoryRemoteDesc,
+      SettingsSection.about => l10n.settingsCategoryAboutDesc,
+    };
+
+/// Builds the section's content widget. Shared by the wide master-detail
+/// layout and the narrow full-screen detail page.
+Widget buildSettingsSection(SettingsController controller,
+    SettingsSection section) {
+  switch (section) {
+    case SettingsSection.general:
+      return GeneralSection(controller: controller);
+    case SettingsSection.apiKeys:
+      return ApiKeysSection(controller: controller);
+    case SettingsSection.simulator:
+      return SimulatorSection(controller: controller);
+    case SettingsSection.navdata:
+      return NavDataSection(controller: controller);
+    case SettingsSection.ai:
+      return AiCopilotSection(controller: controller);
+    case SettingsSection.remote:
+      return RemoteAccessSection(controller: controller);
+    case SettingsSection.about:
+      return AboutSection(controller: controller);
+  }
+}
 
 /// Top-level settings screen, designed to live inside a [FloatingWindow].
 ///
@@ -42,6 +102,10 @@ class SettingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    // Narrow (phone) layout: the master-detail split doesn't fit — show the
+    // section menu alone, and push a full-screen detail page when one is
+    // picked (with a back arrow to return to the menu).
+    final narrow = isNarrowScreen(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -50,7 +114,12 @@ class SettingsPage extends StatelessWidget {
         // matching the welcome screen's left-card look.
         _SettingsHeader(title: l10n.settingsTitle, subtitle: l10n.settingsDesc),
         Expanded(
-          child: Row(
+          child: narrow
+              ? _SettingsNavList(
+            selected: section,
+            onSelect: (s) => _openSection(context, s),
+          )
+              : Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // No vertical divider either — the nav rail blends into the
@@ -64,7 +133,7 @@ class SettingsPage extends StatelessWidget {
                   onSelect: onChangeSection,
                 ),
               ),
-              Expanded(child: _buildSection(section)),
+              Expanded(child: buildSettingsSection(controller, section)),
             ],
           ),
         ),
@@ -72,24 +141,74 @@ class SettingsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildSection(SettingsSection section) {
-    final controller = this.controller;
-    switch (section) {
-      case SettingsSection.general:
-        return GeneralSection(controller: controller);
-      case SettingsSection.apiKeys:
-        return ApiKeysSection(controller: controller);
-      case SettingsSection.simulator:
-        return SimulatorSection(controller: controller);
-      case SettingsSection.navdata:
-        return NavDataSection(controller: controller);
-      case SettingsSection.ai:
-        return AiCopilotSection(controller: controller);
-      case SettingsSection.remote:
-        return RemoteAccessSection(controller: controller);
-      case SettingsSection.about:
-        return AboutSection(controller: controller);
-    }
+  /// Narrow layout: record the selection (so the menu highlights it after
+  /// returning) and push the section as a full-screen detail page.
+  void _openSection(BuildContext context, SettingsSection s) {
+    onChangeSection(s);
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => _NarrowSectionPage(controller: controller, section: s),
+      ),
+    );
+  }
+}
+
+/// Full-screen page hosting one settings section on narrow screens: a header
+/// with a back arrow over the section body.
+class _NarrowSectionPage extends StatelessWidget {
+  const _NarrowSectionPage({required this.controller, required this.section});
+
+  final SettingsController controller;
+  final SettingsSection section;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<AppColors>()!;
+    final l10n = AppLocalizations.of(context)!;
+    return Scaffold(
+      backgroundColor: colors.surfaceBase,
+      body: SafeArea(
+        bottom: false,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Container(
+              height: 48,
+              decoration: BoxDecoration(color: colors.chrome),
+              child: Row(
+                children: [
+                  IconButton(
+                    tooltip: MaterialLocalizations
+                        .of(context)
+                        .backButtonTooltip,
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon:
+                    Icon(Icons.arrow_back_rounded, color: colors.textSecondary),
+                  ),
+                  Icon(settingsSectionIcon(section),
+                      size: 18, color: colors.accent),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      settingsSectionTitle(l10n, section).toUpperCase(),
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.8,
+                        color: colors.textPrimary,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                ],
+              ),
+            ),
+            Expanded(child: buildSettingsSection(controller, section)),
+          ],
+        ),
+      ),
+    );
   }
 }
 
@@ -143,55 +262,11 @@ class _SettingsNavRail extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final items = <_NavItem>[
-      _NavItem(
-        icon: Icons.tune_rounded,
-        label: l10n.settingsCategoryGeneral,
-        description: l10n.settingsCategoryGeneralDesc,
-        section: SettingsSection.general,
-      ),
-      _NavItem(
-        icon: Icons.vpn_key_rounded,
-        label: l10n.settingsCategoryApiKeys,
-        description: l10n.settingsCategoryApiKeysDesc,
-        section: SettingsSection.apiKeys,
-      ),
-      _NavItem(
-        icon: Icons.flight_takeoff_rounded,
-        label: l10n.settingsCategorySimulator,
-        description: l10n.settingsCategorySimulatorDesc,
-        section: SettingsSection.simulator,
-      ),
-      _NavItem(
-        icon: Icons.map_rounded,
-        label: l10n.settingsCategoryNavdata,
-        description: l10n.settingsCategoryNavdataDesc,
-        section: SettingsSection.navdata,
-      ),
-      _NavItem(
-        icon: Icons.auto_awesome_rounded,
-        label: l10n.settingsCategoryAi,
-        description: l10n.settingsCategoryAiDesc,
-        section: SettingsSection.ai,
-      ),
-      _NavItem(
-        icon: Icons.devices_rounded,
-        label: l10n.settingsCategoryRemote,
-        description: l10n.settingsCategoryRemoteDesc,
-        section: SettingsSection.remote,
-      ),
-      _NavItem(
-        icon: Icons.info_outline_rounded,
-        label: l10n.settingsCategoryAbout,
-        description: l10n.settingsCategoryAboutDesc,
-        section: SettingsSection.about,
-      ),
-    ];
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
       shrinkWrap: true,
       children: [
-        for (final item in items) ...[
+        for (final item in _buildNavItems(l10n)) ...[
           _NavButton(
             item: item,
             selected: item.section == selected,
@@ -203,6 +278,44 @@ class _SettingsNavRail extends StatelessWidget {
     );
   }
 }
+
+/// Narrow-layout section menu: the same nav rows, full width — the menu IS
+/// the landing page; picking one pushes the detail page.
+class _SettingsNavList extends StatelessWidget {
+  const _SettingsNavList({required this.selected, required this.onSelect});
+
+  final SettingsSection selected;
+  final ValueChanged<SettingsSection> onSelect;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return ListView(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      children: [
+        for (final item in _buildNavItems(l10n)) ...[
+          _NavButton(
+            item: item,
+            selected: item.section == selected,
+            onTap: () => onSelect(item.section),
+          ),
+          const SizedBox(height: 6),
+        ],
+      ],
+    );
+  }
+}
+
+List<_NavItem> _buildNavItems(AppLocalizations l10n) =>
+    [
+      for (final section in SettingsSection.values)
+        _NavItem(
+          icon: settingsSectionIcon(section),
+          label: settingsSectionTitle(l10n, section),
+          description: settingsSectionDesc(l10n, section),
+          section: section,
+        ),
+    ];
 
 class _NavItem {
   const _NavItem({

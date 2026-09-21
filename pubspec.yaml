@@ -60,6 +60,8 @@ dependencies:
   # target platform (Windows / macOS / Linux / Android / iOS / Web).
   shared_preferences: ^2.3.3
   file_picker: 12.0.0
+  win32: ^6.4.0
+  ffi: ^2.2.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -86,3 +88,4 @@ flutter:
     - assets/
     - assets/icons/
     - assets/icons/map/
+    - assets/images/

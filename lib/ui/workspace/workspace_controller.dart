@@ -119,6 +119,17 @@ class WorkspaceController extends ChangeNotifier {
     }
   }
 
+  /// Makes sure the panel with [id] is visible (no-op if already shown).
+  /// Used to auto-open the inspector drawer when a point gets inspected.
+  void show(String id) {
+    final p = _byId(id);
+    if (p != null && !p.visible) {
+      p.visible = true;
+      _persist();
+      notifyListeners();
+    }
+  }
+
   DrawerPanelData? _byId(String id) {
     for (final p in _panels) {
       if (p.id == id) return p;

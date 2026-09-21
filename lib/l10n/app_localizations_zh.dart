@@ -298,6 +298,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsTheme => '主题';
 
   @override
+  String get languageSystem => '跟随系统';
+
+  @override
+  String get settingsFontFamily => '界面字体';
+
+  @override
+  String get settingsFontFamilyHint => '应用于整个应用程序，立即生效。';
+
+  @override
+  String get settingsFontDefault => '默认';
+
+  @override
   String get settingsThemeDark => '深色';
 
   @override
@@ -718,10 +730,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get statusConnected => '已连接';
 
   @override
+  String get statusDisconnected => '未连接';
+
+  @override
   String get statusNoNavdata => '未加载导航数据';
 
   @override
   String get statusCpu => 'CPU';
+
+  @override
+  String get statusGpu => 'GPU';
 
   @override
   String get statusMem => '内存';
@@ -739,7 +757,148 @@ class AppLocalizationsZh extends AppLocalizations {
   String get hidePanel => '隐藏';
 
   @override
-  String get inspectorHint => '在地图上选择一个航点或航段以查看其详情。';
+  String get inspectorHint => '双击地图图标或搜索结果，在此查看详细信息。';
+
+  @override
+  String get inspectorType => '类型';
+
+  @override
+  String get inspectorCoordinates => '坐标';
+
+  @override
+  String get inspectorElevation => '标高';
+
+  @override
+  String get inspectorFrequency => '频率';
+
+  @override
+  String get inspectorRunways => '跑道';
+
+  @override
+  String get inspectorIata => 'IATA';
+
+  @override
+  String get inspectorCity => '城市';
+
+  @override
+  String get inspectorFlyTo => '定位到该点';
+
+  @override
+  String get inspectorClear => '清除检查器';
+
+  @override
+  String get inspectorFrequencies => 'ATC 频率';
+
+  @override
+  String get inspectorWeather => '天气';
+
+  @override
+  String get inspectorWeatherUnavailable => '该机场暂无天气信息。';
+
+  @override
+  String get inspectorTabOverview => '概述';
+
+  @override
+  String get inspectorTabComms => '通信';
+
+  @override
+  String get inspectorIcao => 'ICAO';
+
+  @override
+  String get inspectorXplaneIdent => 'X-Plane 识别码';
+
+  @override
+  String get inspectorRegion => '地域';
+
+  @override
+  String get inspectorCountry => '国家或地区代码';
+
+  @override
+  String get inspectorMagvar => '磁偏角';
+
+  @override
+  String get inspectorSunTimes => '日出和日落';
+
+  @override
+  String get inspectorNotAvailable => '—';
+
+  @override
+  String get inspectorRawReport => '源报文';
+
+  @override
+  String get inspectorWindCalm => '静风';
+
+  @override
+  String get splashScanning => '正在扫描导航数据…';
+
+  @override
+  String get splashNoNavdata => '未找到导航数据';
+
+  @override
+  String get settingsSplash => '启动画面';
+
+  @override
+  String get settingsSplashHint => '启动时显示扫描导航数据的画面';
+
+  @override
+  String get settingsSplashScan => '启动时自动扫描导航数据';
+
+  @override
+  String get settingsSplashScanHint => '每次启动执行完整导航数据导入的频率';
+
+  @override
+  String get splashScanAlways => '始终';
+
+  @override
+  String get splashScanAfter14 => '上次扫描超过 14 天';
+
+  @override
+  String get splashScanAfter28 => '上次扫描超过 28 天';
+
+  @override
+  String get splashScanNever => '从不';
+
+  @override
+  String get navActiveSource => '使用中';
+
+  @override
+  String get inspectorDataSource => '数据来源';
+
+  @override
+  String get inspectorRunwayCount => '跑道数量';
+
+  @override
+  String get inspectorLongestRunway => '最长跑道';
+
+  @override
+  String get airportTypeAirport => '机场';
+
+  @override
+  String get airportTypeHeliport => '直升机机场';
+
+  @override
+  String get airportTypeSeaplane => '水上机场';
+
+  @override
+  String get navFreqAtis => 'ATIS';
+
+  @override
+  String get navFreqCtaf => 'CTAF';
+
+  @override
+  String get navFreqGnd => '地面';
+
+  @override
+  String get navFreqTwr => '塔台';
+
+  @override
+  String get navFreqCld => '放行';
+
+  @override
+  String get navFreqApp => '进近';
+
+  @override
+  String get navFreqDep => '离场';
 
   @override
   String get treeNoPlans => '没有飞行计划';

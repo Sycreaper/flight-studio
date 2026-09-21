@@ -132,15 +132,24 @@ void main() {
     expect(heli.type, 'heliport');
     expect(heli.latitude, closeTo(51.5, 0.001));
 
-    // Runways stored with computed heading/length.
+    // Runways stored as PAIRS — both ends, each with its own threshold
+    // position and reciprocal heading.
     final runways = await db.select(db.runways).get();
-    expect(runways, hasLength(2)); // KSEA 16L + EOFAP 09.
-    final kseaRw = runways.firstWhere((r) => r.airportIcao == 'KSEA');
-    expect(kseaRw.ident, '16L');
-    expect(kseaRw.surface, 'asphalt');
-    // ~11,900 ft runway.
-    expect(kseaRw.lengthFt, greaterThan(10000));
-    expect(kseaRw.lengthFt, lessThan(13000));
+    expect(runways, hasLength(4)); // KSEA 16L+34R, EOFAP 09+27.
+    final kseaRws = runways.where((r) => r.airportIcao == 'KSEA').toList()
+      ..sort((a, b) => a.ident.compareTo(b.ident));
+    expect(kseaRws.map((r) => r.ident), ['16L', '34R']);
+    final rw16 = kseaRws.first;
+    expect(rw16.surface, 'asphalt');
+    // ~11,900 ft runway; nearly N-S synthetic geometry → headings ~180/0.
+    expect(rw16.lengthFt, greaterThan(10000));
+    expect(rw16.lengthFt, lessThan(13000));
+    expect(rw16.headingDeg, closeTo(180, 2));
+    final rw34 = kseaRws.last;
+    expect(rw34.headingDeg, closeTo(0, 2));
+    // Each end sits at its own threshold, not the strip midpoint.
+    expect(rw16.latitude, closeTo(47.4556, 0.001));
+    expect(rw34.latitude, closeTo(47.4216, 0.001));
   });
 
   test('importEarthAwy parses airway segments', () async {

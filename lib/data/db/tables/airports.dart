@@ -16,6 +16,10 @@ class Airports extends Table {
 
   RealColumn get elevationFt => real().nullable()();
 
+  /// Magnetic declination (apt.dat row 1 field 3 — deprecated by X-Plane but
+  /// still populated by many datasets; `null` when absent).
+  RealColumn get magvarDeg => real().nullable()();
+
   TextColumn get type => text()(); // 'airport' | 'heliport' | 'seaplane'
   TextColumn get source => text()(); // 'xplane' | 'ourairports' | 'navigraph'
 

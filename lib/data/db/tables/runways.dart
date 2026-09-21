@@ -19,6 +19,11 @@ class Runways extends Table {
   TextColumn get edgeLights =>
       text().nullable()(); // 'none' | 'edge' | 'center'
 
+  /// Identifies the physical strip both ends of a runway pair belong to
+  /// (0, 1, 2... per airport, from apt.dat row 100/101 order). `null` in
+  /// databases imported before v3.
+  IntColumn get stripIndex => integer().nullable()();
+
   @override
   Set<Column<Object>> get primaryKey => {airportIcao, ident};
 }

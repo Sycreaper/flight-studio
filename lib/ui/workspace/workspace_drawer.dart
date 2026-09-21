@@ -2,13 +2,17 @@ import 'package:flutter/material.dart';
 
 import '../../../l10n/app_localizations.dart';
 import '../theme/app_colors.dart';
+
 import 'workspace_controller.dart';
 
 /// Resolves a panel's visible title from its [id] at render time, so the label
-/// tracks the active locale without the controller needing a `BuildContext`.
-/// Falls back to [DrawerPanelData.title] for custom/future panels whose id is
-/// not one of the three defaults.
-String _resolvePanelTitle(BuildContext context, DrawerPanelData panel) {
+/// tracks the active locale without the controller needing a `BuildContext`
+/// of its own. Falls back to [DrawerPanelData.title] for custom/future panels
+/// whose id is not one of the three defaults.
+///
+/// Public because the dock rails (`workspace_view.dart`) need the same
+/// localized labels for their toggle-button tooltips.
+String resolvePanelTitle(BuildContext context, DrawerPanelData panel) {
   final l10n = AppLocalizations.of(context)!;
   switch (panel.id) {
     case 'search':
@@ -96,7 +100,7 @@ class WorkspaceDrawer extends StatelessWidget {
 /// Just the icon + uppercase title — the draggable label inside the header.
 ///
 /// The title is resolved from [panel.id] at build time via
-/// [_resolvePanelTitle] so it follows locale changes.
+/// [resolvePanelTitle] so it follows locale changes.
 ///
 /// The outer `Container(color: …)` is critical: `Draggable`'s internal
 /// `GestureDetector` defaults to `HitTestBehavior.deferToChild`, so without a
@@ -111,7 +115,7 @@ class _DragHandleLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppColors>()!;
-    final title = _resolvePanelTitle(context, panel);
+    final title = resolvePanelTitle(context, panel);
     return Container(
       color: Colors.transparent,
       child: MouseRegion(
@@ -148,7 +152,7 @@ class _DragFeedback extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppColors>()!;
-    final title = _resolvePanelTitle(context, panel);
+    final title = resolvePanelTitle(context, panel);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
@@ -230,3 +234,4 @@ class _DrawerDropZoneState extends State<DrawerDropZone> {
     );
   }
 }
+

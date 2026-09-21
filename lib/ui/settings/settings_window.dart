@@ -5,7 +5,7 @@ import '../../../data/background_tasks.dart';
 import '../../../data/settings/settings_controller.dart';
 import '../../../l10n/app_localizations.dart';
 import '../shell/app_shell.dart';
-import '../shell/tabs/app_tab.dart';
+import '../shell/tabs/tab_registry.dart';
 import '../theme/app_colors.dart';
 import '../widgets/floating_dialog.dart';
 import 'settings_page.dart';
@@ -291,7 +291,7 @@ void _openSettingsTab(BuildContext context, SettingsLanding landing) {
     MaterialPageRoute(
       builder: (_) => AppShell(
         settings: settings,
-        initialTab: TabType.settings,
+        initialTab: TabIds.settings,
         initialSettingsSection: _mapSection(landing),
       ),
     ),

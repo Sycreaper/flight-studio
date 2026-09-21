@@ -104,6 +104,39 @@ Flight Studio ingests navigation data from multiple sources:
 
 ---
 
+## Plugin System (Extensibility)
+
+Flight Studio is designed around a three-layer extensibility architecture so
+third-party developers can add functionality safely without forking the app:
+
+1. **Internal extension points** — everything a plugin could do, first-party
+   features already do through the same registries: workspace tab/panel factories,
+   flight-plan exporters & importers, simulator connectors, navdata providers and
+   AI (MCP) tools. No hard-coded switches; new capability = new registration.
+2. **Script plugins (v1)** — plugins are written in **JavaScript** and run inside
+   an embedded **QuickJS** sandbox (`plugins/<id>/plugin.json` manifest + entry
+   script). The sandbox exposes only a curated host API — map layers & markers,
+   UI slots, navdata (read-only), network access proxied through the app with
+   per-scope permissions, and namespaced key-value settings. The Plugin Center
+   handles installing, enabling/disabling and permission prompts.
+3. **Out-of-process connectors (later)** — heavyweight integrations (simulator
+   bridges, external data services) run as separate processes talking JSON-RPC
+   over stdio/named pipes: language-agnostic and crash-isolated.
+
+### UI capability tiers
+
+- **Predefined slots** (default permission) — workspace tabs, panels, map layers,
+  status-bar widgets, legend categories, settings sections.
+- **Free-form canvas** (special permission) — full drawing-surface access,
+  granted only after dedicated review; such plugins are marked distinctly in the
+  marketplace.
+
+> Planned far out: a built-in **Lua editor** (syntax highlighting, autocompletion,
+> LSP integration, AI coding agent) so users can comfortably write and maintain
+> FlyWithLua scripts for X-Plane.
+
+---
+
 ## Screenshots
 
 > _Coming soon._
@@ -172,6 +205,10 @@ lib/
   `compute_route`, `export_flight_plan`
   and `send_sim_command` are deterministic Dart — the model decides *what* to invoke, the trusted core does the actual
   work. A stdio MCP server may be exposed later so external clients (e.g. Claude Desktop) can reuse the same tools.
+- **Extensibility:** first-party features and third-party plugins go through the same registries (tab factories,
+  exporters, sim connectors, navdata providers, MCP tools). Script plugins run in a QuickJS JavaScript sandbox;
+  free-form-canvas UI access is permission-gated and marketplace-reviewed. Heavyweight connectors (sim bridges) may
+  run out-of-process over JSON-RPC for crash isolation.
 
 ---
 
@@ -206,6 +243,10 @@ lib/
 - [ ] **Phase 9** — AI assistant (BYOK + MCP): chat drawer, provider settings, wire the LLM to the tool registry
   populated in Phases 3/4/8 — Route Copilot, pre-flight onboarding, post-flight coach. Optional stdio MCP server for
   external clients.
+- [ ] **Phase 10** — Plugin system: wire extension-point registries into core features (tab factories, exporters,
+  sim connectors, navdata providers), QuickJS JavaScript plugin runtime with manifest + permissions, Plugin Center
+  UI. Out-of-process JSON-RPC connectors and the built-in Lua editor (LSP, autocomplete, AI coding agent for
+  FlyWithLua) follow later.
 - [ ] **Future** — Platform expansion: macOS/Linux desktop, HarmonyOS NEXT, NOAA weather (GRIB2 + METAR/TAF), aircraft
   performance collection, progressive-disclosure newbie mode, aircraft import-compatibility matrix.
 

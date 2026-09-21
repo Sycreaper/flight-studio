@@ -7,25 +7,68 @@ import '../../../core/geo/geo_math.dart';
 import '../../../data/db/database.dart';
 import 'earth_nav_parser.dart' show ProgressCallback;
 
-/// One runway parsed from an apt.dat block — kept in memory only until the
-/// airport closes so we can pick the longest for the airport's position.
-class _RunwayCandidate {
-  _RunwayCandidate({
-    required this.ident,
-    required this.latitude,
-    required this.longitude,
+/// One runway STRIP parsed from an apt.dat block — both ends. Kept in memory
+/// only until the airport closes so we can pick the longest strip for the
+/// airport's position.
+class _RunwayStrip {
+  _RunwayStrip({
+    required this.ident1,
+    required this.lat1,
+    required this.lon1,
+    required this.ident2,
+    required this.lat2,
+    required this.lon2,
     required this.lengthFt,
-    required this.headingDeg,
+    required this.heading1Deg,
+    required this.heading2Deg,
     required this.surface,
   });
 
-  final String ident; // e.g. '16L' / '36' / 'W'
-  final double latitude; // midpoint
-  final double longitude;
+  // End 1 (threshold position + its own true heading).
+  final String ident1;
+  final double lat1;
+  final double lon1;
+  final double heading1Deg;
+
+  // End 2 (reciprocal direction).
+  final String ident2;
+  final double lat2;
+  final double lon2;
+  final double heading2Deg;
+
   final double lengthFt;
-  final double headingDeg;
   final String surface;
+
+  /// Strip midpoint — the airport's map position (LNM behaviour).
+  double get midLat => (lat1 + lat2) / 2;
+
+  double get midLon => (lon1 + lon2) / 2;
 }
+
+/// One ATC frequency parsed from apt.dat rows 50–56.
+class _FrequencyCandidate {
+  _FrequencyCandidate({
+    required this.type,
+    required this.frequencyKhz,
+    required this.description,
+  });
+
+  final String type; // 'ATIS' / 'CTAF' / 'GND' / 'TWR' / 'CLD' / 'APP' / 'DEP'
+  final int frequencyKhz;
+  final String description;
+}
+
+/// Maps apt.dat frequency row codes to stable type strings.
+String _frequencyType(int code) => switch (code) {
+  50 => 'ATIS',
+  51 => 'CTAF',
+  52 => 'GND',
+  53 => 'TWR',
+  54 => 'CLD',
+  55 => 'APP',
+  56 => 'DEP',
+  _ => 'UNKNOWN',
+};
 
 /// Streams X-Plane `apt.dat` and inserts airports + runways into the Drift
 /// database.
@@ -42,6 +85,8 @@ class _RunwayCandidate {
 ///   8=primary number, 9/10=primary lat/lon, 17=secondary number, 18/19=secondary lat/lon.
 /// - Row `101` — water runway: 3/4/5=primary, 6/7/8=secondary.
 /// - Row `102` — helipad: 1=lat, 2=lon.
+/// - Rows `50`–`56` — ATC frequencies (ATIS/CTAF/GND/TWR/CLD/APP/DEP),
+///   stored in kHz: `53 119500 TOWER`.
 ///
 /// The airport's map position is the **midpoint of its longest runway**
 /// (Little Navmap's approach when no datum row exists); heliports fall back
@@ -62,14 +107,17 @@ Future<int> importAptDat(
   var lineNo = 0;
   final airportBatch = <AirportsCompanion>[];
   final runwayBatch = <RunwaysCompanion>[];
+  final frequencyBatch = <FrequenciesCompanion>[];
 
   // Per-airport accumulation state.
   var hdrIcao = '';
   var hdrName = '';
   var hdrElev = 0.0;
+  double? hdrMagvar;
   var hdrType = 'airport';
   var inAirport = false;
-  final runways = <_RunwayCandidate>[];
+  final runways = <_RunwayStrip>[];
+  final frequencies = <_FrequencyCandidate>[];
   (double, double)? helipadPos; // (lat, lon) fallback for heliports.
 
   Future<void> flushAirport() async {
@@ -78,12 +126,12 @@ Future<int> importAptDat(
     double? lat;
     double? lon;
     if (runways.isNotEmpty) {
-      // Longest runway midpoint wins (LNM behaviour).
-      _RunwayCandidate longest = runways.reduce(
+      // Longest STRIP midpoint wins (LNM behaviour).
+      _RunwayStrip longest = runways.reduce(
         (a, b) => a.lengthFt >= b.lengthFt ? a : b,
       );
-      lat = longest.latitude;
-      lon = longest.longitude;
+      lat = longest.midLat;
+      lon = longest.midLon;
     } else if (helipadPos != null) {
       lat = helipadPos.$1;
       lon = helipadPos.$2;
@@ -97,20 +145,46 @@ Future<int> importAptDat(
         latitude: lat,
         longitude: lon,
         elevationFt: Value(hdrElev),
+        magvarDeg: Value(hdrMagvar),
         type: hdrType,
         source: 'xplane',
       ),
     );
-    for (final rw in runways) {
-      runwayBatch.add(
+    // BOTH runway ends are stored — runways come in pairs (16L/34R), each
+    // end with its own threshold position and reciprocal heading. stripIndex
+    // tags the physical strip so the inspector can group `16L/34R` together.
+    for (var i = 0; i < runways.length; i++) {
+      final rw = runways[i];
+      runwayBatch.addAll([
         RunwaysCompanion.insert(
           airportIcao: hdrIcao,
-          ident: rw.ident,
-          latitude: rw.latitude,
-          longitude: rw.longitude,
+          ident: rw.ident1,
+          latitude: rw.lat1,
+          longitude: rw.lon1,
           lengthFt: rw.lengthFt,
-          headingDeg: rw.headingDeg,
+          headingDeg: rw.heading1Deg,
           surface: Value(rw.surface.isEmpty ? null : rw.surface),
+          stripIndex: Value(i),
+        ),
+        RunwaysCompanion.insert(
+          airportIcao: hdrIcao,
+          ident: rw.ident2,
+          latitude: rw.lat2,
+          longitude: rw.lon2,
+          lengthFt: rw.lengthFt,
+          headingDeg: rw.heading2Deg,
+          surface: Value(rw.surface.isEmpty ? null : rw.surface),
+          stripIndex: Value(i),
+        ),
+      ]);
+    }
+    for (final fr in frequencies) {
+      frequencyBatch.add(
+        FrequenciesCompanion.insert(
+          airportIcao: hdrIcao,
+          type: fr.type,
+          frequencyKhz: fr.frequencyKhz,
+          description: Value(fr.description.isEmpty ? null : fr.description),
         ),
       );
     }
@@ -140,6 +214,18 @@ Future<int> importAptDat(
       );
       runwayBatch.clear();
     }
+    if (frequencyBatch.length >= 2000) {
+      await db.batch(
+        (b) => b.insertAll(
+          db.frequencies,
+          frequencyBatch,
+          mode: replace
+              ? InsertMode.insertOrReplace
+              : InsertMode.insertOrIgnore,
+        ),
+      );
+      frequencyBatch.clear();
+    }
   }
 
   final stream = file
@@ -165,12 +251,16 @@ Future<int> importAptDat(
         hdrIcao = parts.length > 4 ? parts[4] : '';
         hdrName = parts.length > 5 ? parts.sublist(5).join(' ') : '';
         hdrElev = parts.length > 1 ? (double.tryParse(parts[1]) ?? 0) : 0;
+        // Field 3 is the (deprecated) magnetic declination — atools reads
+        // it the same way; most 1200-era files still carry a real value.
+        hdrMagvar = parts.length > 3 ? double.tryParse(parts[3]) : null;
         hdrType = code == 16
             ? 'seaplane'
             : code == 17
             ? 'heliport'
             : 'airport';
         runways.clear();
+        frequencies.clear();
         helipadPos = null;
         break;
 
@@ -193,10 +283,30 @@ Future<int> importAptDat(
         }
         break;
 
+      case 50: // ATIS.
+      case 51: // CTAF (unicom).
+      case 52: // Ground.
+      case 53: // Tower.
+      case 54: // Clearance delivery.
+      case 55: // Approach.
+      case 56: // Departure.
+        if (!inAirport || parts.length < 2) break;
+        final khz = int.tryParse(parts[1]);
+        if (khz == null) break;
+        frequencies.add(
+          _FrequencyCandidate(
+            type: _frequencyType(code!),
+            frequencyKhz: khz,
+            description: parts.length > 2 ? parts.sublist(2).join(' ') : '',
+          ),
+        );
+        break;
+
       case 99: // End of airport block.
         await flushAirport();
         inAirport = false;
         runways.clear();
+        frequencies.clear();
         helipadPos = null;
         break;
     }
@@ -225,6 +335,15 @@ Future<int> importAptDat(
       ),
     );
   }
+  if (frequencyBatch.isNotEmpty) {
+    await db.batch(
+      (b) => b.insertAll(
+        db.frequencies,
+        frequencyBatch,
+        mode: replace ? InsertMode.insertOrReplace : InsertMode.insertOrIgnore,
+      ),
+    );
+  }
 
   onProgress?.call(1, 1, 'Airports done ($airportCount)');
   return airportCount;
@@ -232,7 +351,7 @@ Future<int> importAptDat(
 
 const int _aptLineEstimate = 8000000; // ~8M lines in the global apt.dat.
 
-void _addLandRunway(List<String> parts, List<_RunwayCandidate> out) {
+void _addLandRunway(List<String> parts, List<_RunwayStrip> out) {
   // atools RunwayFieldIndex: 8=primary number, 9/10=primary lat/lon,
   // 17=secondary number, 18/19=secondary lat/lon; 2=surface.
   final lat1 = double.tryParse(parts[9]);
@@ -245,25 +364,29 @@ void _addLandRunway(List<String> parts, List<_RunwayCandidate> out) {
   final num2 = parts[17];
   final surface = _surfaceName(int.tryParse(parts[2]) ?? 1);
 
-  final midLat = (lat1 + lat2) / 2;
-  final midLon = (lon1 + lon2) / 2;
   final lengthFt = haversineNm(lat1, lon1, lat2, lon2) * 6076.12;
-  final heading = initialBearing(lat1, lon1, lat2, lon2);
+  // Each runway end's number reflects the heading FROM its own threshold
+  // towards the opposite end (e.g. 16L lands heading ~160°).
+  final heading1 = initialBearing(lat1, lon1, lat2, lon2);
+  final heading2 = initialBearing(lat2, lon2, lat1, lon1);
 
-  final ident = num1.isNotEmpty ? num1 : num2;
   out.add(
-    _RunwayCandidate(
-      ident: ident,
-      latitude: midLat,
-      longitude: midLon,
+    _RunwayStrip(
+      ident1: num1,
+      lat1: lat1,
+      lon1: lon1,
+      heading1Deg: heading1,
+      ident2: num2,
+      lat2: lat2,
+      lon2: lon2,
+      heading2Deg: heading2,
       lengthFt: lengthFt,
-      headingDeg: heading,
       surface: surface,
     ),
   );
 }
 
-void _addWaterRunway(List<String> parts, List<_RunwayCandidate> out) {
+void _addWaterRunway(List<String> parts, List<_RunwayStrip> out) {
   // atools: 3/4/5 = primary number/lat/lon; 6/7/8 = secondary number/lat/lon.
   final lat1 = double.tryParse(parts[4]);
   final lon1 = double.tryParse(parts[5]);
@@ -271,19 +394,21 @@ void _addWaterRunway(List<String> parts, List<_RunwayCandidate> out) {
   final lon2 = double.tryParse(parts[8]);
   if (lat1 == null || lon1 == null || lat2 == null || lon2 == null) return;
 
-  final midLat = (lat1 + lat2) / 2;
-  final midLon = (lon1 + lon2) / 2;
   final lengthFt = haversineNm(lat1, lon1, lat2, lon2) * 6076.12;
-  final heading = initialBearing(lat1, lon1, lat2, lon2);
+  final heading1 = initialBearing(lat1, lon1, lat2, lon2);
+  final heading2 = initialBearing(lat2, lon2, lat1, lon1);
 
-  final ident = parts[3].isNotEmpty ? parts[3] : parts[6];
   out.add(
-    _RunwayCandidate(
-      ident: ident,
-      latitude: midLat,
-      longitude: midLon,
+    _RunwayStrip(
+      ident1: parts[3],
+      lat1: lat1,
+      lon1: lon1,
+      heading1Deg: heading1,
+      ident2: parts[6],
+      lat2: lat2,
+      lon2: lon2,
+      heading2Deg: heading2,
       lengthFt: lengthFt,
-      headingDeg: heading,
       surface: 'water',
     ),
   );

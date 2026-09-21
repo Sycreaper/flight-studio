@@ -1,16 +1,21 @@
-import 'dart:io';
+import 'dart:io' show Platform;
 
 import 'package:flutter/foundation.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/navdata/navdata_types.dart';
-import '../../core/parsing/earth_nav_parser.dart';
 import '../background_tasks.dart';
+import '../settings/settings_keys.dart';
 import '../settings/simulator_install.dart';
+import 'airport_details.dart';
 import 'importer.dart';
+import 'navdata_provider.dart';
+import 'ourairports_enricher.dart';
 
-/// App-wide navdata service. Owns the [NavdataImporter], runs imports in the
-/// background (with progress reported through [BackgroundTaskManager]), and
-/// serves map-marker queries.
+/// App-wide navdata service. Owns the [NavdataImporter] and the open
+/// database, runs imports through the registered [NavdataProvider] (progress
+/// reported via [BackgroundTaskManager]), and serves map-marker queries.
 ///
 /// The map listens to this [ChangeNotifier]: after a successful import the
 /// marker list becomes available and the map re-queries.
@@ -28,106 +33,110 @@ class NavdataService extends ChangeNotifier {
   /// `true` once a database exists with at least one row imported.
   bool get isLoaded => _lastRowCounts.values.any((c) => c > 0);
 
-  /// Imports navdata for the **first supported** simulator in [simulators].
-  ///
-  /// Only X-Plane 12 is supported today. Four files are read:
-  /// 1. `Custom Data/earth_nav.dat` — navaids
-  /// 2. `Custom Data/earth_fix.dat` — waypoints
-  /// 3. `Custom Data/earth_awy.dat` — airways
-  /// 4. `Global Scenery/Global Airports/Earth nav data/apt.dat` — airports
-  ///
-  /// Overall progress = weighted average of the per-file progresses, weighted
-  /// by approximate file size (apt.dat dominates at ~363 MB).
-  Future<void> importFromSimulators(List<SimulatorInstall> simulators) async {
-    final supported = simulators.where((s) => s.type.isSupported).toList();
-    if (supported.isEmpty) return;
-
-    final sim = supported.first;
-    final task = BackgroundTaskManager.instance.startTask(
-      'Importing navdata — ${sim.name ?? sim.type.name}',
-    );
-
+  /// Startup scan (splash screen): opens the existing database without
+  /// importing and reports whether any navdata is present. Refreshes
+  /// [rowCounts] so the status bar reflects it immediately. Returns `false`
+  /// on any failure (fresh install / test environment).
+  Future<bool> scanExistingData() async {
+    // The scan opens the app-support DB via path_provider — unavailable and
+    // non-completing under `flutter test` (same gate as SystemStatsService).
+    if (Platform.environment.containsKey('FLUTTER_TEST')) return false;
     try {
-      final db = await _importer.openAndClear();
-      final dataDir = await _importer.resolveDataDir(sim.path);
-      final dataPath = '${sim.path.replaceAll('\\', '/')}/$dataDir';
-
-      // Progress weights (approx. file sizes): nav 3.7M, fix 15M, awy 7.6M,
-      // apt 363M → normalized.
-      const wNav = 0.008;
-      const wFix = 0.032;
-      const wAwy = 0.016;
-      const wApt = 0.944;
-
-      void progressFor(
-        double base,
-        double weight,
-        int current,
-        int total,
-        String msg,
-      ) {
-        final fileProgress = total > 0 ? current / total : 0.0;
-        BackgroundTaskManager.instance.updateTask(
-          task,
-          (base + fileProgress * weight).clamp(0.0, 0.99),
-          label: msg,
-        );
-      }
-
-      var navaids = 0;
-      var fixes = 0;
-      var airways = 0;
-      var airports = 0;
-
-      final navFile = File('$dataPath/earth_nav.dat');
-      if (await navFile.exists()) {
-        navaids = await importEarthNav(
-          navFile,
-          db,
-          onProgress: (c, t, m) => progressFor(0.0, wNav, c, t, m),
-        );
-      }
-
-      final fixFile = File('$dataPath/earth_fix.dat');
-      if (await fixFile.exists()) {
-        fixes = await importEarthFix(
-          fixFile,
-          db,
-          onProgress: (c, t, m) => progressFor(wNav, wFix, c, t, m),
-        );
-      }
-
-      final awyFile = File('$dataPath/earth_awy.dat');
-      if (await awyFile.exists()) {
-        airways = await importEarthAwy(
-          awyFile,
-          db,
-          onProgress: (c, t, m) => progressFor(wNav + wFix, wAwy, c, t, m),
-        );
-      }
-
-      // Airports — global first, then custom scenery packs (override global).
-      final aptFiles = await _importer.discoverAptFiles(sim.path);
-      if (aptFiles.isNotEmpty) {
-        airports = await _importer.importAptFiles(
-          aptFiles,
-          db,
-          onProgress: (c, t, m) =>
-              progressFor(wNav + wFix + wAwy, wApt, c, t, m),
-        );
-      }
-
-      _lastRowCounts = await _importer.getRowCounts();
-      BackgroundTaskManager.instance.completeTask(task);
-      debugPrint(
-        'Navdata import done: navaids=$navaids fixes=$fixes '
-        'airways=$airways airports=$airports',
-      );
+      _lastRowCounts = await _importer.readRowCounts();
       notifyListeners();
-    } on Exception catch (e) {
-      BackgroundTaskManager.instance.failTask(task, e.toString());
-    } on Error catch (e) {
-      BackgroundTaskManager.instance.failTask(task, e.toString());
+      return _lastRowCounts.values.any((c) => c > 0);
+    } on Exception catch (_) {
+      return false;
+    } on Error catch (_) {
+      return false;
+    }
+  }
+
+  /// Imports navdata for the **first** simulator in [simulators] that has a
+  /// registered [NavdataProvider] (capability-based — no type switch here).
+  ///
+  /// Providers report normalized progress, which is forwarded to the
+  /// status-bar background task.
+  Future<void> importFromSimulators(List<SimulatorInstall> simulators) async {
+    for (final sim in simulators) {
+      final provider =
+      NavdataProviderRegistry.instance.forInstall(sim);
+      if (provider == null) continue;
+
+      final task = BackgroundTaskManager.instance.startTask(
+        'Importing navdata — ${sim.name ?? sim.type.name}',
+      );
+
+      try {
+        final db = await _importer.openAndClear();
+        await provider.importInto(
+          db,
+          _importer,
+          sim,
+          onProgress: (progress, message) =>
+              BackgroundTaskManager.instance.updateTask(
+                task,
+                progress.clamp(0.0, 0.99),
+                label: message,
+              ),
+        );
+        _lastRowCounts = await _importer.getRowCounts();
+        // Enrich iata/city/country from OurAirports (cached, best-effort) —
+        // apt.dat carries none of these fields.
+        final openDb = _importer.database;
+        if (openDb != null) {
+          await OurAirportsEnricher.instance.enrich(
+            openDb,
+            supportDir: getApplicationSupportDirectory,
+            onMessage: (message) =>
+                BackgroundTaskManager.instance.updateTask(
+                  task,
+                  0.99,
+                  label: message,
+                ),
+          );
+        }
+        BackgroundTaskManager.instance.completeTask(task);
+        await _recordScanTime();
+        debugPrint('Navdata import done via ${provider.id}: $_lastRowCounts');
+        notifyListeners();
+      } on Exception catch (e) {
+        BackgroundTaskManager.instance.failTask(task, e.toString());
+      } on Error catch (e) {
+        BackgroundTaskManager.instance.failTask(task, e.toString());
+      }
+      return;
+    }
+  }
+
+  /// Persists the scan timestamp (drives the splash "last scan > N days"
+  /// thresholds). Fire-and-forget — a failed write only means the next
+  /// launch considers the data older than it is.
+  Future<void> _recordScanTime() async {
+    try {
+      await SharedPreferencesAsync().setString(
+        SettingsKeys.navdataLastScanAt,
+        DateTime.now().toUtc().toIso8601String(),
+      );
+    } on Exception catch (_) {
+      // Best-effort.
+    }
+  }
+
+  /// LNM-style airport details (incl. runways) for the inspector drawer.
+  /// Returns `null` when unknown or no database is open (e.g. in tests).
+  Future<AirportDetails?> queryAirportDetails(String icao) =>
+      _importer.queryAirportDetails(icao);
+
+  /// AIRAC cycle of an install's navdata (from `cycle_info.txt`), e.g.
+  /// `'2608'` — `null` when missing/unreadable. Never throws.
+  Future<String?> readAiracCycle(SimulatorInstall install) async {
+    try {
+      return await _importer.readAiracCycle(install.path);
+    } on Exception catch (_) {
+      return null;
+    } on Error catch (_) {
+      return null;
     }
   }
 

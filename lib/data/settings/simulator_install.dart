@@ -22,8 +22,10 @@ enum SimulatorType {
     SimulatorType.prepar3dV6 => 'Prepar3D.exe',
   };
 
-  /// Whether this simulator is currently supported (vs. "coming soon").
-  bool get isSupported => this == SimulatorType.xplane12;
+  // NOTE: "is this sim connectable / navdata-importable today" is NOT an enum
+  // flag — ask SimConnectorRegistry.instance.isSupported(type) and
+  // NavdataProviderRegistry.instance.forInstall(...) instead, so third-party
+  // connectors and providers plug in without touching this enum.
 
   static SimulatorType fromPersistedName(String? name) {
     return values.firstWhere(

@@ -9,6 +9,7 @@ import 'features/flights/flight_repository.dart';
 import 'l10n/app_localizations.dart';
 import 'ui/settings/settings_window.dart';
 import 'ui/shell/window_chrome.dart';
+import 'ui/splash/splash_shell.dart';
 import 'ui/theme/app_theme.dart';
 import 'ui/welcome/welcome_shell.dart';
 
@@ -25,12 +26,18 @@ class FlightStudioApp extends StatelessWidget {
     super.key,
     FlightRepository? repository,
     SettingsController? settings,
+    this.showSplash = true,
   })
       : _repository = repository ?? FlightRepository(),
         _settings = settings ?? SettingsController();
 
   final FlightRepository _repository;
   final SettingsController _settings;
+
+  /// When true (default) the app opens on the navdata-scan splash screen and
+  /// transitions to the welcome screen when the scan finishes. Tests pass
+  /// `false` to land directly on the welcome screen.
+  final bool showSplash;
 
   static final bool _captionOverlay = !kIsWeb && Platform.isWindows;
 
@@ -42,11 +49,24 @@ class FlightStudioApp extends StatelessWidget {
         listenable: _settings,
         builder: (context, _) {
           final s = _settings.value;
+          // Apply the user-selected interface font to both theme variants —
+          // live, no restart needed. `null` keeps the platform default.
+          final family = s.fontFamily;
+          final light = AppTheme.light();
+          final dark = AppTheme.dark();
+          final themedLight = (family == null || family.isEmpty)
+              ? light
+              : light.copyWith(
+              textTheme: light.textTheme.apply(fontFamily: family));
+          final themedDark = (family == null || family.isEmpty)
+              ? dark
+              : dark.copyWith(
+              textTheme: dark.textTheme.apply(fontFamily: family));
           return MaterialApp(
             title: 'Flight Studio',
             debugShowCheckedModeBanner: false,
-            theme: AppTheme.light(),
-            darkTheme: AppTheme.dark(),
+            theme: themedLight,
+            darkTheme: themedDark,
             themeMode: s.themeMode,
             locale: s.localeCode.toLocale(),
             supportedLocales: AppLocalizations.supportedLocales,
@@ -69,7 +89,16 @@ class FlightStudioApp extends StatelessWidget {
                 ],
               );
             },
-            home: WelcomeShell(
+            home: showSplash
+                ? SplashShell(
+              next: (context) =>
+                  WelcomeShell(
+                    repository: _repository,
+                    settings: _settings,
+                  ),
+              settings: _settings,
+            )
+                : WelcomeShell(
               repository: _repository,
               settings: _settings,
             ),

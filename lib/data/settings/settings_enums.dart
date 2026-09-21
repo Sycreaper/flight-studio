@@ -100,6 +100,34 @@ enum MapTileProvider {
   }
 }
 
+/// When the automatic navdata scan should run at startup.
+///
+/// [always] re-imports on every launch; [after14Days] / [after28Days] skip
+/// the scan when the last successful scan is more recent than the threshold;
+/// [never] disables it entirely.
+enum SplashScanMode {
+  always,
+  after14Days,
+  after28Days,
+  never;
+
+  String get persistedName => name;
+
+  static SplashScanMode fromPersistedName(String? name) {
+    switch (name) {
+      case 'after14Days':
+        return SplashScanMode.after14Days;
+      case 'after28Days':
+        return SplashScanMode.after28Days;
+      case 'never':
+        return SplashScanMode.never;
+      case 'always':
+      default:
+        return SplashScanMode.always;
+    }
+  }
+}
+
 /// Which BYOK LLM provider the AI Copilot should talk to.
 ///
 /// The [openAi] bucket is intentionally broad: it covers OpenAI itself plus any

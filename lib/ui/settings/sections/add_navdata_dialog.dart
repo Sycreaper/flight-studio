@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../data/navdata/navdata_service.dart';
+import '../../../data/navdata/startup_scan.dart';
 import '../../../data/settings/settings_controller.dart';
 import '../../../data/settings/simulator_install.dart';
 import '../../../l10n/app_localizations.dart';
@@ -144,14 +145,27 @@ class _AddNavdataBodyState extends State<_AddNavdataBody> {
                 FilledButton(
                   onPressed: _selectedSimId == null
                       ? null
-                      : () {
-                          widget.controller.addNavdataSource(
+                      : () async {
+                    final newId =
+                    await widget.controller.addNavdataSource(
                             _selectedSimId!,
                             _dataType,
                           );
-                          // Kick off the real navdata import in the background.
-                          NavdataService.instance
-                              .importFromSimulators(sims.toList());
+                    // First source added becomes the active one.
+                    if (widget
+                        .controller.value.activeNavdataSourceId ==
+                        null) {
+                      await widget.controller
+                          .setActiveNavdataSource(newId);
+                    }
+                    // Kick off the real navdata import in the
+                    // background, targeting the new selection.
+                    final target =
+                    resolveImportTarget(widget.controller.value);
+                    if (target != null) {
+                      NavdataService.instance
+                          .importFromSimulators([target]);
+                    }
                           widget.onClose();
                         },
                   child: Text(l10n.navScan),
