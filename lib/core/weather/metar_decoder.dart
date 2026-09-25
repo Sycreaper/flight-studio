@@ -352,7 +352,7 @@ final RegExp _windVarRe = RegExp(r'^(\d{3})V(\d{3})$');
 final RegExp _visMetersRe = RegExp(r'^(\d{4})(NDV)?$');
 final RegExp _visSmRe = RegExp(r'^(P?)(\d{1,2})SM$');
 final RegExp _rvrRe = RegExp(
-  r'^R(\d{2}[LRC]?)\/(P|M)?(\d{4})(?:V(P|M)?(\d{4}))?(FT)?$',
+  r'^R(\d{2}[LRC]?)/([PM])?(\d{4})(?:V([PM])?(\d{4}))?(FT)?$',
 );
 final RegExp _cloudRe = RegExp(r'^(FEW|SCT|BKN|OVC)(\d{3})(CB|TCU)?$');
 final RegExp _tempDewRe = RegExp(r'^(M?\d{2})/(M?\d{2})?$');
