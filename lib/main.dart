@@ -9,7 +9,9 @@ import 'app.dart';
 import 'data/navdata/built_in_providers.dart';
 import 'data/navdata/startup_scan.dart';
 import 'data/settings/settings_controller.dart';
+import 'data/settings/settings_enums.dart';
 import 'features/flights/flight_repository.dart';
+import 'l10n/import_messages.dart';
 import 'sim/built_in_connectors.dart';
 
 void main() async {
@@ -35,6 +37,14 @@ void main() async {
   // (or fails), the controller falls back to defaults — boot is never blocked.
   final settings = SettingsController();
   await settings.load();
+
+  // Record the resolved UI locale for below-widget-layer progress messages
+  // (navdata parsers report through ImportMessages, no BuildContext there).
+  ImportMessages.localeName = settings.value.localeCode == AppLocaleCode.zh
+      ? 'zh'
+      : settings.value.localeCode == AppLocaleCode.en
+      ? 'en'
+      : Platform.localeName;
 
   final splashEnabled = settings.value.splashEnabled;
 

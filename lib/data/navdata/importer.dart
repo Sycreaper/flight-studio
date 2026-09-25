@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 import '../../../core/navdata/navdata_types.dart';
 import '../../../core/parsing/apt_dat_parser.dart' as apt;
 import '../../../data/db/database.dart';
+import '../../../l10n/import_messages.dart';
 import 'airport_details.dart';
 import 'db_opener.dart';
 
@@ -76,7 +77,7 @@ class NavdataImporter {
   /// fast even with 250k+ waypoint rows.
   Future<NavdataDatabase> openAndClear({ProgressCallback? onProgress}) async {
     final db = await _openDb();
-    onProgress?.call(0, 1, 'Clearing database…');
+    onProgress?.call(0, 1, ImportMessages.clearingDatabase);
     await db.delete(db.airports).go();
     await db.delete(db.runways).go();
     await db.delete(db.frequencies).go();
@@ -85,7 +86,7 @@ class NavdataImporter {
     await db.delete(db.airways).go();
     _knownAptIcaos.clear();
 
-    onProgress?.call(0, 1, 'Creating indexes…');
+    onProgress?.call(0, 1, ImportMessages.creatingIndexes);
     await db.customStatement(
       'CREATE INDEX IF NOT EXISTS idx_airports_lat_lon ON airports (latitude, longitude)',
     );

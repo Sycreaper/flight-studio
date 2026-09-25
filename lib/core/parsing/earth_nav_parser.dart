@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:drift/drift.dart';
 
 import '../../../data/db/database.dart';
+import '../../../l10n/import_messages.dart';
 
 /// Callback for progress reporting during import.
 typedef ProgressCallback =
@@ -137,7 +138,8 @@ Future<int> importEarthNav(
 
     count++;
     if (onProgress != null && lineNo % 1000 == 0) {
-      onProgress(lineNo, _progressLineEstimate, 'Importing navaids…');
+      onProgress(
+          lineNo, _progressLineEstimate, ImportMessages.importingNavaids);
     }
   }
 
@@ -147,7 +149,7 @@ Future<int> importEarthNav(
     );
   }
 
-  onProgress?.call(1, 1, 'Navaids done ($count)');
+  onProgress?.call(1, 1, ImportMessages.navaidsDone(count));
   return count;
 }
 
@@ -202,7 +204,8 @@ Future<int> importEarthFix(
 
     count++;
     if (onProgress != null && lineNo % 10000 == 0) {
-      onProgress(lineNo, _progressLineEstimate, 'Importing waypoints…');
+      onProgress(
+          lineNo, _progressLineEstimate, ImportMessages.importingWaypoints);
     }
   }
 
@@ -212,7 +215,7 @@ Future<int> importEarthFix(
     );
   }
 
-  onProgress?.call(1, 1, 'Waypoints done ($count)');
+  onProgress?.call(1, 1, ImportMessages.waypointsDone(count));
   return count;
 }
 
@@ -284,7 +287,8 @@ Future<int> importEarthAwy(
 
     count++;
     if (onProgress != null && lineNo % 10000 == 0) {
-      onProgress(lineNo, _progressLineEstimate, 'Importing airways…');
+      onProgress(
+          lineNo, _progressLineEstimate, ImportMessages.importingAirways);
     }
   }
 
@@ -294,6 +298,6 @@ Future<int> importEarthAwy(
     );
   }
 
-  onProgress?.call(1, 1, 'Airways done ($count)');
+  onProgress?.call(1, 1, ImportMessages.airwaysDone(count));
   return count;
 }

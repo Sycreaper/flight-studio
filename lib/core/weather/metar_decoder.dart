@@ -18,6 +18,7 @@ class WeatherFact {
 class DecodedMetar {
   const DecodedMetar({
     this.time,
+    this.flightRule,
     this.wind,
     this.visibility,
     this.phenomena,
@@ -26,9 +27,13 @@ class DecodedMetar {
     this.dewpoint,
     this.qnh,
     this.rvr,
+    this.densityAltitude,
   });
 
   final String? time;
+
+  /// `'VFR' | 'MVFR' | 'IFR'` — derived from visibility + ceiling.
+  final String? flightRule;
   final String? wind;
   final String? visibility;
   final String? phenomena;
@@ -40,17 +45,24 @@ class DecodedMetar {
   /// Runway visual range (joined when several runways report).
   final String? rvr;
 
-  /// Table rows in display order; unset fields are omitted.
+  /// Density altitude derived from station elevation + temp + QNH
+  /// (`'2,340 ft / 713 m'`).
+  final String? densityAltitude;
+
+  /// Table rows — EVERY standard row is present; unset fields render as
+  /// "not reported" ([WeatherTexts.notReported]).
   List<WeatherFact> facts(WeatherTexts t) => [
-    if (time != null) WeatherFact(t.time, time!),
-    if (wind != null) WeatherFact(t.wind, wind!),
-    if (visibility != null) WeatherFact(t.visibility, visibility!),
+    WeatherFact(t.time, time ?? t.notReported),
+    WeatherFact(t.flightRule, flightRule ?? t.notReported),
+    WeatherFact(t.wind, wind ?? t.notReported),
+    WeatherFact(t.visibility, visibility ?? t.notReported),
     if (rvr != null) WeatherFact(t.rvr, rvr!),
-    if (phenomena != null) WeatherFact(t.phenomena, phenomena!),
-    if (clouds != null) WeatherFact(t.clouds, clouds!),
-    if (temperature != null) WeatherFact(t.temperature, temperature!),
-    if (dewpoint != null) WeatherFact(t.dewpoint, dewpoint!),
-    if (qnh != null) WeatherFact(t.qnh, qnh!),
+    WeatherFact(t.phenomena, phenomena ?? t.notReported),
+    WeatherFact(t.clouds, clouds ?? t.notReported),
+    WeatherFact(t.temperature, temperature ?? t.notReported),
+    WeatherFact(t.dewpoint, dewpoint ?? t.notReported),
+    WeatherFact(t.qnh, qnh ?? t.notReported),
+    WeatherFact(t.densityAltitude, densityAltitude ?? t.notReported),
   ];
 }
 
@@ -58,6 +70,7 @@ class DecodedMetar {
 class DecodedTaf {
   const DecodedTaf({
     this.valid,
+    this.flightRule,
     this.wind,
     this.visibility,
     this.phenomena,
@@ -68,6 +81,9 @@ class DecodedTaf {
   });
 
   final String? valid;
+
+  /// `'VFR' | 'MVFR' | 'IFR'` for the base forecast group.
+  final String? flightRule;
   final String? wind;
   final String? visibility;
   final String? phenomena;
@@ -81,21 +97,26 @@ class DecodedTaf {
   final List<String> changeGroups;
 
   List<WeatherFact> facts(WeatherTexts t) => [
-    if (valid != null) WeatherFact(t.valid, valid!),
-    if (wind != null) WeatherFact(t.wind, wind!),
-    if (visibility != null) WeatherFact(t.visibility, visibility!),
-    if (phenomena != null) WeatherFact(t.phenomena, phenomena!),
-    if (clouds != null) WeatherFact(t.clouds, clouds!),
-    if (tempLow != null) WeatherFact(t.tempMin, tempLow!),
-    if (tempHigh != null) WeatherFact(t.tempMax, tempHigh!),
+    WeatherFact(t.valid, valid ?? t.notReported),
+    WeatherFact(t.flightRule, flightRule ?? t.notReported),
+    WeatherFact(t.wind, wind ?? t.notReported),
+    WeatherFact(t.visibility, visibility ?? t.notReported),
+    WeatherFact(t.phenomena, phenomena ?? t.notReported),
+    WeatherFact(t.clouds, clouds ?? t.notReported),
+    WeatherFact(t.tempMin, tempLow ?? t.notReported),
+    WeatherFact(t.tempMax, tempHigh ?? t.notReported),
   ];
 }
 
 // ── Public entry points ──────────────────────────────────────────────────────
 
 /// [localeName] — pass `AppLocalizations.localeName`; decode text is Chinese
-/// when it starts with `'zh'`, English otherwise.
-DecodedMetar decodeMetar(String raw, {required String localeName}) {
+/// when it starts with `'zh'`, English otherwise. [elevationFt] (station
+/// elevation) enables the density-altitude row when provided.
+DecodedMetar decodeMetar(String raw, {
+  required String localeName,
+  double? elevationFt,
+}) {
   final t = localeName.startsWith('zh') ? _zhTexts : _enTexts;
   // Remarks (RMK…) are auto-station data — stop decoding there.
   final rmkIndex = raw.indexOf(' RMK ');
@@ -113,9 +134,16 @@ DecodedMetar decodeMetar(String raw, {required String localeName}) {
   String? qnh;
   var cavok = false;
 
+  // Numerics for the derived rows (flight rules, density altitude).
+  int? visMeters;
+  int? ceilingFt;
+  double? tempC;
+  double? qnhHpa;
+
   for (final token in tokens) {
     if (token == 'CAVOK') {
       cavok = true;
+      visMeters ??= 9999;
       vis ??= t.cavok;
       clouds.add(t.cavok);
       continue;
@@ -132,7 +160,11 @@ DecodedMetar decodeMetar(String raw, {required String localeName}) {
       wind = '$wind $wvar';
       continue;
     }
-    final v = _matchVisibility(token, t);
+    final v = _matchVisibility(
+      token,
+      t,
+      collectMeters: (m) => visMeters ??= m,
+    );
     if (v != null && vis == null && !cavok) vis = v;
     final r = _matchRvr(token, t);
     if (r != null) rvr.add(r);
@@ -140,18 +172,31 @@ DecodedMetar decodeMetar(String raw, {required String localeName}) {
     if (p != null) phen.add(p);
     final c = _matchCloud(token, t);
     if (c != null) clouds.add(c);
+    // Ceiling = lowest reported BKN/OVC layer base.
+    final cm = _cloudRe.firstMatch(token);
+    if (cm != null && (cm.group(1) == 'BKN' || cm.group(1) == 'OVC')) {
+      final base = int.parse(cm.group(2)!) * 100;
+      if (ceilingFt == null || base < ceilingFt) ceilingFt = base;
+    }
     final td = _matchTempDew(token);
     if (td != null && temp == null) {
       temp = _formatTemp(td.$1, t);
       dew = td.$2 == null ? null : _formatTemp(td.$2!, t);
+      tempC = _tempValueCelsius(td.$1);
       continue;
     }
-    final q = _matchQnh(token, t);
+    final q = _matchQnh(
+        token, t, collectHpa: (hpa) => qnhHpa ??= hpa.toDouble());
     if (q != null && qnh == null) qnh = q;
   }
 
   return DecodedMetar(
     time: time,
+    flightRule: _flightRule(
+      cavok: cavok,
+      visMeters: visMeters,
+      ceilingFt: ceilingFt,
+    ),
     wind: wind,
     visibility: vis,
     rvr: rvr.isEmpty ? null : rvr.join(' · '),
@@ -160,7 +205,49 @@ DecodedMetar decodeMetar(String raw, {required String localeName}) {
     temperature: temp,
     dewpoint: dew,
     qnh: qnh,
+    densityAltitude: _densityAltitude(
+      tempC: tempC,
+      qnhHpa: qnhHpa,
+      elevationFt: elevationFt,
+    ),
   );
+}
+
+/// Aviation flight rules from visibility + ceiling:
+/// IFR < 1000 ft ceiling or < 3 SM; MVFR < 3000 ft or < 5 SM; else VFR.
+String? _flightRule({
+  required bool cavok,
+  required int? visMeters,
+  required int? ceilingFt,
+}) {
+  if (cavok) return 'VFR';
+  if (visMeters == null && ceilingFt == null) return null;
+  const mPerSm = 1609.34;
+  final visSm = visMeters == null ? 999.0 : visMeters / mPerSm;
+  final ceiling = ceilingFt ?? 9999;
+  if (ceiling < 1000 || visSm < 3) return 'IFR';
+  if (ceiling < 3000 || visSm < 5) return 'MVFR';
+  return 'VFR';
+}
+
+/// Density altitude: PA = elev + (29.92 − QNH[inHg]) × 1000,
+/// DA = PA + 118.8 × (OAT − ISA@PA), ISA = 15 − 1.9812 °C per 1000 ft.
+String? _densityAltitude({
+  required double? tempC,
+  required double? qnhHpa,
+  required double? elevationFt,
+}) {
+  if (tempC == null || qnhHpa == null || elevationFt == null) return null;
+  final qnhInHg = qnhHpa / 33.8639;
+  final pressureAltFt = elevationFt + (29.92 - qnhInHg) * 1000.0;
+  final isaTempC = 15.0 - 1.9812 * (pressureAltFt / 1000.0);
+  final daFt = pressureAltFt + 118.8 * (tempC - isaTempC);
+  String sep(int v) =>
+      v.toString().replaceAllMapped(
+        RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
+            (m) => '${m[1]},',
+      );
+  return '${sep(daFt.round())} ft / ${sep((daFt * 0.3048).round())} m';
 }
 
 /// Decodes a TAF's base group; everything from the first FM/BECMG/TEMPO/
@@ -180,10 +267,15 @@ DecodedTaf decodeTaf(String raw, {required String localeName}) {
   final clouds = <String>[];
   String? tempLow;
   String? tempHigh;
+  var cavok = false;
+  int? visMeters;
+  int? ceilingFt;
 
   for (final token in baseTokens) {
     valid ??= _matchValidPeriod(token, t);
     if (token == 'CAVOK') {
+      cavok = true;
+      visMeters ??= 9999;
       vis ??= t.cavok;
       clouds.add(t.cavok);
       continue;
@@ -200,12 +292,18 @@ DecodedTaf decodeTaf(String raw, {required String localeName}) {
       continue;
     }
     wind ??= _matchWind(token, t);
-    final v = _matchVisibility(token, t);
+    final v = _matchVisibility(token, t, collectMeters: (m) => visMeters ??= m);
     if (v != null && vis == null) vis = v;
     final p = _matchPhenomenon(token, t);
     if (p != null) phen.add(p);
     final c = _matchCloud(token, t);
     if (c != null) clouds.add(c);
+    // Ceiling = lowest reported BKN/OVC layer base.
+    final cm = _cloudRe.firstMatch(token);
+    if (cm != null && (cm.group(1) == 'BKN' || cm.group(1) == 'OVC')) {
+      final base = int.parse(cm.group(2)!) * 100;
+      if (ceilingFt == null || base < ceilingFt) ceilingFt = base;
+    }
   }
 
   final changeGroups = baseEnd == -1
@@ -214,6 +312,11 @@ DecodedTaf decodeTaf(String raw, {required String localeName}) {
 
   return DecodedTaf(
     valid: valid,
+    flightRule: _flightRule(
+      cavok: cavok,
+      visMeters: visMeters,
+      ceilingFt: ceilingFt,
+    ),
     wind: wind,
     visibility: vis,
     phenomena: phen.isEmpty ? null : phen.join(' '),
@@ -243,9 +346,10 @@ List<String> _splitChangeGroups(List<String> tokens) {
 // ── Field matchers ───────────────────────────────────────────────────────────
 
 final RegExp _timeRe = RegExp(r'^(\d{2})(\d{2})(\d{2})Z$');
-final RegExp _windRe = RegExp(r'^(\d{3}|VRB)(\d{2,3})(G(\d{2,3}))?KT$');
+final RegExp _windRe =
+RegExp(r'^(\d{3}|VRB)(\d{2,3})(G(\d{2,3}))?(KT|MPS|KMH)$');
 final RegExp _windVarRe = RegExp(r'^(\d{3})V(\d{3})$');
-final RegExp _visMetersRe = RegExp(r'^(\d{4})$');
+final RegExp _visMetersRe = RegExp(r'^(\d{4})(NDV)?$');
 final RegExp _visSmRe = RegExp(r'^(P?)(\d{1,2})SM$');
 final RegExp _rvrRe = RegExp(
   r'^R(\d{2}[LRC]?)\/(P|M)?(\d{4})(?:V(P|M)?(\d{4}))?(FT)?$',
@@ -276,12 +380,18 @@ String? _matchWind(String token, WeatherTexts t) {
   final dir = m.group(1)!;
   final speed = int.parse(m.group(2)!);
   final gust = m.group(4) == null ? null : int.parse(m.group(4)!);
+  final unit = m.group(5)!;
   final dirText = dir == 'VRB' ? t.vrb : '$dir°';
-  final speedText = t.windSpeed(speed);
+  final unitText = switch (unit) {
+    'MPS' => ' m/s',
+    'KMH' => ' km/h',
+    _ => ' kt',
+  };
   if (speed == 0 && dir == '000') return t.calm;
+  final speedText = '$speed$unitText';
   return gust == null
       ? '$dirText $speedText'
-      : '$dirText $speedText ${t.gust(int.parse(gust.toString()))}';
+      : '$dirText $speedText ${t.gust(gust)}$unitText';
 }
 
 /// `260V290` — wind direction varying between the two bearings.
@@ -310,15 +420,20 @@ String? _matchRvr(String token, WeatherTexts t) {
   return high == null ? '$runway $low$unit' : '$runway $low–$high$unit';
 }
 
-String? _matchVisibility(String token, WeatherTexts t) {
+String? _matchVisibility(String token,
+    WeatherTexts t, {
+      void Function(int meters)? collectMeters,
+    }) {
   final meters = _visMetersRe.firstMatch(token);
   if (meters != null) {
     final v = int.parse(meters.group(1)!);
+    collectMeters?.call(v);
     return v >= 9999 ? t.visibility10kmPlus : t.visibilityMeters(v);
   }
   final sm = _visSmRe.firstMatch(token);
   if (sm != null) {
     final v = int.parse(sm.group(2)!);
+    collectMeters?.call((v * 1609.34).round());
     return sm.group(1) == 'P' ? t.visibilitySmPlus(v) : t.visibilitySm(v);
   }
   return null;
@@ -327,6 +442,8 @@ String? _matchVisibility(String token, WeatherTexts t) {
 String? _matchPhenomenon(String token, WeatherTexts t) {
   // Lone 'TS' = thunderstorm without reported precipitation.
   if (token == 'TS') return t.descriptor('TS');
+  // 'NSW' = no significant weather.
+  if (token == 'NSW') return t.noSignificantWeather;
   final m = _phenomRe.firstMatch(token);
   if (m == null) return null;
   final recent = m.group(1) == 'RE';
@@ -372,15 +489,30 @@ String _formatTemp(String code, WeatherTexts t) {
   return minus ? t.negativeTemp(value) : '$value ${t.celsius}';
 }
 
-String? _matchQnh(String token, WeatherTexts t) {
+String? _matchQnh(String token,
+    WeatherTexts t, {
+      void Function(int hPa)? collectHpa,
+    }) {
   final q = _qnhQRe.firstMatch(token);
-  if (q != null) return t.qnhHpa(int.parse(q.group(1)!));
+  if (q != null) {
+    final hpa = int.parse(q.group(1)!);
+    collectHpa?.call(hpa);
+    return t.qnhHpa(hpa);
+  }
   final a = _qnhARe.firstMatch(token);
   if (a != null) {
-    final units = int.parse(a.group(1)!) / 100.0;
-    return t.qnhInHg(units);
+    final inHg = int.parse(a.group(1)!) / 100.0;
+    collectHpa?.call((inHg * 33.8639).round());
+    return t.qnhInHg(inHg);
   }
   return null;
+}
+
+/// `M12` → `-12.0` — celsius value for density-altitude computation.
+double _tempValueCelsius(String code) {
+  final minus = code.startsWith('M');
+  final v = int.parse(minus ? code.substring(1) : code).toDouble();
+  return minus ? -v : v;
 }
 
 String? _matchValidPeriod(String token, WeatherTexts t) {
@@ -415,9 +547,17 @@ abstract class WeatherTexts {
 
   String get qnh;
 
+  String get flightRule;
+
+  String get densityAltitude;
+
+  String get notReported;
+
   String get valid;
 
   String get rvr;
+
+  String get noSignificantWeather;
 
   String get tempMin;
 
@@ -513,6 +653,15 @@ class _Zh extends WeatherTexts {
   String get valid => '有效时段';
 
   @override
+  String get flightRule => '飞行规则';
+
+  @override
+  String get densityAltitude => '密度高度';
+
+  @override
+  String get notReported => '未回报';
+
+  @override
   String get rvr => '跑道视程';
 
   @override
@@ -523,6 +672,9 @@ class _Zh extends WeatherTexts {
 
   @override
   String get recent => '近期';
+
+  @override
+  String get noSignificantWeather => '无重要天气';
 
   @override
   String get calm => '静风';
@@ -680,6 +832,15 @@ class _En extends WeatherTexts {
   String get valid => 'Valid';
 
   @override
+  String get flightRule => 'Flight rules';
+
+  @override
+  String get densityAltitude => 'Density altitude';
+
+  @override
+  String get notReported => 'Not reported';
+
+  @override
   String get rvr => 'RVR';
 
   @override
@@ -690,6 +851,9 @@ class _En extends WeatherTexts {
 
   @override
   String get recent => 'Recent';
+
+  @override
+  String get noSignificantWeather => 'No significant weather';
 
   @override
   String get calm => 'Calm';

@@ -267,7 +267,8 @@ class _InspectorDetails extends StatelessWidget {
                       _CommsTab(airport: airport),
                       _MetarTab(
                           weather: weather,
-                          weatherLoading: weatherLoading),
+                          weatherLoading: weatherLoading,
+                          elevationFt: point.elevationFt?.toDouble()),
                       _TafTab(
                           weather: weather,
                           weatherLoading: weatherLoading),
@@ -492,10 +493,17 @@ class _CommsTab extends StatelessWidget {
 // ── Weather tabs (METAR / TAF) ───────────────────────────────────────────────
 
 class _MetarTab extends StatelessWidget {
-  const _MetarTab({required this.weather, required this.weatherLoading});
+  const _MetarTab({
+    required this.weather,
+    required this.weatherLoading,
+    this.elevationFt,
+  });
 
   final AirportWeather? weather;
   final bool weatherLoading;
+
+  /// Station elevation — enables the density-altitude row.
+  final double? elevationFt;
 
   @override
   Widget build(BuildContext context) {
@@ -507,7 +515,8 @@ class _MetarTab extends StatelessWidget {
     }
     final locale = l10n.localeName;
     final texts = weatherTextsFor(locale);
-    final decoded = decodeMetar(metar, localeName: locale);
+    final decoded =
+    decodeMetar(metar, localeName: locale, elevationFt: elevationFt);
     return ListView(
       padding: const EdgeInsets.fromLTRB(10, 8, 10, 12),
       children: [

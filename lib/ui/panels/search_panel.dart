@@ -99,42 +99,58 @@ class _SearchPanelState extends State<SearchPanel> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // Search input — uses the global InputDecorationTheme (same style as
-        // the flight-plan form fields), so it adapts to light/dark themes
-        // automatically.
-        Padding(
-          padding: const EdgeInsets.fromLTRB(10, 10, 10, 6),
-          child: TextField(
-            controller: _controller,
-            focusNode: _focus,
-            style: TextStyle(fontSize: 13, color: colors.textPrimary),
-            decoration: InputDecoration(
-              hintText: l10n.searchHint,
-              prefixIcon: Icon(Icons.search_rounded,
-                  size: 16, color: colors.textSecondary),
-              suffixIcon: _controller.text.isEmpty
-                  ? null
-                  : IconButton(
-                      onPressed: () {
-                        _controller.clear();
-                        _focus.requestFocus();
-                      },
-                icon: Icon(Icons.close_rounded,
-                    size: 14, color: colors.textSecondary),
-                constraints:
-                const BoxConstraints(minWidth: 26, minHeight: 26),
-                      padding: EdgeInsets.zero,
+        // Header (search input + category selector) — inside a shrinkable,
+        // scrollable region: when the drawer is very short (bottom slot /
+        // tiny windows) the header scrolls instead of overflowing the
+        // Column; on tall drawers it takes its natural height and the
+        // results list absorbs everything that remains.
+        Flexible(
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Search input — uses the global InputDecorationTheme (same
+                // style as the flight-plan form fields), so it adapts to
+                // light/dark themes automatically.
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(10, 10, 10, 6),
+                  child: TextField(
+                    controller: _controller,
+                    focusNode: _focus,
+                    style: TextStyle(fontSize: 13, color: colors.textPrimary),
+                    decoration: InputDecoration(
+                      hintText: l10n.searchHint,
+                      prefixIcon: Icon(Icons.search_rounded,
+                          size: 16, color: colors.textSecondary),
+                      suffixIcon: _controller.text.isEmpty
+                          ? null
+                          : IconButton(
+                        onPressed: () {
+                          _controller.clear();
+                          _focus.requestFocus();
+                        },
+                        icon: Icon(Icons.close_rounded,
+                            size: 14, color: colors.textSecondary),
+                        constraints: const BoxConstraints(
+                            minWidth: 26, minHeight: 26),
+                        padding: EdgeInsets.zero,
+                      ),
                     ),
+                  ),
+                ),
+                // Category selector — filters the search results below (map
+                // markers are independent). Wrap mode: the narrow drawer
+                // can't fit one row, and a scrollbar would render as a dark
+                // strip.
+                NavLegendBar(
+                  visible: _visible,
+                  onToggle: _toggle,
+                  wrap: true,
+                ),
+              ],
             ),
           ),
-        ),
-        // Category selector — filters the search results below (map markers
-        // are independent). Wrap mode: the narrow drawer can't fit one row,
-        // and a scrollbar would render as a dark strip.
-        NavLegendBar(
-          visible: _visible,
-          onToggle: _toggle,
-          wrap: true,
         ),
         // Results.
         Expanded(

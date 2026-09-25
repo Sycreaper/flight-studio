@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:drift/drift.dart' as drift;
 import 'package:path/path.dart' as p;
 
+import '../../l10n/import_messages.dart';
 import '../db/database.dart';
 
 /// Enriches the imported airports table with IATA codes, city/municipality
@@ -41,7 +42,7 @@ class OurAirportsEnricher {
           csvTextOverride ??
           await _loadCsv(await supportDir(), onMessage: onMessage);
       if (csv == null || csv.isEmpty) return;
-      onMessage?.call('Enriching airports (OurAirports)…');
+      onMessage?.call(ImportMessages.enrichingAirports);
 
       final rows = parseAirportCsv(csv);
       if (rows.isEmpty) return;
@@ -68,7 +69,7 @@ class OurAirportsEnricher {
           updated++;
         }
       });
-      onMessage?.call('Enriched $updated airports');
+      onMessage?.call(ImportMessages.enrichedAirports(updated));
     } on Exception catch (_) {
       // Offline / bad data — the fields just stay as they were.
     } on Error catch (_) {
@@ -87,7 +88,7 @@ class OurAirportsEnricher {
       final text = await cache.readAsString();
       return text.isEmpty ? null : text;
     }
-    onMessage?.call('Downloading OurAirports data…');
+    onMessage?.call(ImportMessages.downloadingOurAirports);
     final response = await _dio.get<String>(csvUrl);
     final text = response.data;
     if (text == null || text.isEmpty) return null;

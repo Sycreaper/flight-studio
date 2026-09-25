@@ -5,6 +5,7 @@ import 'package:drift/drift.dart';
 
 import '../../../core/geo/geo_math.dart';
 import '../../../data/db/database.dart';
+import '../../../l10n/import_messages.dart';
 import 'earth_nav_parser.dart' show ProgressCallback;
 
 /// One runway STRIP parsed from an apt.dat block — both ends. Kept in memory
@@ -312,7 +313,7 @@ Future<int> importAptDat(
     }
 
     if (onProgress != null && lineNo % 20000 == 0) {
-      onProgress(lineNo, _aptLineEstimate, 'Importing airports…');
+      onProgress(lineNo, _aptLineEstimate, ImportMessages.importingAirports);
     }
   }
   await flushAirport(); // File may end without a trailing 99.
@@ -345,7 +346,7 @@ Future<int> importAptDat(
     );
   }
 
-  onProgress?.call(1, 1, 'Airports done ($airportCount)');
+  onProgress?.call(1, 1, ImportMessages.airportsDone(airportCount));
   return airportCount;
 }
 

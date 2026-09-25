@@ -86,6 +86,32 @@ void main() {
       expect(facts.values.any((v) => v.contains('NOTHING')), isFalse);
     });
 
+    test('MPS wind units (Chinese stations) and NSW decode', () {
+      final decoded = decodeMetar(
+        'METAR ZSQD 201130Z 13005MPS 9999 NSW 17/14 Q1010',
+        localeName: 'zh',
+      );
+
+      final facts = {
+        for (final f in decoded.facts(weatherTextsFor('zh'))) f.label: f.value
+      };
+      expect(facts['风'], contains('130°'));
+      expect(facts['风'], contains('5 m/s'));
+      expect(facts['天气现象'], '无重要天气');
+      // Sanity: QNH + flight rules still derive.
+      expect(facts['修正海压'], '1010 hPa');
+      expect(facts['飞行规则'], 'VFR');
+    });
+
+    test('KMH wind units decode', () {
+      final decoded = decodeMetar(
+        'METAR UAAA 201100Z 27012G18KMH 9999 SKC 20/08 Q1023',
+        localeName: 'en',
+      );
+      expect(decoded.wind, contains('12 km/h'));
+      expect(decoded.wind, contains('G18'));
+    });
+
     test('TAF temperature extremes (TN/TL) decode', () {
       final decoded = decodeTaf(
         'TAF ZBAA 200800Z 2009/2112 32008KT 9999 FEW030 TN16/2020Z TL29/2107Z',
@@ -93,11 +119,136 @@ void main() {
       );
 
       final facts = {
-        for (final f in decoded.facts(weatherTextsFor('zh'))) f.label: f.value,
+        for (final f in decoded.facts(weatherTextsFor('zh'))) f.label: f.value
       };
       expect(facts['最低气温'], '16 °C');
       expect(facts['最高气温'], '29 °C');
     });
+
+    test('TAF decodes with the same detail as METAR (all rows + flight '
+        'rules)', () {
+      final decoded = decodeTaf(
+        'TAF KSEA 200856Z 2009/2112 00000KT P6SM BKN015 '
+            'FM201300 00000KT 6SM BR OVC002 '
+            'TEMPO 2015/2017 36004KT 2SM -RA',
+        localeName: 'en',
+      );
+
+      final facts = {
+        for (final f in decoded.facts(weatherTextsFor('en'))) f.label: f.value
+      };
+      // Every standard row present.
+      for (final expected in [
+        'Valid',
+        'Flight rules',
+        'Wind',
+        'Visibility',
+        'Weather',
+        'Clouds',
+        'Min temp',
+        'Max temp',
+      ]) {
+        expect(facts.keys, contains(expected), reason: 'missing: $expected');
+      }
+      // Base-group flight rule: BKN015 + ≥5 SM → MVFR.
+      expect(facts['Flight rules'], 'MVFR');
+      expect(facts['Clouds'], contains('Broken'));
+      // Missing TN/TL rows fall back to Not reported.
+      expect(facts['Min temp'], 'Not reported');
+      // Change groups stay raw.
+      expect(decoded.changeGroups, hasLength(2));
+    });
+
+    test('flight rules: VFR / MVFR / IFR from ceiling + visibility', () {
+      // CAVOK → VFR.
+      expect(
+        decodeMetar('METAR KSEA 200853Z 00000KT CAVOK 12/11 A3009',
+            localeName: 'en').flightRule,
+        'VFR',
+      );
+      // FEW200 + 7SM → VFR (FEW is not a ceiling).
+      expect(
+        decodeMetar(
+          'METAR KSEA 200853Z 00000KT 7SM FEW200 12/11 A3009',
+          localeName: 'en',
+        ).flightRule,
+        'VFR',
+      );
+      // BKN012 (1200 ft) + 9999 → MVFR.
+      expect(
+        decodeMetar(
+          'METAR KSEA 200853Z 00000KT 9999 BKN012 OVC030 12/11 A3009',
+          localeName: 'en',
+        ).flightRule,
+        'MVFR',
+      );
+      // BKN008 (800 ft) → IFR regardless of visibility.
+      expect(
+        decodeMetar(
+          'METAR KSEA 200853Z 00000KT 9999 BKN008 12/11 A3009',
+          localeName: 'en',
+        ).flightRule,
+        'IFR',
+      );
+      // 2 SM visibility with no ceiling → IFR.
+      expect(
+        decodeMetar(
+          'METAR KSEA 200853Z 00000KT 2SM BR 12/11 A3009',
+          localeName: 'en',
+        ).flightRule,
+        'IFR',
+      );
+      // No visibility and no clouds → not reported.
+      expect(
+        decodeMetar('METAR KSEA 200853Z 00000KT 12/11 A3009',
+            localeName: 'en').flightRule,
+        isNull,
+      );
+    });
+
+    test('density altitude computes from elevation + temp + QNH', () {
+      // KSEA: elev 433 ft, 12 °C, QNH 30.09 inHg (≈1019 hPa).
+      final decoded = decodeMetar(
+        'METAR KSEA 200853Z 00000KT 7SM FEW200 12/11 A3009',
+        localeName: 'en',
+        elevationFt: 433,
+      );
+      // PA = 433 + (29.92 − 30.09) × 1000 ≈ 263 ft; ISA ≈ 14.5 °C;
+      // DA ≈ 263 + 118.8 × (12 − 14.5) ≈ −34 ft → around sea level.
+      expect(decoded.densityAltitude, isNotNull);
+      final ft = int.parse(
+          decoded.densityAltitude!.split(' ft').first.replaceAll(',', ''));
+      expect(ft, inInclusiveRange(-700, 700));
+    });
+
+    test('every standard row is present; missing values say not reported',
+            () {
+          final decoded = decodeMetar(
+            'METAR KSEA 200853Z 00000KT',
+            localeName: 'en',
+          );
+          final facts = decoded.facts(weatherTextsFor('en'));
+          final labels = facts.map((f) => f.label).toList();
+          for (final expected in [
+            'Time',
+            'Flight rules',
+            'Wind',
+            'Visibility',
+            'Weather',
+            'Clouds',
+            'Temperature',
+            'Dew point',
+            'QNH',
+            'Density altitude',
+          ]) {
+            expect(
+                labels, contains(expected), reason: 'missing row: $expected');
+          }
+          final byLabel = {for (final f in facts) f.label: f.value};
+          expect(byLabel['Visibility'], 'Not reported');
+          expect(byLabel['Clouds'], 'Not reported');
+          expect(byLabel['QNH'], 'Not reported');
+        });
   });
 
   group('decodeTaf', () {

@@ -1,11 +1,11 @@
 {
-    "name": "flight_studio",
-    "short_name": "flight_studio",
+  "name": "Flight Studio",
+  "short_name": "Flight Studio",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A Flight Planner.",
+  "description": "An open-source, cross-platform flight simulator route planner and live flight tracker built with Flutter.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

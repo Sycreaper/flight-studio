@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.sycreaper" "\0"
-            VALUE "FileDescription", "flight_studio" "\0"
+            VALUE "CompanyName", "Flight Studio" "\0"
+            VALUE "FileDescription", "Flight Studio - Flight simulator route planner and live flight tracker" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "flight_studio" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2026 com.sycreaper. All rights reserved." "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2026 Flight Studio Contributors. Released under the MIT License." "\0"
             VALUE "OriginalFilename", "flight_studio.exe" "\0"
-            VALUE "ProductName", "flight_studio" "\0"
+            VALUE "ProductName", "Flight Studio" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

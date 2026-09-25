@@ -5,6 +5,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/navdata/navdata_types.dart';
+import '../../l10n/import_messages.dart';
 import '../background_tasks.dart';
 import '../settings/settings_keys.dart';
 import '../settings/simulator_install.dart';
@@ -64,7 +65,7 @@ class NavdataService extends ChangeNotifier {
       if (provider == null) continue;
 
       final task = BackgroundTaskManager.instance.startTask(
-        'Importing navdata — ${sim.name ?? sim.type.name}',
+        ImportMessages.importingNavdata(sim.name ?? sim.type.name),
       );
 
       try {
