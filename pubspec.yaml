@@ -1,5 +1,5 @@
 name: flight_studio
-description: "An open-source, cross-platform flight simulator route planner and live flight tracker. Connects to MSFS, X-Plane 12 and Prepar3D, with remote monitoring and control from mobile and web clients."
+description: "Open-source, cross-platform AI flight agent workbench. Chat with a Letta-powered copilot that plans, briefs and tracks simulator flights — grounded in real navdata, with full manual planning tools and remote monitoring."
 publish_to: 'none'
 version: 0.1.0+1
 
@@ -62,6 +62,7 @@ dependencies:
   file_picker: 12.0.0
   win32: ^6.4.0
   ffi: ^2.2.0
+  gpt_markdown: ^1.3.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

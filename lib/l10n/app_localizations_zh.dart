@@ -13,7 +13,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get appName => 'Flight Studio';
 
   @override
-  String get navRecentFlights => '近期飞行';
+  String get navRecentFlights => '开始';
 
   @override
   String get navPluginCenter => '插件中心';
@@ -71,6 +71,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get tabFlightPlan => '飞行计划';
+
+  @override
+  String get tabChat => '聊天';
 
   @override
   String get tabMapUnnamed => '地图';
@@ -511,10 +514,13 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settingsAiDesc =>
-      '助理对任何具有副作用的操作都只能调用 MCP 工具——它本身从不计算航路或写入文件。航路计算、导出与模拟器指令均由确定性的 Dart 代码执行。';
+      'Letta 是 Flight Studio AI 副驾驶的本地有状态运行时，跨会话保存你的长期记忆。一键安装后即可创建飞行员账户，并在欢迎页直接与副驾驶对话。';
 
   @override
   String get settingsAiProvider => '提供商';
+
+  @override
+  String get settingsAiProviderHint => 'AI 副驾驶使用的 LLM 提供商。';
 
   @override
   String get settingsAiProviderOpenAi => 'OpenAI 兼容';
@@ -526,10 +532,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsAiProviderOllama => '本地（Ollama）';
 
   @override
-  String get settingsAiProviderHint =>
-      '‘OpenAI 兼容’涵盖 OpenAI、Groq、Together、OpenRouter、LM Studio 等。';
-
-  @override
   String get settingsAiApiKey => 'API 密钥';
 
   @override
@@ -537,9 +539,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settingsAiApiKeyHidden => '已设置密钥（隐藏）';
-
-  @override
-  String get settingsAiClearApiKey => '清除';
 
   @override
   String get settingsAiEndpoint => '端点 URL';
@@ -562,19 +561,89 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsAiModelPlaceholder => '模型 ID';
 
   @override
-  String get settingsAiToolPolicy => '工具策略';
+  String get settingsReasoningEffort => '思考强度';
 
   @override
-  String get settingsAiConfirmWrites => '写入操作需要确认';
+  String get settingsReasoningEffortHint => '模型在回答前的思考深度。';
 
   @override
-  String get settingsAiConfirmWritesHint => '导出、模拟器指令与文件写入在执行前需要你批准。';
+  String get settingsAiModelService => '模型服务';
 
   @override
-  String get settingsAiAutoRead => '允许读工具无需确认';
+  String get aiLettaRuntimeTitle => 'Letta CLI（本地 Agent 运行时）';
 
   @override
-  String get settingsAiAutoReadHint => '导航数据、天气、遥测与飞行记录无需提示即可提供给模型。';
+  String get aiLettaChecking => '正在检测环境…';
+
+  @override
+  String get aiLettaNotInstalledTitle => 'Letta CLI 未安装';
+
+  @override
+  String get aiLettaInstalledTitle => 'Letta CLI 已安装';
+
+  @override
+  String get aiLettaIntro =>
+      'Letta 是 Flight Studio AI 副驾驶的本地有状态运行时——跨会话保存你的长期记忆。安装后即可创建飞行员账户，并在欢迎页直接与副驾驶对话。模型提供商（OpenAI 兼容、Anthropic、Ollama/LM Studio）在 Letta 内通过 /connect 绑定。';
+
+  @override
+  String get aiLettaNodeMissingTitle => '未检测到 Node.js';
+
+  @override
+  String get aiLettaNodeTooOldTitle => 'Node.js 版本过低';
+
+  @override
+  String aiLettaNodeDetected(String version) {
+    return '检测到 Node.js $version';
+  }
+
+  @override
+  String get aiLettaNodeRequiredHint =>
+      'Letta CLI 需要 Node.js 22.19 或更高版本（通过 npm 分发）。';
+
+  @override
+  String get aiLettaNodeManualHint =>
+      '请从 Node.js 官网安装（推荐 LTS 版本），然后点击「重新检测」。Flight Studio 不会替你安装 Node.js。';
+
+  @override
+  String get aiLettaNodeDownload => '打开 Node.js 下载页';
+
+  @override
+  String get aiLettaRecheck => '重新检测';
+
+  @override
+  String get aiLettaInstall => '一键安装';
+
+  @override
+  String get aiLettaUninstall => '一键卸载';
+
+  @override
+  String get aiLettaInstalling => '正在安装 Letta CLI…';
+
+  @override
+  String get aiLettaUninstalling => '正在卸载 Letta CLI…';
+
+  @override
+  String get aiLettaInstallFailed => '安装失败';
+
+  @override
+  String get aiLettaUninstallFailed => '卸载失败';
+
+  @override
+  String get aiLettaLog => '输出日志';
+
+  @override
+  String get aiLettaUninstallConfirmTitle => '卸载 Letta CLI？';
+
+  @override
+  String get aiLettaUninstallConfirmDesc =>
+      '仅移除 Letta CLI 程序本身。你的本地账户与长期记忆数据（~/.letta）不会被删除。';
+
+  @override
+  String get aiLettaReadyHint =>
+      '下一步：在欢迎页创建飞行员账户——每个账户拥有独立长期记忆的 Letta agent。模型提供商请在 Letta CLI 内通过 /connect 绑定。';
+
+  @override
+  String get settingsAiClearApiKey => '清除';
 
   @override
   String get settingsRemoteTitle => '远程访问';
@@ -656,7 +725,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get tabSettings => '设置';
 
   @override
-  String get welcomeSubtitle => '飞行规划器';
+  String get welcomeSubtitle => 'AI 飞行智能体工作台';
 
   @override
   String get ttNewFlightPlan => '新建飞行计划';
@@ -1011,10 +1080,96 @@ class AppLocalizationsZh extends AppLocalizations {
   String get apiKeyTypeOsmToken => 'OSM 瓦片令牌';
 
   @override
-  String get apiKeyTypeAiCopilot => 'AI 副驾驶密钥';
+  String get startHeroTitle => '准备好了，随时开始';
+
+  @override
+  String get startPromptHint => '有问题，随便问';
+
+  @override
+  String get startSend => '发送';
 
   @override
   String get apiKeyTypeFlightAware => 'FlightAware 密钥';
+
+  @override
+  String get apiKeyTypeAiCopilot => 'AI Copilot Key';
+
+  @override
+  String get apiKeyTypeOpenAiCompatible => 'OpenAI 兼容 API 密钥';
+
+  @override
+  String get openAiProvider => '提供商';
+
+  @override
+  String get openAiProviderGlm => '非编码套餐 GLM';
+
+  @override
+  String get openAiProviderQwen => '千问';
+
+  @override
+  String get openAiProviderDeepseek => 'DeepSeek';
+
+  @override
+  String get openAiProviderCustom => '自定义';
+
+  @override
+  String get openAiBaseUrl => '基 URL';
+
+  @override
+  String get openAiBaseUrlHint => 'https://api.openai.com/v1';
+
+  @override
+  String get openAiTest => '测试';
+
+  @override
+  String get openAiTestOk => '✓ 连接成功';
+
+  @override
+  String get openAiTestFail => '✗ 连接失败';
+
+  @override
+  String get openAiModelsEmpty => '暂无模型——请先添加 OpenAI 兼容密钥';
+
+  @override
+  String get modelChipLabel => '模型';
+
+  @override
+  String get modelChipNoModel => '未设置模型——请编辑该 API 密钥';
+
+  @override
+  String get reasoningNone => '无';
+
+  @override
+  String get reasoningMinimal => '极低';
+
+  @override
+  String get reasoningLow => '低';
+
+  @override
+  String get reasoningMedium => '中';
+
+  @override
+  String get reasoningHigh => '高';
+
+  @override
+  String get reasoningXhigh => '超高';
+
+  @override
+  String get chatErrNoModel => '未选择模型——请先在 设置 → API 密钥 添加 OpenAI 兼容密钥，再回到此处选择。';
+
+  @override
+  String get chatErrGateway =>
+      'AI 网关启动失败。请安装 Node.js ≥ 22.19（可在 设置 → AI 中安装）后重试。';
+
+  @override
+  String get chatErrProvider =>
+      'Letta 拒绝了模型连接——请检查 设置 → API 密钥 中的密钥、基 URL 与模型名。';
+
+  @override
+  String get openAiModel => '模型';
+
+  @override
+  String get openAiModelHint => '如 glm-4-flash、deepseek-chat、qwen-turbo';
 
   @override
   String get apiKeyTypeCustomTileUrl => '自定义瓦片 URL';

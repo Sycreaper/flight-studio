@@ -24,6 +24,7 @@ import 'status_bar.dart';
 import 'tabs/app_tab.dart';
 import 'tabs/app_tab_bar.dart';
 import 'tabs/app_tab_controller.dart';
+import 'tabs/chat_tab_view.dart';
 import 'tabs/flight_plan_form_tab.dart';
 import 'tabs/map_tab_view.dart';
 import 'tabs/settings_tab_view.dart';
@@ -147,6 +148,15 @@ class AppShellState extends State<AppShell> {
               onCalculate: () {},
               onReset: () {},
             ),
+      ),
+    )..register(
+      TabDescriptor(
+        id: TabIds.chat,
+        title: (l10n) => l10n.tabChat,
+        icon: Icons.chat_bubble_outline_rounded,
+        createContent: (tab) =>
+            ChatTabView(
+                key: ValueKey('chat_${tab.id}'), settings: widget.settings),
       ),
     )..register(
       TabDescriptor(

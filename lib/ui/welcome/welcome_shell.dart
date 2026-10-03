@@ -5,6 +5,7 @@ import '../../features/flights/flight_repository.dart';
 import '../../l10n/app_localizations.dart';
 import '../adaptive/breakpoints.dart';
 import '../shell/app_shell.dart';
+import '../shell/tabs/tab_registry.dart';
 import '../shell/window_chrome.dart';
 import '../theme/app_colors.dart';
 import 'pages/page_placeholder.dart';
@@ -44,6 +45,20 @@ class _WelcomeShellState extends State<WelcomeShell> {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => AppShell(settings: widget.settings),
+      ),
+    );
+  }
+
+  /// Sends land in the chat tab: push a workspace that opens directly on it.
+  void _openChatTab() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) =>
+            AppShell(
+              settings: widget.settings,
+              initialTab: TabIds.chat,
+            ),
       ),
     );
   }
@@ -100,7 +115,9 @@ class _WelcomeShellState extends State<WelcomeShell> {
           repository: widget.repository,
           onCreateFlight: widget.onCreateFlight,
           onWorldMap: _openMainPage,
+          onOpenChat: _openChatTab,
           onFlightAcademy: widget.onFlightAcademy,
+          settings: widget.settings,
         );
       case WelcomeSection.pluginCenter:
         return PagePlaceholder(

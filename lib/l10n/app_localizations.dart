@@ -107,7 +107,7 @@ abstract class AppLocalizations {
   /// No description provided for @navRecentFlights.
   ///
   /// In en, this message translates to:
-  /// **'Recent Flights'**
+  /// **'Start'**
   String get navRecentFlights;
 
   /// No description provided for @navPluginCenter.
@@ -223,6 +223,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Flight Plan'**
   String get tabFlightPlan;
+
+  /// No description provided for @tabChat.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat'**
+  String get tabChat;
 
   /// No description provided for @tabMapUnnamed.
   ///
@@ -1073,7 +1079,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsAiDesc.
   ///
   /// In en, this message translates to:
-  /// **'The assistant is constrained to call MCP tools for anything with side effects — it never computes routes or writes files itself. Route calculation, export and simulator commands run as deterministic Dart.'**
+  /// **'Letta is the local, stateful runtime behind the Flight Studio AI copilot — it carries your long-term memory across sessions. Install it with one click, create pilot accounts, and chat with your copilot from the welcome screen.'**
   String get settingsAiDesc;
 
   /// No description provided for @settingsAiProvider.
@@ -1081,6 +1087,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Provider'**
   String get settingsAiProvider;
+
+  /// No description provided for @settingsAiProviderHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Which LLM provider to use for the AI copilot.'**
+  String get settingsAiProviderHint;
 
   /// No description provided for @settingsAiProviderOpenAi.
   ///
@@ -1100,12 +1112,6 @@ abstract class AppLocalizations {
   /// **'Local (Ollama)'**
   String get settingsAiProviderOllama;
 
-  /// No description provided for @settingsAiProviderHint.
-  ///
-  /// In en, this message translates to:
-  /// **'OpenAI-compatible covers OpenAI, Groq, Together, OpenRouter, LM Studio, etc.'**
-  String get settingsAiProviderHint;
-
   /// No description provided for @settingsAiApiKey.
   ///
   /// In en, this message translates to:
@@ -1123,12 +1129,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Key set (hidden)'**
   String get settingsAiApiKeyHidden;
-
-  /// No description provided for @settingsAiClearApiKey.
-  ///
-  /// In en, this message translates to:
-  /// **'Clear'**
-  String get settingsAiClearApiKey;
 
   /// No description provided for @settingsAiEndpoint.
   ///
@@ -1166,35 +1166,161 @@ abstract class AppLocalizations {
   /// **'model-id'**
   String get settingsAiModelPlaceholder;
 
-  /// No description provided for @settingsAiToolPolicy.
+  /// No description provided for @settingsReasoningEffort.
   ///
   /// In en, this message translates to:
-  /// **'Tool policy'**
-  String get settingsAiToolPolicy;
+  /// **'Reasoning effort'**
+  String get settingsReasoningEffort;
 
-  /// No description provided for @settingsAiConfirmWrites.
+  /// No description provided for @settingsReasoningEffortHint.
   ///
   /// In en, this message translates to:
-  /// **'Require confirmation for write actions'**
-  String get settingsAiConfirmWrites;
+  /// **'How much thinking the model should do before answering.'**
+  String get settingsReasoningEffortHint;
 
-  /// No description provided for @settingsAiConfirmWritesHint.
+  /// No description provided for @settingsAiModelService.
   ///
   /// In en, this message translates to:
-  /// **'Export, simulator commands and file writes need your approval before they run.'**
-  String get settingsAiConfirmWritesHint;
+  /// **'Model service'**
+  String get settingsAiModelService;
 
-  /// No description provided for @settingsAiAutoRead.
+  /// No description provided for @aiLettaRuntimeTitle.
   ///
   /// In en, this message translates to:
-  /// **'Allow read tools without confirmation'**
-  String get settingsAiAutoRead;
+  /// **'Letta CLI (local agent runtime)'**
+  String get aiLettaRuntimeTitle;
 
-  /// No description provided for @settingsAiAutoReadHint.
+  /// No description provided for @aiLettaChecking.
   ///
   /// In en, this message translates to:
-  /// **'Navdata, weather, telemetry and flight records are surfaced to the model without prompting.'**
-  String get settingsAiAutoReadHint;
+  /// **'Checking environment…'**
+  String get aiLettaChecking;
+
+  /// No description provided for @aiLettaNotInstalledTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Letta CLI is not installed'**
+  String get aiLettaNotInstalledTitle;
+
+  /// No description provided for @aiLettaInstalledTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Letta CLI is installed'**
+  String get aiLettaInstalledTitle;
+
+  /// No description provided for @aiLettaIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Letta is the local, stateful agent runtime behind the Flight Studio AI copilot — it carries your long-term memory across sessions. Once installed, create a pilot account and chat with your copilot right from the welcome screen. Model providers (OpenAI-compatible, Anthropic, Ollama/LM Studio) are connected inside Letta via /connect.'**
+  String get aiLettaIntro;
+
+  /// No description provided for @aiLettaNodeMissingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Node.js not found'**
+  String get aiLettaNodeMissingTitle;
+
+  /// No description provided for @aiLettaNodeTooOldTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Node.js version too old'**
+  String get aiLettaNodeTooOldTitle;
+
+  /// No description provided for @aiLettaNodeDetected.
+  ///
+  /// In en, this message translates to:
+  /// **'Detected Node.js {version}'**
+  String aiLettaNodeDetected(String version);
+
+  /// No description provided for @aiLettaNodeRequiredHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The Letta CLI requires Node.js 22.19 or newer (distributed via npm).'**
+  String get aiLettaNodeRequiredHint;
+
+  /// No description provided for @aiLettaNodeManualHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Install Node.js from the official website (LTS recommended), then press Re-check. Flight Studio will not install Node.js for you.'**
+  String get aiLettaNodeManualHint;
+
+  /// No description provided for @aiLettaNodeDownload.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Node.js download page'**
+  String get aiLettaNodeDownload;
+
+  /// No description provided for @aiLettaRecheck.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-check'**
+  String get aiLettaRecheck;
+
+  /// No description provided for @aiLettaInstall.
+  ///
+  /// In en, this message translates to:
+  /// **'Install'**
+  String get aiLettaInstall;
+
+  /// No description provided for @aiLettaUninstall.
+  ///
+  /// In en, this message translates to:
+  /// **'Uninstall'**
+  String get aiLettaUninstall;
+
+  /// No description provided for @aiLettaInstalling.
+  ///
+  /// In en, this message translates to:
+  /// **'Installing Letta CLI…'**
+  String get aiLettaInstalling;
+
+  /// No description provided for @aiLettaUninstalling.
+  ///
+  /// In en, this message translates to:
+  /// **'Uninstalling Letta CLI…'**
+  String get aiLettaUninstalling;
+
+  /// No description provided for @aiLettaInstallFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Install failed'**
+  String get aiLettaInstallFailed;
+
+  /// No description provided for @aiLettaUninstallFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Uninstall failed'**
+  String get aiLettaUninstallFailed;
+
+  /// No description provided for @aiLettaLog.
+  ///
+  /// In en, this message translates to:
+  /// **'Output log'**
+  String get aiLettaLog;
+
+  /// No description provided for @aiLettaUninstallConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Uninstall Letta CLI?'**
+  String get aiLettaUninstallConfirmTitle;
+
+  /// No description provided for @aiLettaUninstallConfirmDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'This only removes the Letta CLI program. Your local accounts and long-term memory data (~/.letta) are not deleted.'**
+  String get aiLettaUninstallConfirmDesc;
+
+  /// No description provided for @aiLettaReadyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Next: create a pilot account on the welcome screen — each account owns a Letta agent with isolated long-term memory. Connect a model provider inside the Letta CLI via /connect.'**
+  String get aiLettaReadyHint;
+
+  /// No description provided for @settingsAiClearApiKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get settingsAiClearApiKey;
 
   /// No description provided for @settingsRemoteTitle.
   ///
@@ -1349,7 +1475,7 @@ abstract class AppLocalizations {
   /// No description provided for @welcomeSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Flight Planner'**
+  /// **'AI flight agent workbench'**
   String get welcomeSubtitle;
 
   /// No description provided for @ttNewFlightPlan.
@@ -2048,17 +2174,185 @@ abstract class AppLocalizations {
   /// **'OSM Tile Token'**
   String get apiKeyTypeOsmToken;
 
-  /// No description provided for @apiKeyTypeAiCopilot.
+  /// No description provided for @startHeroTitle.
   ///
   /// In en, this message translates to:
-  /// **'AI Copilot Key'**
-  String get apiKeyTypeAiCopilot;
+  /// **'Ready when you are'**
+  String get startHeroTitle;
+
+  /// No description provided for @startPromptHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask anything'**
+  String get startPromptHint;
+
+  /// No description provided for @startSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get startSend;
 
   /// No description provided for @apiKeyTypeFlightAware.
   ///
   /// In en, this message translates to:
   /// **'FlightAware Key'**
   String get apiKeyTypeFlightAware;
+
+  /// No description provided for @apiKeyTypeAiCopilot.
+  ///
+  /// In en, this message translates to:
+  /// **'AI Copilot Key'**
+  String get apiKeyTypeAiCopilot;
+
+  /// No description provided for @apiKeyTypeOpenAiCompatible.
+  ///
+  /// In en, this message translates to:
+  /// **'OpenAI-compatible API Key'**
+  String get apiKeyTypeOpenAiCompatible;
+
+  /// No description provided for @openAiProvider.
+  ///
+  /// In en, this message translates to:
+  /// **'Provider'**
+  String get openAiProvider;
+
+  /// No description provided for @openAiProviderGlm.
+  ///
+  /// In en, this message translates to:
+  /// **'GLM (non-coding plan)'**
+  String get openAiProviderGlm;
+
+  /// No description provided for @openAiProviderQwen.
+  ///
+  /// In en, this message translates to:
+  /// **'Qwen (Tongyi)'**
+  String get openAiProviderQwen;
+
+  /// No description provided for @openAiProviderDeepseek.
+  ///
+  /// In en, this message translates to:
+  /// **'DeepSeek'**
+  String get openAiProviderDeepseek;
+
+  /// No description provided for @openAiProviderCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get openAiProviderCustom;
+
+  /// No description provided for @openAiBaseUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'Base URL'**
+  String get openAiBaseUrl;
+
+  /// No description provided for @openAiBaseUrlHint.
+  ///
+  /// In en, this message translates to:
+  /// **'https://api.openai.com/v1'**
+  String get openAiBaseUrlHint;
+
+  /// No description provided for @openAiTest.
+  ///
+  /// In en, this message translates to:
+  /// **'Test'**
+  String get openAiTest;
+
+  /// No description provided for @openAiTestOk.
+  ///
+  /// In en, this message translates to:
+  /// **'✓ Connection successful'**
+  String get openAiTestOk;
+
+  /// No description provided for @openAiTestFail.
+  ///
+  /// In en, this message translates to:
+  /// **'✗ Connection failed'**
+  String get openAiTestFail;
+
+  /// No description provided for @openAiModelsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No models — add an OpenAI-compatible key first'**
+  String get openAiModelsEmpty;
+
+  /// No description provided for @modelChipLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Model'**
+  String get modelChipLabel;
+
+  /// No description provided for @modelChipNoModel.
+  ///
+  /// In en, this message translates to:
+  /// **'No model set — edit the API key'**
+  String get modelChipNoModel;
+
+  /// No description provided for @reasoningNone.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get reasoningNone;
+
+  /// No description provided for @reasoningMinimal.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimal'**
+  String get reasoningMinimal;
+
+  /// No description provided for @reasoningLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Low'**
+  String get reasoningLow;
+
+  /// No description provided for @reasoningMedium.
+  ///
+  /// In en, this message translates to:
+  /// **'Medium'**
+  String get reasoningMedium;
+
+  /// No description provided for @reasoningHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'High'**
+  String get reasoningHigh;
+
+  /// No description provided for @reasoningXhigh.
+  ///
+  /// In en, this message translates to:
+  /// **'Extra high'**
+  String get reasoningXhigh;
+
+  /// No description provided for @chatErrNoModel.
+  ///
+  /// In en, this message translates to:
+  /// **'No model selected — add an OpenAI-compatible API key in Settings → API Keys, then pick it here.'**
+  String get chatErrNoModel;
+
+  /// No description provided for @chatErrGateway.
+  ///
+  /// In en, this message translates to:
+  /// **'The AI gateway could not start. Install Node.js ≥ 22.19 (Settings → AI can help) and try again.'**
+  String get chatErrGateway;
+
+  /// No description provided for @chatErrProvider.
+  ///
+  /// In en, this message translates to:
+  /// **'Letta rejected the model connection — check the API key, base URL and model name in Settings → API Keys.'**
+  String get chatErrProvider;
+
+  /// No description provided for @openAiModel.
+  ///
+  /// In en, this message translates to:
+  /// **'Model'**
+  String get openAiModel;
+
+  /// No description provided for @openAiModelHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. glm-4-flash, deepseek-chat, qwen-turbo'**
+  String get openAiModelHint;
 
   /// No description provided for @apiKeyTypeCustomTileUrl.
   ///

@@ -169,6 +169,9 @@ class _SimListTileState extends State<_SimListTile> {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppColors>()!;
     final l10n = AppLocalizations.of(context)!;
+    final isDark = Theme
+        .of(context)
+        .brightness == Brightness.dark;
     final sim = widget.sim;
     final supported =
     SimConnectorRegistry.instance.isSupported(sim.type);
@@ -183,8 +186,16 @@ class _SimListTileState extends State<_SimListTile> {
           color: _hovering
               ? colors.surfaceLowered.withValues(alpha: 0.5)
               : colors.surfaceRaised,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: colors.border),
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: [
+            // Floating welcome-card style — no hard border.
+            BoxShadow(
+              color: Colors.black.withValues(
+                  alpha: isDark ? 0.18 : 0.07),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         margin: const EdgeInsets.only(bottom: 8),
         child: Row(

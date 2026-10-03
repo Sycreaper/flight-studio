@@ -1,0 +1,26 @@
+{
+  "name": "flightstudio-agent-gateway",
+  "version": "0.1.0",
+  "private": true,
+  "description": "FlightStudio Agent Gateway — HTTP/SSE bridge between the Flutter app and the Letta Agent SDK",
+  "type": "module",
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node --env-file=.env dist/index.js",
+    "start:dev": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "@letta-ai/letta-agent-sdk": "^0.8.26",
+    "@letta-ai/letta-code": "0.34.0",
+    "fastify": "^5.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  }
+}

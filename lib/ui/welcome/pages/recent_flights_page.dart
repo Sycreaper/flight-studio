@@ -1,12 +1,18 @@
 import 'package:flutter/material.dart';
 
+import '../../../data/settings/settings_controller.dart';
 import '../../../features/flights/flight_repository.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../chat/chat_session.dart';
 import '../../theme/app_colors.dart';
+import '../../widgets/model_reasoning_chips.dart';
+import '../../widgets/prompt_box.dart';
 import '../widgets/flight_card.dart';
 
-/// Recent Flights page. Shows an empty-state CTA when there are no records,
-/// otherwise a search field followed by a list of [FlightCard]s.
+/// The **Start** page: hero title with a centred floating AI prompt box
+/// (white pill → rounded rectangle as you type), model + reasoning-effort
+/// chips below it, three compact action buttons, and recent-flight
+/// search + list underneath when records exist.
 class RecentFlightsPage extends StatefulWidget {
   const RecentFlightsPage({
     super.key,
@@ -14,6 +20,8 @@ class RecentFlightsPage extends StatefulWidget {
     this.onCreateFlight,
     this.onWorldMap,
     this.onFlightAcademy,
+    this.onOpenChat,
+    this.settings,
   });
 
   final FlightRepository repository;
@@ -21,12 +29,19 @@ class RecentFlightsPage extends StatefulWidget {
   final VoidCallback? onWorldMap;
   final VoidCallback? onFlightAcademy;
 
+  /// After a prompt send: the shell jumps to the chat tab.
+  final VoidCallback? onOpenChat;
+
+  /// Settings (API key vault) driving the model chips.
+  final SettingsController? settings;
+
   @override
   State<RecentFlightsPage> createState() => _RecentFlightsPageState();
 }
 
 class _RecentFlightsPageState extends State<RecentFlightsPage> {
   final _search = TextEditingController();
+  final _prompt = TextEditingController();
   String _query = '';
 
   @override
@@ -36,11 +51,13 @@ class _RecentFlightsPageState extends State<RecentFlightsPage> {
       final v = _search.text;
       if (v != _query) setState(() => _query = v);
     });
+    _prompt.addListener(() => setState(() {}));
   }
 
   @override
   void dispose() {
     _search.dispose();
+    _prompt.dispose();
     super.dispose();
   }
 
@@ -49,225 +66,175 @@ class _RecentFlightsPageState extends State<RecentFlightsPage> {
     final l10n = AppLocalizations.of(context)!;
     final all = widget.repository.all();
     final isEmpty = all.isEmpty;
-
-    if (isEmpty) {
-      return _EmptyState(
-        title: l10n.createFirstFlight,
-        onCreateFlight: widget.onCreateFlight,
-        onWorldMap: widget.onWorldMap,
-        onFlightAcademy: widget.onFlightAcademy,
-      );
-    }
-
     final results = _query.isEmpty ? all : widget.repository.search(_query);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        _SearchField(controller: _search),
-        const SizedBox(height: 14),
-        Expanded(
-          child: results.isEmpty
-              ? _Hint(text: l10n.noResults)
-              : ListView.separated(
-                  itemCount: results.length,
-                  separatorBuilder: (_, _) => const SizedBox(height: 8),
-                  itemBuilder: (context, i) => FlightCard(
-                    flight: results[i],
-                    onTap: () {},
+
+    return LayoutBuilder(
+      builder: (context, viewport) =>
+          SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: viewport.maxHeight),
+              child: IntrinsicHeight(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      if (isEmpty) const Spacer(),
+                      Text(
+                        l10n.startHeroTitle,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 30,
+                          fontWeight: FontWeight.w700,
+                          color: Theme.of(context)
+                              .extension<AppColors>()!
+                              .textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 40),
+                      Center(
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 900),
+                          child: PromptBox(
+                            controller: _prompt,
+                            isStreaming: false,
+                            onSend: (text) {
+                              ChatSession.instance.send(text);
+                              widget.onOpenChat?.call();
+                            },
+                            onStop: () => ChatSession.instance.stop(),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 48),
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: ModelReasoningChips(settings: widget.settings),
+                        ),
+                      ),
+                      const SizedBox(height: 28),
+                      Center(
+                        child: Wrap(
+                          spacing: 12,
+                          children: [
+                            _StartButton(
+                              icon: Icons.edit_note_rounded,
+                              label: l10n.createFlight,
+                              onTap: widget.onCreateFlight,
+                            ),
+                            _StartButton(
+                              icon: Icons.public_rounded,
+                              label: l10n.worldMap,
+                              onTap: widget.onWorldMap,
+                            ),
+                            _StartButton(
+                              icon: Icons.school_rounded,
+                              label: l10n.flightAcademy,
+                              onTap: widget.onFlightAcademy,
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (!isEmpty) ...[
+                        const SizedBox(height: 48),
+                        Center(
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 760),
+                            child: _SearchField(controller: _search),
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                        Center(
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 760),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                if (results.isEmpty)
+                                  _Hint(text: l10n.noResults)
+                                else
+                                  for (var i = 0; i < results.length; i++) ...[
+                                    if (i > 0) const SizedBox(height: 8),
+                                    FlightCard(
+                                        flight: results[i], onTap: () {}),
+                                  ],
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                      if (isEmpty) const Expanded(child: SizedBox()),
+                    ],
                   ),
                 ),
-        ),
-      ],
+              ),
+            ),
+          ),
+    );
+  }
+}
+
+/// Compact inline action button (icon + label on one line).
+class _StartButton extends StatelessWidget {
+  const _StartButton({
+    required this.icon,
+    required this.label,
+    this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<AppColors>()!;
+    return OutlinedButton.icon(
+      onPressed: onTap,
+      icon: Icon(icon, size: 16, color: colors.accent),
+      label: Text(
+        label,
+        style: TextStyle(fontSize: 12.5, color: colors.textPrimary),
+      ),
+      style: OutlinedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
+        side: BorderSide(color: colors.border),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        backgroundColor: colors.surfaceRaised,
+      ),
     );
   }
 }
 
 class _SearchField extends StatelessWidget {
   const _SearchField({required this.controller});
+
   final TextEditingController controller;
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppColors>()!;
     final l10n = AppLocalizations.of(context)!;
-    return Container(
-      constraints: const BoxConstraints(maxWidth: 460),
-      child: TextField(
-        controller: controller,
-        decoration: InputDecoration(
-          hintText: l10n.searchFlights,
-          prefixIcon: Icon(Icons.search_rounded,
-              size: 18, color: colors.textSecondary),
-          suffixIcon: ValueListenableBuilder<TextEditingValue>(
-            valueListenable: controller,
-            builder: (_, value, _) {
-              if (value.text.isEmpty) return const SizedBox.shrink();
-              return IconButton(
-                onPressed: controller.clear,
-                icon: Icon(Icons.close_rounded,
-                    size: 16, color: colors.textSecondary),
-                constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                padding: EdgeInsets.zero,
-              );
-            },
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _EmptyState extends StatelessWidget {
-  const _EmptyState({
-    required this.title,
-    this.onCreateFlight,
-    this.onWorldMap,
-    this.onFlightAcademy,
-  });
-
-  final String title;
-  final VoidCallback? onCreateFlight;
-  final VoidCallback? onWorldMap;
-  final VoidCallback? onFlightAcademy;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).extension<AppColors>()!;
-    final l10n = AppLocalizations.of(context)!;
-    return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 560),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(vertical: 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.flight_takeoff_rounded,
-                  size: 56, color: colors.accent.withValues(alpha: 0.7)),
-              const SizedBox(height: 18),
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
-                  color: colors.textPrimary,
-                ),
-              ),
-              const SizedBox(height: 28),
-              // Three identical-sized action tiles. Tiles carry a fixed
-              // `width`/`height` so they look uniform regardless of how the
-              // hint text wraps in either language. [Wrap] keeps them on one
-              // row on wide screens and reflows onto multiple rows on
-              // narrow ones instead of overflowing.
-              Center(
-                child: Wrap(
-                  spacing: 16,
-                  runSpacing: 16,
-                  alignment: WrapAlignment.center,
-                  children: [
-                    _ActionTile(
-                      icon: Icons.edit_note_rounded,
-                      label: l10n.createFlight,
-                      hint: l10n.createFlightHint,
-                      onTap: onCreateFlight,
-                    ),
-                    _ActionTile(
-                      icon: Icons.public_rounded,
-                      label: l10n.worldMap,
-                      hint: l10n.worldMapHint,
-                      onTap: onWorldMap,
-                    ),
-                    _ActionTile(
-                      icon: Icons.school_rounded,
-                      label: l10n.flightAcademy,
-                      hint: l10n.flightAcademyHint,
-                      onTap: onFlightAcademy,
-                    ),
-                  ],
-                ),
-              ),
-          ],
-        ),
-      ),
-      ),
-    );
-  }
-}
-
-class _ActionTile extends StatefulWidget {
-  const _ActionTile({
-    required this.icon,
-    required this.label,
-    required this.hint,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String label;
-  final String hint;
-  final VoidCallback? onTap;
-
-  @override
-  State<_ActionTile> createState() => _ActionTileState();
-}
-
-class _ActionTileState extends State<_ActionTile> {
-  bool _hovering = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).extension<AppColors>()!;
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _hovering = true),
-      onExit: (_) => setState(() => _hovering = false),
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: widget.onTap,
-        child: AnimatedContainer(
-          width: 168,
-          // Fixed height so all three tiles line up even if the hint text
-          // wraps differently per language.
-          height: 168,
-          duration: const Duration(milliseconds: 120),
-          padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 12),
-          decoration: BoxDecoration(
-            color: _hovering
-                ? colors.accent.withValues(alpha: 0.10)
-                : colors.surfaceRaised,
-            border: Border.all(
-              color: _hovering ? colors.accent : colors.border,
-            ),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(widget.icon,
-                  size: 30,
-                  color: _hovering ? colors.accent : colors.textPrimary),
-              const SizedBox(height: 12),
-              Text(
-                widget.label,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: _hovering ? colors.accent : colors.textPrimary,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 6),
-              Text(
-                widget.hint,
-                style: TextStyle(fontSize: 11, color: colors.textSecondary),
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-          ),
+    return TextField(
+      controller: controller,
+      decoration: InputDecoration(
+        hintText: l10n.searchFlights,
+        prefixIcon: Icon(Icons.search_rounded,
+            size: 18, color: colors.textSecondary),
+        suffixIcon: ValueListenableBuilder<TextEditingValue>(
+          valueListenable: controller,
+          builder: (_, value, _) {
+            if (value.text.isEmpty) return const SizedBox.shrink();
+            return IconButton(
+              onPressed: controller.clear,
+              icon: Icon(Icons.close_rounded,
+                  size: 16, color: colors.textSecondary),
+              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+              padding: EdgeInsets.zero,
+            );
+          },
         ),
       ),
     );
@@ -282,7 +249,8 @@ class _Hint extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppColors>()!;
     return Center(
-      child: Text(text, style: TextStyle(fontSize: 13, color: colors.textDisabled)),
+      child: Text(text,
+          style: TextStyle(fontSize: 13, color: colors.textDisabled)),
     );
   }
 }

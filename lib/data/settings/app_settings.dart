@@ -140,7 +140,7 @@ class AppSettings {
 
   String? get firstCustomTileUrl => _firstKey(ApiKeyType.customTileUrl);
 
-  String? get firstAiKey => _firstKey(ApiKeyType.aiCopilot);
+  String? get firstAiKey => _firstKey(ApiKeyType.openAiCompatible);
 
   String? get firstFlightAwareKey => _firstKey(ApiKeyType.flightAware);
 

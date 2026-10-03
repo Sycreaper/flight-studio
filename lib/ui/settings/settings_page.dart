@@ -67,7 +67,7 @@ Widget buildSettingsSection(SettingsController controller,
     case SettingsSection.navdata:
       return NavDataSection(controller: controller);
     case SettingsSection.ai:
-      return AiCopilotSection(controller: controller);
+      return const AiCopilotSection();
     case SettingsSection.remote:
       return RemoteAccessSection(controller: controller);
     case SettingsSection.about:

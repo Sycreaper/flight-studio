@@ -59,3 +59,10 @@ app.*.map.json
 
 # Android module build output (problems reports etc.)
 /android/build/
+
+# Agent gateway (Node/TypeScript)
+agent_gateway/node_modules/
+*.tsbuildinfo
+# Agent gateway build output + local Letta state
+agent_gateway/dist/
+agent_gateway/.letta/

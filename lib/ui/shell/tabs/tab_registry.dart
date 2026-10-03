@@ -10,6 +10,7 @@ import 'app_tab.dart';
 abstract final class TabIds {
   static const String map = 'map';
   static const String flightPlan = 'flightPlan';
+  static const String chat = 'chat';
   static const String settings = 'settings';
 }
 

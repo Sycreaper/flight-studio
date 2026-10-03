@@ -13,7 +13,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appName => 'Flight Studio';
 
   @override
-  String get navRecentFlights => 'Recent Flights';
+  String get navRecentFlights => 'Start';
 
   @override
   String get navPluginCenter => 'Plugin Center';
@@ -71,6 +71,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tabFlightPlan => 'Flight Plan';
+
+  @override
+  String get tabChat => 'Chat';
 
   @override
   String get tabMapUnnamed => 'Map';
@@ -528,10 +531,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsAiDesc =>
-      'The assistant is constrained to call MCP tools for anything with side effects — it never computes routes or writes files itself. Route calculation, export and simulator commands run as deterministic Dart.';
+      'Letta is the local, stateful runtime behind the Flight Studio AI copilot — it carries your long-term memory across sessions. Install it with one click, create pilot accounts, and chat with your copilot from the welcome screen.';
 
   @override
   String get settingsAiProvider => 'Provider';
+
+  @override
+  String get settingsAiProviderHint =>
+      'Which LLM provider to use for the AI copilot.';
 
   @override
   String get settingsAiProviderOpenAi => 'OpenAI-compatible';
@@ -543,10 +550,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsAiProviderOllama => 'Local (Ollama)';
 
   @override
-  String get settingsAiProviderHint =>
-      'OpenAI-compatible covers OpenAI, Groq, Together, OpenRouter, LM Studio, etc.';
-
-  @override
   String get settingsAiApiKey => 'API key';
 
   @override
@@ -555,9 +558,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsAiApiKeyHidden => 'Key set (hidden)';
-
-  @override
-  String get settingsAiClearApiKey => 'Clear';
 
   @override
   String get settingsAiEndpoint => 'Endpoint URL';
@@ -580,22 +580,90 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsAiModelPlaceholder => 'model-id';
 
   @override
-  String get settingsAiToolPolicy => 'Tool policy';
+  String get settingsReasoningEffort => 'Reasoning effort';
 
   @override
-  String get settingsAiConfirmWrites =>
-      'Require confirmation for write actions';
+  String get settingsReasoningEffortHint =>
+      'How much thinking the model should do before answering.';
 
   @override
-  String get settingsAiConfirmWritesHint =>
-      'Export, simulator commands and file writes need your approval before they run.';
+  String get settingsAiModelService => 'Model service';
 
   @override
-  String get settingsAiAutoRead => 'Allow read tools without confirmation';
+  String get aiLettaRuntimeTitle => 'Letta CLI (local agent runtime)';
 
   @override
-  String get settingsAiAutoReadHint =>
-      'Navdata, weather, telemetry and flight records are surfaced to the model without prompting.';
+  String get aiLettaChecking => 'Checking environment…';
+
+  @override
+  String get aiLettaNotInstalledTitle => 'Letta CLI is not installed';
+
+  @override
+  String get aiLettaInstalledTitle => 'Letta CLI is installed';
+
+  @override
+  String get aiLettaIntro =>
+      'Letta is the local, stateful agent runtime behind the Flight Studio AI copilot — it carries your long-term memory across sessions. Once installed, create a pilot account and chat with your copilot right from the welcome screen. Model providers (OpenAI-compatible, Anthropic, Ollama/LM Studio) are connected inside Letta via /connect.';
+
+  @override
+  String get aiLettaNodeMissingTitle => 'Node.js not found';
+
+  @override
+  String get aiLettaNodeTooOldTitle => 'Node.js version too old';
+
+  @override
+  String aiLettaNodeDetected(String version) {
+    return 'Detected Node.js $version';
+  }
+
+  @override
+  String get aiLettaNodeRequiredHint =>
+      'The Letta CLI requires Node.js 22.19 or newer (distributed via npm).';
+
+  @override
+  String get aiLettaNodeManualHint =>
+      'Install Node.js from the official website (LTS recommended), then press Re-check. Flight Studio will not install Node.js for you.';
+
+  @override
+  String get aiLettaNodeDownload => 'Open Node.js download page';
+
+  @override
+  String get aiLettaRecheck => 'Re-check';
+
+  @override
+  String get aiLettaInstall => 'Install';
+
+  @override
+  String get aiLettaUninstall => 'Uninstall';
+
+  @override
+  String get aiLettaInstalling => 'Installing Letta CLI…';
+
+  @override
+  String get aiLettaUninstalling => 'Uninstalling Letta CLI…';
+
+  @override
+  String get aiLettaInstallFailed => 'Install failed';
+
+  @override
+  String get aiLettaUninstallFailed => 'Uninstall failed';
+
+  @override
+  String get aiLettaLog => 'Output log';
+
+  @override
+  String get aiLettaUninstallConfirmTitle => 'Uninstall Letta CLI?';
+
+  @override
+  String get aiLettaUninstallConfirmDesc =>
+      'This only removes the Letta CLI program. Your local accounts and long-term memory data (~/.letta) are not deleted.';
+
+  @override
+  String get aiLettaReadyHint =>
+      'Next: create a pilot account on the welcome screen — each account owns a Letta agent with isolated long-term memory. Connect a model provider inside the Letta CLI via /connect.';
+
+  @override
+  String get settingsAiClearApiKey => 'Clear';
 
   @override
   String get settingsRemoteTitle => 'Remote access';
@@ -682,7 +750,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tabSettings => 'Settings';
 
   @override
-  String get welcomeSubtitle => 'Flight Planner';
+  String get welcomeSubtitle => 'AI flight agent workbench';
 
   @override
   String get ttNewFlightPlan => 'New flight plan';
@@ -1049,10 +1117,98 @@ class AppLocalizationsEn extends AppLocalizations {
   String get apiKeyTypeOsmToken => 'OSM Tile Token';
 
   @override
-  String get apiKeyTypeAiCopilot => 'AI Copilot Key';
+  String get startHeroTitle => 'Ready when you are';
+
+  @override
+  String get startPromptHint => 'Ask anything';
+
+  @override
+  String get startSend => 'Send';
 
   @override
   String get apiKeyTypeFlightAware => 'FlightAware Key';
+
+  @override
+  String get apiKeyTypeAiCopilot => 'AI Copilot Key';
+
+  @override
+  String get apiKeyTypeOpenAiCompatible => 'OpenAI-compatible API Key';
+
+  @override
+  String get openAiProvider => 'Provider';
+
+  @override
+  String get openAiProviderGlm => 'GLM (non-coding plan)';
+
+  @override
+  String get openAiProviderQwen => 'Qwen (Tongyi)';
+
+  @override
+  String get openAiProviderDeepseek => 'DeepSeek';
+
+  @override
+  String get openAiProviderCustom => 'Custom';
+
+  @override
+  String get openAiBaseUrl => 'Base URL';
+
+  @override
+  String get openAiBaseUrlHint => 'https://api.openai.com/v1';
+
+  @override
+  String get openAiTest => 'Test';
+
+  @override
+  String get openAiTestOk => '✓ Connection successful';
+
+  @override
+  String get openAiTestFail => '✗ Connection failed';
+
+  @override
+  String get openAiModelsEmpty =>
+      'No models — add an OpenAI-compatible key first';
+
+  @override
+  String get modelChipLabel => 'Model';
+
+  @override
+  String get modelChipNoModel => 'No model set — edit the API key';
+
+  @override
+  String get reasoningNone => 'None';
+
+  @override
+  String get reasoningMinimal => 'Minimal';
+
+  @override
+  String get reasoningLow => 'Low';
+
+  @override
+  String get reasoningMedium => 'Medium';
+
+  @override
+  String get reasoningHigh => 'High';
+
+  @override
+  String get reasoningXhigh => 'Extra high';
+
+  @override
+  String get chatErrNoModel =>
+      'No model selected — add an OpenAI-compatible API key in Settings → API Keys, then pick it here.';
+
+  @override
+  String get chatErrGateway =>
+      'The AI gateway could not start. Install Node.js ≥ 22.19 (Settings → AI can help) and try again.';
+
+  @override
+  String get chatErrProvider =>
+      'Letta rejected the model connection — check the API key, base URL and model name in Settings → API Keys.';
+
+  @override
+  String get openAiModel => 'Model';
+
+  @override
+  String get openAiModelHint => 'e.g. glm-4-flash, deepseek-chat, qwen-turbo';
 
   @override
   String get apiKeyTypeCustomTileUrl => 'Custom Tile URL';

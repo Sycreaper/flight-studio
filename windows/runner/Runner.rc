@@ -90,7 +90,7 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "Flight Studio" "\0"
-            VALUE "FileDescription", "Flight Studio - Flight simulator route planner and live flight tracker" "\0"
+            VALUE "FileDescription", "Open-source, cross-platform AI flight agent workbench. Chat with a Letta-powered copilot that plans, briefs and tracks simulator flights, grounded in real navdata, with full manual planning tools and remote monitoring." "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "flight_studio" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2026 Flight Studio Contributors. Released under the MIT License." "\0"

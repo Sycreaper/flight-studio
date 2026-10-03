@@ -235,12 +235,21 @@ class SettingsController extends ChangeNotifier {
   // --- API keys (dynamic list) ----------------------------------------------
 
   /// Adds a new API key entry and persists the full list.
-  Future<void> addApiKey(ApiKeyType type, String value, {String? label}) async {
+  Future<void> addApiKey(ApiKeyType type,
+      String value, {
+        String? label,
+        String? provider,
+        String? baseUrl,
+        String? model,
+      }) async {
     final entry = ApiKeyEntry(
       id: ApiKeyEntry.generateId(),
       type: type,
       value: value,
       label: label,
+      provider: provider,
+      baseUrl: baseUrl,
+      model: model,
     );
     final updated = [..._value.apiKeys, entry];
     _value = _value.copyWith(apiKeys: updated);

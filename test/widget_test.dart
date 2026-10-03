@@ -38,7 +38,7 @@ void main() {
   testWidgets('Welcome empty state shows three equal-sized action tiles',
           (tester) async {
     await _pumpWelcome(tester, repository: FlightRepository());
-    expect(find.text('Create your first flight'), findsOneWidget);
+    expect(find.text('Ready when you are'), findsOneWidget);
     expect(find.text('Create Flight'), findsOneWidget);
     expect(find.text('World Map'), findsOneWidget);
     expect(find.text('Flight Academy'), findsOneWidget);
@@ -65,7 +65,7 @@ void main() {
   testWidgets('Nav drawer has no Settings entry (gear menu replaces it)',
           (tester) async {
         await _pumpWelcome(tester, repository: FlightRepository());
-        expect(find.text('Recent Flights'), findsOneWidget);
+        expect(find.text('Start'), findsOneWidget);
         expect(find.text('Plugin Center'), findsOneWidget);
         expect(find.text('Settings'), findsNothing);
       });
@@ -140,7 +140,7 @@ void main() {
     await _pumpWelcome(
         tester, repository: FlightRepository(), settings: settings);
 
-    expect(find.text('近期飞行'), findsOneWidget);
+    expect(find.text('开始'), findsOneWidget);
     expect(find.text('插件中心'), findsOneWidget);
 
     await _tapAndSettle(tester, find

@@ -4,8 +4,8 @@ import '../../../data/settings/api_key_entry.dart';
 import '../../../data/settings/settings_controller.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../theme/app_colors.dart';
-import '../settings_page.dart';
 import '../../widgets/floating_window.dart';
+import '../settings_page.dart';
 import 'add_api_key_dialog.dart';
 
 /// Unified API-key management section — a **dynamic list** of stored
@@ -322,8 +322,8 @@ class _ApiKeyListTileState extends State<_ApiKeyListTile> {
         return Icons.terrain_rounded;
       case ApiKeyType.mapboxToken:
         return Icons.map_rounded;
-      case ApiKeyType.aiCopilot:
-        return Icons.smart_toy_rounded;
+      case ApiKeyType.openAiCompatible:
+        return Icons.bolt_rounded;
       case ApiKeyType.flightAware:
         return Icons.flight_rounded;
       case ApiKeyType.customTileUrl:
@@ -337,8 +337,8 @@ class _ApiKeyListTileState extends State<_ApiKeyListTile> {
         return l10n.apiKeyTypeOsmToken;
       case ApiKeyType.mapboxToken:
         return l10n.apiKeyTypeMapboxToken;
-      case ApiKeyType.aiCopilot:
-        return l10n.apiKeyTypeAiCopilot;
+      case ApiKeyType.openAiCompatible:
+        return l10n.apiKeyTypeOpenAiCompatible;
       case ApiKeyType.flightAware:
         return l10n.apiKeyTypeFlightAware;
       case ApiKeyType.customTileUrl:
