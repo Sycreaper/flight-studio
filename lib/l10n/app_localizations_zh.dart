@@ -1173,6 +1173,20 @@ class AppLocalizationsZh extends AppLocalizations {
   String get chatThinking => '思考中…';
 
   @override
+  String get aiDeleteLettaData => '删除 Letta 数据';
+
+  @override
+  String get aiDeleteLettaDataHint =>
+      '永久删除全部 Letta 智能体、会话、记忆与已存储的提供商凭据（~/.letta）。下一条消息将重新初始化副驾驶。';
+
+  @override
+  String get aiDeleteLettaDataDesc =>
+      '将永久删除全部 Letta 数据——智能体、会话、长期记忆与已存储的提供商密钥（C:\\Users\\<你>\\.letta）。此操作不可撤销。下一条消息将重新初始化副驾驶。';
+
+  @override
+  String get aiDeleteLettaDataFailed => '删除 Letta 数据失败——网关可能仍在运行，请重试。';
+
+  @override
   String get chatCopy => '复制';
 
   @override

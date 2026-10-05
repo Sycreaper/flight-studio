@@ -2360,6 +2360,30 @@ abstract class AppLocalizations {
   /// **'Thinking…'**
   String get chatThinking;
 
+  /// No description provided for @aiDeleteLettaData.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Letta data'**
+  String get aiDeleteLettaData;
+
+  /// No description provided for @aiDeleteLettaDataHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Permanently removes all Letta agents, conversations, memory and stored provider credentials (~/.letta). The copilot starts fresh on the next message.'**
+  String get aiDeleteLettaDataHint;
+
+  /// No description provided for @aiDeleteLettaDataDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'This permanently deletes ALL Letta data — agents, conversations, long-term memory and stored provider keys (C:\\Users\\<you>\\.letta). This cannot be undone. The copilot re-initializes on the next message.'**
+  String get aiDeleteLettaDataDesc;
+
+  /// No description provided for @aiDeleteLettaDataFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to delete Letta data — the gateway may still be running; try again.'**
+  String get aiDeleteLettaDataFailed;
+
   /// No description provided for @chatCopy.
   ///
   /// In en, this message translates to:

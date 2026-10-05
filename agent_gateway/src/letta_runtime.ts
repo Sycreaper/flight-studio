@@ -368,6 +368,73 @@ export class LettaRuntime extends EventEmitter {
         this.abortTurn();
     }
 
+    /// Conversation history from the OFFICIAL Letta API — Flight Studio
+    /// never records chat itself. Uses the raw app-server protocol
+    /// (`conversation_messages_list`) with an explicit `agent_id`: the
+    /// bare-spawned app-server's store otherwise resolves the default
+    /// conversation to its placeholder agent ("agent-local-default") and
+    /// 404s. Returns user/assistant turns only, oldest first.
+    async listHistory(): Promise<
+        Array<{ role: "user" | "assistant"; content: string }>
+    > {
+        await this.initialize();
+        if (this.lettaState !== "ok" || this.agentId == null) return [];
+        try {
+            const socket = await this.providerSocket();
+            const response = await socket.request(
+                "conversation_messages_list",
+                {
+                    request_id: socket.nextRequestId("history"),
+                    conversation_id: "default",
+                    query: {
+                        order: "asc",
+                        limit: 200,
+                        agent_id: this.agentId,
+                    },
+                },
+            );
+            const result = response as unknown as {
+                success?: boolean;
+                messages?: unknown[];
+                error?: string;
+            };
+            if (result.success === false) {
+                console.log(
+                    "[history] conversation_messages_list failed:",
+                    result.error,
+                );
+                return [];
+            }
+            const out: Array<{ role: "user" | "assistant"; content: string }> = [];
+            for (const raw of result.messages ?? []) {
+                const m = raw as Record<string, unknown>;
+                const role = m.role as string;
+                if (role !== "user" && role !== "assistant") continue;
+                let text = "";
+                const c = m.content;
+                if (typeof c === "string") {
+                    text = c;
+                } else if (Array.isArray(c)) {
+                    text = c
+                        .map((b) =>
+                            b != null && typeof b === "object" && "text" in b
+                                ? String((b as { text?: unknown }).text ?? "")
+                                : "")
+                        .join("");
+                }
+                if (text.trim().length === 0) continue;
+                out.push({role, content: text});
+            }
+            return out;
+        } catch (err) {
+            console.log(
+                "[history] error:",
+                err instanceof Error ? err.message : String(err),
+            );
+            return [];
+        }
+    }
+
     // ── Provider push (official app-server protocol) ─────────────────────────
 
     /// tiers, so a tier failure falls back to the model-only update.

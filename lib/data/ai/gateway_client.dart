@@ -198,6 +198,33 @@ class GatewayClient {
     }
   }
 
+  /// Conversation history from the official Letta API (the app never
+  /// records chat itself). Returns `role`+`content` pairs, oldest first;
+  /// null when the gateway is unreachable.
+  Future<List<({String role, String content})>?> fetchHistory() async {
+    try {
+      final res = await _dio.get<Map<String, dynamic>>(
+        '$baseUrl/agent/history',
+      );
+      final raw = res.data?['messages'];
+      if (raw is! List) return const [];
+      return raw
+          .whereType<Map<String, dynamic>>()
+          .map((m) =>
+      (
+      role: m['role'] as String? ?? 'assistant',
+      content: m['content'] as String? ?? '',
+      ))
+          .where((m) =>
+      m.content
+          .trim()
+          .isNotEmpty)
+          .toList();
+    } on Exception catch (_) {
+      return null;
+    }
+  }
+
   /// Creates a new Letta agent (one per local account).
   Future<String?> createAgent(String name, {String? persona}) async {
     try {

@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 
+import '../../../data/ai/gateway_process.dart';
 import '../../../data/ai/letta_cli_service.dart';
 import '../../../data/background_tasks.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../theme/app_colors.dart';
-import '../settings_page.dart';
 import '../../widgets/floating_window.dart';
+import '../settings_page.dart';
 import '../widgets/settings_tile.dart';
 
 /// AI Copilot settings — the Letta CLI runtime.
@@ -108,6 +109,8 @@ class _AiCopilotSectionState extends State<AiCopilotSection> {
       children: [
         SettingsSectionTitle(l10n.aiLettaRuntimeTitle),
         _buildStateCard(context),
+        const SizedBox(height: 12),
+        _buildDangerCard(context),
         if (_busy && _log.isNotEmpty) ...[
           const SizedBox(height: 12),
           _LogBox(lines: _log, header: l10n.aiLettaLog),
@@ -116,6 +119,107 @@ class _AiCopilotSectionState extends State<AiCopilotSection> {
           const SizedBox(height: 12),
           _ErrorRow(message: _error!),
         ],
+      ],
+    );
+  }
+
+  // ── One-click Letta data wipe ─────────────────────────────────────────────
+
+  void _confirmDeleteLettaData(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    late OverlayEntry confirmEntry;
+    confirmEntry = OverlayEntry(
+      builder: (ctx) =>
+          FloatingWindow(
+            title: l10n.aiDeleteLettaData,
+            titleIcon: Icons.warning_amber_rounded,
+            width: 400,
+            height: 210,
+            onClose: () => confirmEntry.remove(),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                children: [
+                  Icon(
+                    Icons.delete_outline_rounded,
+                    size: 32,
+                    color: Theme.of(ctx).extension<AppColors>()!.danger,
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    l10n.aiDeleteLettaDataDesc,
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      color: Theme.of(ctx).extension<AppColors>()!
+                          .textSecondary,
+                    ),
+                  ),
+                  const Spacer(),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () => confirmEntry.remove(),
+                        child: Text(l10n.settingsCancel),
+                      ),
+                      const SizedBox(width: 8),
+                      FilledButton(
+                        style: FilledButton.styleFrom(
+                          backgroundColor:
+                          Theme.of(ctx).extension<AppColors>()!.danger,
+                        ),
+                        onPressed: () {
+                          confirmEntry.remove();
+                          _deleteLettaData();
+                        },
+                        child: Text(l10n.aiDeleteLettaData),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+    );
+    Overlay.of(context).insert(confirmEntry);
+  }
+
+  Future<void> _deleteLettaData() async {
+    final l10n = AppLocalizations.of(context)!;
+    setState(() {
+      _busy = true;
+      _busyIsUninstall = false;
+      _log.clear();
+      _error = null;
+    });
+    final ok = await GatewayProcess.deleteLettaData();
+    if (!mounted) return;
+    setState(() {
+      _busy = false;
+      _error = ok ? null : l10n.aiDeleteLettaDataFailed;
+    });
+  }
+
+  Widget _buildDangerCard(BuildContext context) {
+    final colors = Theme.of(context).extension<AppColors>()!;
+    final l10n = AppLocalizations.of(context)!;
+    return SettingsCard(
+      children: [
+        SettingsTile(
+          title: l10n.aiDeleteLettaData,
+          subtitle: l10n.aiDeleteLettaDataHint,
+          leading: Icon(Icons.delete_forever_rounded,
+              size: 22, color: colors.danger),
+          trailing: FilledButton.icon(
+            style: FilledButton.styleFrom(
+              backgroundColor: colors.danger,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () => _confirmDeleteLettaData(context),
+            icon: const Icon(Icons.delete_rounded, size: 15),
+            label: Text(l10n.aiDeleteLettaData),
+          ),
+        ),
       ],
     );
   }

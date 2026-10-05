@@ -1211,6 +1211,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatThinking => 'Thinking…';
 
   @override
+  String get aiDeleteLettaData => 'Delete Letta data';
+
+  @override
+  String get aiDeleteLettaDataHint =>
+      'Permanently removes all Letta agents, conversations, memory and stored provider credentials (~/.letta). The copilot starts fresh on the next message.';
+
+  @override
+  String get aiDeleteLettaDataDesc =>
+      'This permanently deletes ALL Letta data — agents, conversations, long-term memory and stored provider keys (C:\\Users\\<you>\\.letta). This cannot be undone. The copilot re-initializes on the next message.';
+
+  @override
+  String get aiDeleteLettaDataFailed =>
+      'Failed to delete Letta data — the gateway may still be running; try again.';
+
+  @override
   String get chatCopy => 'Copy';
 
   @override

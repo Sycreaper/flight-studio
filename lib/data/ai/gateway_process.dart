@@ -126,11 +126,48 @@ class GatewayProcess {
     }
   }
 
-  /// Stops the subprocess (app shutdown / settings action).
+  /// Stops the subprocess tree (gateway + its app-server child) and waits
+  /// for the port to be released. Tree-kill matters: killing only the
+  /// gateway orphans the spawned Letta app-server.
   Future<void> stop() async {
     final p = _process;
     _process = null;
-    p?.kill();
+    if (p != null) {
+      if (Platform.isWindows) {
+        await Process.run('taskkill', ['/PID', '${p.pid}', '/T', '/F']);
+      } else {
+        p.kill();
+      }
+    }
+    // Give the OS a moment to release the port.
+    await Future<void>.delayed(const Duration(milliseconds: 600));
+  }
+
+  /// One-click Letta wipe: stops the gateway tree (including the Letta
+  /// app-server that holds `~/.letta` open) and deletes every Letta-owned
+  /// file (`~/.letta` — agents, conversations, memory, provider
+  /// credentials, logs). The next message re-initializes everything.
+  /// Returns true when the directory is gone (or never existed).
+  static Future<bool> deleteLettaData() async {
+    await GatewayProcess.instance.stop();
+    final home = Platform.environment['USERPROFILE'] ??
+        Platform.environment['HOME'] ??
+        '';
+    if (home.isEmpty) return false;
+    final dir = Directory(
+      '$home${Platform.pathSeparator}.letta',
+    );
+    for (var attempt = 0; attempt < 6; attempt++) {
+      try {
+        if (!await dir.exists()) return true;
+        await dir.delete(recursive: true);
+        return true;
+      } on FileSystemException {
+        // Files still held by a dying process — retry briefly.
+        await Future<void>.delayed(const Duration(milliseconds: 500));
+      }
+    }
+    return !await dir.exists();
   }
 
   /// Finds the agent_gateway directory: from the current working directory

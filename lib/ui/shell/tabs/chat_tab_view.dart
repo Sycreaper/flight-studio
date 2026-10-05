@@ -31,6 +31,9 @@ class _ChatTabViewState extends State<ChatTabView> {
   void initState() {
     super.initState();
     ChatSession.instance.addListener(_onSessionChanged);
+    // Hydrate the conversation from Letta's official history API (no-op
+    // when already loaded or running in tests).
+    ChatSession.instance.loadHistory();
   }
 
   @override

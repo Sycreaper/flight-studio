@@ -282,4 +282,30 @@ class ChatSession extends ChangeNotifier {
     messages.clear();
     notifyListeners();
   }
+
+  // ── History (official Letta API — never self-recorded) ────────────────────
+
+  bool _historyLoaded = false;
+
+  /// Loads the persisted conversation from Letta once, when the local
+  /// history is still empty (fresh app session). Called from the chat tab.
+  Future<void> loadHistory() async {
+    if (_historyLoaded || _streaming || messages.isNotEmpty) return;
+    if (Platform.environment.containsKey('FLUTTER_TEST')) return;
+    _historyLoaded = true;
+    if (!await GatewayProcess.instance.ensureRunning()) return;
+    final history = await GatewayClient.instance.fetchHistory();
+    if (history == null || history.isEmpty || _streaming ||
+        messages.isNotEmpty) {
+      return;
+    }
+    messages.addAll([
+      for (final m in history)
+        ChatMessage(
+          role: m.role == 'user' ? ChatRole.user : ChatRole.assistant,
+          content: m.content,
+        ),
+    ]);
+    notifyListeners();
+  }
 }

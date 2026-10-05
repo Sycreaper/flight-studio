@@ -131,6 +131,12 @@ export function registerFlutterApi(
 
     app.get("/agent/list", async () => ({agents: await runtime.listAgents()}));
 
+    /// Conversation history (official Letta API — the app never records
+    /// chat itself).
+    app.get("/agent/history", async () => ({
+        messages: await runtime.listHistory(),
+    }));
+
     app.post<{ Body: { name?: string; persona?: string } }>(
         "/agent/create",
         async (request, reply) => {
