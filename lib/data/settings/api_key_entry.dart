@@ -41,31 +41,40 @@ enum ApiKeyType {
 
 /// Named OpenAI-compatible providers offered inside the add-key dialog when
 /// [ApiKeyType.openAiCompatible] is selected. 'custom' lets the user fill
-/// their own base URL.
-enum OpenAiProvider { glm, qwen, deepseek, custom }
+/// their own base URL. Models are DISCOVERED from each endpoint's
+/// `/models` listing when the key is created — no model typing anywhere.
+enum OpenAiProvider {
+  glm,
+  qwen,
+  deepseek,
+  minimax,
+  moonshot,
+  siliconflow,
+  openrouter,
+  custom,
+}
 
 extension OpenAiProviderX on OpenAiProvider {
   String get persistedName => name;
 
+  /// Official OpenAI-compatible base URL (chat completions at `{base}/chat/
+  /// completions`, model discovery at `{base}/models`).
   String get defaultBaseUrl => switch (this) {
     OpenAiProvider.glm => 'https://open.bigmodel.cn/api/paas/v4',
     OpenAiProvider.qwen => 'https://dashscope.aliyuncs.com/compatible-mode/v1',
     OpenAiProvider.deepseek => 'https://api.deepseek.com/v1',
+    OpenAiProvider.minimax => 'https://api.minimax.chat/v1',
+    OpenAiProvider.moonshot => 'https://api.moonshot.cn/v1',
+    OpenAiProvider.siliconflow => 'https://api.siliconflow.cn/v1',
+    OpenAiProvider.openrouter => 'https://openrouter.ai/api/v1',
     OpenAiProvider.custom => '',
   };
 
   static OpenAiProvider fromPersistedName(String? name) {
-    switch (name) {
-      case 'glm':
-        return OpenAiProvider.glm;
-      case 'qwen':
-        return OpenAiProvider.qwen;
-      case 'deepseek':
-        return OpenAiProvider.deepseek;
-      case 'custom':
-      default:
-        return OpenAiProvider.custom;
-    }
+    return OpenAiProvider.values
+            .where((p) => p.persistedName == name)
+            .firstOrNull ??
+        OpenAiProvider.custom;
   }
 }
 
@@ -73,7 +82,9 @@ extension OpenAiProviderX on OpenAiProvider {
 /// **never displayed in full** after being saved. Use [masked] in the UI.
 ///
 /// For [ApiKeyType.openAiCompatible] entries the optional [provider],
-/// [baseUrl] and [model] fields carry the LLM provider details.
+/// [baseUrl] and [models] fields carry the LLM provider details. [models]
+/// is discovered automatically (GET `{baseUrl}/models`) when the key is
+/// created — the user never types model names.
 class ApiKeyEntry {
   ApiKeyEntry({
     required this.id,
@@ -82,9 +93,10 @@ class ApiKeyEntry {
     this.label,
     this.provider,
     this.baseUrl,
-    this.model,
+    List<String>? models,
     DateTime? createdAt,
-  }) : createdAt = createdAt ?? DateTime.now();
+  }) : models = models ?? const [],
+       createdAt = createdAt ?? DateTime.now();
 
   final String id;
   final ApiKeyType type;
@@ -94,12 +106,13 @@ class ApiKeyEntry {
   /// OpenAI-compatible only: which named provider (or 'custom').
   final String? provider;
 
-  /// OpenAI-compatible only: API base URL (including `/v1`).
+  /// OpenAI-compatible only: API base URL (the provider's real path, e.g.
+  /// `.../api/paas/v4` — the gateway proxies around path conventions).
   final String? baseUrl;
 
-  /// OpenAI-compatible only: model id typed by the user (the model picker
-  /// in the chat UI resolves against this).
-  final String? model;
+  /// OpenAI-compatible only: model ids discovered from the endpoint's
+  /// `/models` listing at creation time.
+  final List<String> models;
   final DateTime createdAt;
 
   /// Returns a masked representation: first 4 + `…` + last 4 characters.
@@ -119,7 +132,7 @@ class ApiKeyEntry {
     'label': label,
     if (provider != null) 'provider': provider,
     if (baseUrl != null) 'baseUrl': baseUrl,
-    if (model != null) 'model': model,
+    if (models.isNotEmpty) 'models': models,
     'createdAt': createdAt.toIso8601String(),
   };
 
@@ -130,11 +143,22 @@ class ApiKeyEntry {
     label: json['label'] as String?,
     provider: json['provider'] as String?,
     baseUrl: json['baseUrl'] as String?,
-    model: json['model'] as String?,
+    models: _decodeModels(json['models'] ?? json['model']),
     createdAt: json['createdAt'] != null
         ? DateTime.parse(json['createdAt'] as String)
         : null,
   );
+
+  /// Accepts the current list form or the legacy single-model string.
+  static List<String> _decodeModels(Object? raw) {
+    if (raw is List) {
+      return raw.whereType<String>().toList();
+    }
+    if (raw is String && raw.trim().isNotEmpty) {
+      return [raw.trim()]; // legacy single-model entries
+    }
+    return const [];
+  }
 
   /// Serialise a list to a JSON string for SharedPreferences storage.
   static String encodeList(List<ApiKeyEntry> entries) =>

@@ -240,7 +240,7 @@ class SettingsController extends ChangeNotifier {
         String? label,
         String? provider,
         String? baseUrl,
-        String? model,
+        List<String>? models,
       }) async {
     final entry = ApiKeyEntry(
       id: ApiKeyEntry.generateId(),
@@ -249,7 +249,7 @@ class SettingsController extends ChangeNotifier {
       label: label,
       provider: provider,
       baseUrl: baseUrl,
-      model: model,
+      models: models,
     );
     final updated = [..._value.apiKeys, entry];
     _value = _value.copyWith(apiKeys: updated);

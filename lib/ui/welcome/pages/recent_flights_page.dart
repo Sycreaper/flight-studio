@@ -92,26 +92,33 @@ class _RecentFlightsPageState extends State<RecentFlightsPage> {
                         ),
                       ),
                       const SizedBox(height: 40),
+                      // Prompt box + chips share one width constraint, so
+                      // the chips align with the box's LEFT edge (not the
+                      // page's).
                       Center(
                         child: ConstrainedBox(
                           constraints: const BoxConstraints(maxWidth: 900),
-                          child: PromptBox(
-                            controller: _prompt,
-                            isStreaming: false,
-                            onSend: (text) {
-                              ChatSession.instance.send(text);
-                              widget.onOpenChat?.call();
-                            },
-                            onStop: () => ChatSession.instance.stop(),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              PromptBox(
+                                controller: _prompt,
+                                isStreaming: false,
+                                onSend: (text) {
+                                  ChatSession.instance.send(text);
+                                  widget.onOpenChat?.call();
+                                },
+                                onStop: () => ChatSession.instance.stop(),
+                              ),
+                              const SizedBox(height: 8),
+                              Padding(
+                                padding: const EdgeInsets.only(left: 12),
+                                child: ModelReasoningChips(
+                                  settings: widget.settings,
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Padding(
-                        padding: const EdgeInsets.only(left: 48),
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: ModelReasoningChips(settings: widget.settings),
                         ),
                       ),
                       const SizedBox(height: 28),

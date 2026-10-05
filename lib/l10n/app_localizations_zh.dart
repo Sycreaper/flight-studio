@@ -1110,6 +1110,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get openAiProviderDeepseek => 'DeepSeek';
 
   @override
+  String get openAiProviderMinimax => 'MiniMax';
+
+  @override
+  String get openAiProviderMoonshot => '月之暗面 Kimi';
+
+  @override
+  String get openAiProviderSiliconflow => '硅基流动';
+
+  @override
+  String get openAiProviderOpenrouter => 'OpenRouter';
+
+  @override
   String get openAiProviderCustom => '自定义';
 
   @override
@@ -1137,6 +1149,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get modelChipNoModel => '未设置模型——请编辑该 API 密钥';
 
   @override
+  String get modelChipNoModels => '未发现模型——请重新创建该密钥';
+
+  @override
   String get reasoningNone => '无';
 
   @override
@@ -1153,6 +1168,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get reasoningXhigh => '超高';
+
+  @override
+  String get chatThinking => '思考中…';
+
+  @override
+  String get chatCopy => '复制';
+
+  @override
+  String get chatCopied => '已复制';
 
   @override
   String get chatErrNoModel => '未选择模型——请先在 设置 → API 密钥 添加 OpenAI 兼容密钥，再回到此处选择。';

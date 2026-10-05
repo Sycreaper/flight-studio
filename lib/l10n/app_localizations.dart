@@ -2234,6 +2234,30 @@ abstract class AppLocalizations {
   /// **'DeepSeek'**
   String get openAiProviderDeepseek;
 
+  /// No description provided for @openAiProviderMinimax.
+  ///
+  /// In en, this message translates to:
+  /// **'MiniMax'**
+  String get openAiProviderMinimax;
+
+  /// No description provided for @openAiProviderMoonshot.
+  ///
+  /// In en, this message translates to:
+  /// **'Moonshot (Kimi)'**
+  String get openAiProviderMoonshot;
+
+  /// No description provided for @openAiProviderSiliconflow.
+  ///
+  /// In en, this message translates to:
+  /// **'SiliconFlow'**
+  String get openAiProviderSiliconflow;
+
+  /// No description provided for @openAiProviderOpenrouter.
+  ///
+  /// In en, this message translates to:
+  /// **'OpenRouter'**
+  String get openAiProviderOpenrouter;
+
   /// No description provided for @openAiProviderCustom.
   ///
   /// In en, this message translates to:
@@ -2288,6 +2312,12 @@ abstract class AppLocalizations {
   /// **'No model set — edit the API key'**
   String get modelChipNoModel;
 
+  /// No description provided for @modelChipNoModels.
+  ///
+  /// In en, this message translates to:
+  /// **'No models discovered — re-create this key'**
+  String get modelChipNoModels;
+
   /// No description provided for @reasoningNone.
   ///
   /// In en, this message translates to:
@@ -2323,6 +2353,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Extra high'**
   String get reasoningXhigh;
+
+  /// No description provided for @chatThinking.
+  ///
+  /// In en, this message translates to:
+  /// **'Thinking…'**
+  String get chatThinking;
+
+  /// No description provided for @chatCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get chatCopy;
+
+  /// No description provided for @chatCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied'**
+  String get chatCopied;
 
   /// No description provided for @chatErrNoModel.
   ///

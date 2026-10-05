@@ -47,7 +47,6 @@ class _AddApiKeyBodyState extends State<_AddApiKeyBody> {
   // ── OpenAI-compatible extras ────────────────────────────────────────────
   OpenAiProvider _provider = OpenAiProvider.glm;
   final _baseUrlCtrl = TextEditingController();
-  final _modelCtrl = TextEditingController();
   bool _testing = false;
   String? _testResult; // 'ok' | 'fail:...' | null (not tested)
   Dio? _dio;
@@ -59,7 +58,6 @@ class _AddApiKeyBodyState extends State<_AddApiKeyBody> {
     _valueCtrl.dispose();
     _labelCtrl.dispose();
     _baseUrlCtrl.dispose();
-    _modelCtrl.dispose();
     _dio?.close();
     super.dispose();
   }
@@ -83,11 +81,11 @@ class _AddApiKeyBodyState extends State<_AddApiKeyBody> {
     });
   }
 
-  /// Quick connectivity probe: GET `{baseUrl}/models` with the key.
-  Future<void> _testConnection() async {
+  /// Connectivity + discovery probe: GET `{baseUrl}/models` with the key.
+  /// Returns the discovered model ids (empty when the endpoint lists none).
+  Future<List<String>> _fetchModels() async {
     final base = _baseUrlCtrl.text.trim().replaceAll(RegExp(r'/+$'), '');
     final key = _valueCtrl.text.trim();
-    if (base.isEmpty) return;
 
     setState(() {
       _testing = true;
@@ -97,40 +95,75 @@ class _AddApiKeyBodyState extends State<_AddApiKeyBody> {
       _dio ??= Dio()
         ..options.connectTimeout = const Duration(seconds: 8)
         ..options.receiveTimeout = const Duration(seconds: 10);
-      await _dio!.get(
+      final res = await _dio!.get<Map<String, dynamic>>(
         '$base/models',
         options: Options(headers: {
           if (key.isNotEmpty) 'Authorization': 'Bearer $key',
         }),
       );
-      if (!mounted) return;
-      setState(() => _testResult = 'ok');
+      final data = res.data?['data'];
+      final models = data is List
+          ? data
+          .map((e) => e is Map ? e['id'] as String? : null)
+          .whereType<String>()
+          .where((id) =>
+      id
+          .trim()
+          .isNotEmpty)
+          .toList()
+          : const <String>[];
+      if (!mounted) return models;
+      setState(() {
+        _testing = false;
+        _testResult = 'ok';
+      });
+      return models;
     } on Exception catch (e) {
-      if (!mounted) return;
-      final status = e is DioException ? 'HTTP ${e.response?.statusCode}' : e
-          .toString();
-      setState(() => _testResult = 'fail:$status');
+      final status = e is DioException
+          ? 'HTTP ${e.response?.statusCode}'
+          : e.toString();
+      if (!mounted) return const [];
+      setState(() {
+        _testing = false;
+        _testResult = 'fail:$status';
+      });
+      return const [];
     }
   }
 
-  void _save() {
+  /// Quick check button — same probe, result shown inline.
+  Future<void> _testConnection() => _fetchModels();
+
+  Future<void> _save() async {
     final value = _valueCtrl.text.trim();
     if (value.isEmpty) {
       setState(() => _showError = true);
       return;
     }
 
+    // OpenAI-compatible keys are only saved after a MANDATORY connection
+    // check that also discovers the model list (shown later in the chat
+    // model picker, not here).
+    List<String> models = const [];
+    if (_isOpenAi) {
+      models = await _fetchModels();
+      if (!mounted) return;
+      if (_testResult != 'ok') {
+        setState(() => _showError = false);
+        return; // failure already rendered next to the test button
+      }
+    }
+
     final label = _labelCtrl.text.trim();
     final baseUrl = _baseUrlCtrl.text.trim();
-    final model = _modelCtrl.text.trim();
 
-    widget.controller.addApiKey(
+    await widget.controller.addApiKey(
       _type,
       value,
       label: label.isEmpty ? null : label,
       provider: _isOpenAi ? _provider.persistedName : null,
       baseUrl: _isOpenAi && baseUrl.isNotEmpty ? baseUrl : null,
-      model: _isOpenAi && model.isNotEmpty ? model : null,
+      models: _isOpenAi ? models : null,
     );
     widget.onClose();
   }
@@ -202,17 +235,6 @@ class _AddApiKeyBodyState extends State<_AddApiKeyBody> {
                 ),
               ],
               const SizedBox(height: 16),
-              _FieldLabel(text: l10n.openAiModel, colors: colors),
-              const SizedBox(height: 6),
-              TextField(
-                controller: _modelCtrl,
-                style: TextStyle(fontSize: 13, color: colors.textPrimary),
-                decoration: _inputDecoration(
-                  colors,
-                  hint: l10n.openAiModelHint,
-                ),
-              ),
-              const SizedBox(height: 16),
             ],
 
             // ── API key value (all types) ───────────────────────────────
@@ -258,7 +280,15 @@ class _AddApiKeyBodyState extends State<_AddApiKeyBody> {
                 ),
                 const SizedBox(width: 8),
                 FilledButton(
-                    onPressed: _save, child: Text(l10n.settingsSave)),
+                  onPressed: _testing ? null : _save,
+                  child: _testing
+                      ? const SizedBox(
+                    width: 14,
+                    height: 14,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                      : Text(l10n.settingsSave),
+                ),
               ],
             ),
           ],
@@ -395,6 +425,10 @@ class _ProviderDropdownState extends State<_ProviderDropdown> {
           OpenAiProvider.glm => l10n.openAiProviderGlm,
           OpenAiProvider.qwen => l10n.openAiProviderQwen,
           OpenAiProvider.deepseek => l10n.openAiProviderDeepseek,
+          OpenAiProvider.minimax => l10n.openAiProviderMinimax,
+          OpenAiProvider.moonshot => l10n.openAiProviderMoonshot,
+          OpenAiProvider.siliconflow => l10n.openAiProviderSiliconflow,
+          OpenAiProvider.openrouter => l10n.openAiProviderOpenrouter,
           OpenAiProvider.custom => l10n.openAiProviderCustom,
         };
 
@@ -403,6 +437,10 @@ class _ProviderDropdownState extends State<_ProviderDropdown> {
           OpenAiProvider.glm => Icons.auto_awesome_rounded,
           OpenAiProvider.qwen => Icons.blur_on_rounded,
           OpenAiProvider.deepseek => Icons.waves_rounded,
+          OpenAiProvider.minimax => Icons.maximize_rounded,
+          OpenAiProvider.moonshot => Icons.nights_stay_rounded,
+          OpenAiProvider.siliconflow => Icons.grain_rounded,
+          OpenAiProvider.openrouter => Icons.hub_rounded,
           OpenAiProvider.custom => Icons.edit_rounded,
         };
 

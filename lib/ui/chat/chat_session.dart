@@ -48,8 +48,12 @@ class ChatSession extends ChangeNotifier {
 
   bool get isStreaming => _streaming;
 
-  /// Selected OpenAI-compatible API key entry (id + credentials + model).
+  /// Selected OpenAI-compatible API key entry (credentials + models).
   ApiKeyEntry? selectedKey;
+
+  /// Selected model id — one of [ApiKeyEntry.models] (discovered from the
+  /// endpoint's /models listing when the key was created).
+  String? selectedModelId;
   String _reasoningEffort = 'medium';
 
   String get reasoningEffort => _reasoningEffort;
@@ -58,21 +62,6 @@ class ChatSession extends ChangeNotifier {
     if (_reasoningEffort == value) return;
     _reasoningEffort = value;
     notifyListeners();
-  }
-
-  /// Model id actually used for the selected key: the entry's model, or the
-  /// provider's default when the user left it blank.
-  String? get selectedModel {
-    final key = selectedKey;
-    if (key == null) return null;
-    final model = key.model?.trim();
-    if (model != null && model.isNotEmpty) return model;
-    return switch (key.provider) {
-      'glm' => 'glm-4-flash',
-      'qwen' => 'qwen-turbo',
-      'deepseek' => 'deepseek-chat',
-      _ => null,
-    };
   }
 
   StreamSubscription<Map<String, dynamic>>? _eventSub;
@@ -95,9 +84,12 @@ class ChatSession extends ChangeNotifier {
     }
   }
 
-  void selectKey(ApiKeyEntry? key) {
-    if (selectedKey?.id == key?.id) return;
+  void selectKey(ApiKeyEntry? key, {String? modelId}) {
     selectedKey = key;
+    // Default to the first discovered model when none given explicitly.
+    selectedModelId =
+        modelId ??
+            (key != null && key.models.isNotEmpty ? key.models.first : null);
     _persistSelection();
     notifyListeners();
   }
@@ -105,6 +97,7 @@ class ChatSession extends ChangeNotifier {
   // ── Selection persistence (survives app restarts) ────────────────────────
 
   static const _selectedKeyPref = 'chat.selectedKeyId';
+  static const _selectedModelPref = 'chat.selectedModelId';
   static const _reasoningPref = 'chat.reasoningEffort';
   bool _restoreAttempted = false;
 
@@ -112,6 +105,7 @@ class ChatSession extends ChangeNotifier {
     try {
       final prefs = SharedPreferencesAsync();
       await prefs.setString(_selectedKeyPref, selectedKey?.id ?? '');
+      await prefs.setString(_selectedModelPref, selectedModelId ?? '');
       await prefs.setString(_reasoningPref, _reasoningEffort);
     } on Exception {
       // Best-effort — selection persistence is a convenience.
@@ -130,7 +124,17 @@ class ChatSession extends ChangeNotifier {
       final id = await prefs.getString(_selectedKeyPref);
       if (id != null && id.isNotEmpty) {
         selectedKey = keys.where((k) => k.id == id).firstOrNull;
-        if (selectedKey != null) notifyListeners();
+        if (selectedKey != null) {
+          final savedModel = await prefs.getString(_selectedModelPref);
+          final hasModel = savedModel != null &&
+              selectedKey!.models.contains(savedModel);
+          selectedModelId = hasModel
+              ? savedModel
+              : (selectedKey!.models.isNotEmpty
+              ? selectedKey!.models.first
+              : null);
+          notifyListeners();
+        }
       }
     } on Exception {
       // Best-effort.
@@ -169,7 +173,7 @@ class ChatSession extends ChangeNotifier {
     }
 
     final key = selectedKey;
-    final model = selectedModel;
+    final model = selectedModelId;
     _diag('send: keyId=${key?.id} type=${key?.type} model=$model '
         'baseUrlLen=${key?.baseUrl?.length ?? 0} valueLen=${key?.value.length ??
         0}');

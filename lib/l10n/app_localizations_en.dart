@@ -1147,6 +1147,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get openAiProviderDeepseek => 'DeepSeek';
 
   @override
+  String get openAiProviderMinimax => 'MiniMax';
+
+  @override
+  String get openAiProviderMoonshot => 'Moonshot (Kimi)';
+
+  @override
+  String get openAiProviderSiliconflow => 'SiliconFlow';
+
+  @override
+  String get openAiProviderOpenrouter => 'OpenRouter';
+
+  @override
   String get openAiProviderCustom => 'Custom';
 
   @override
@@ -1175,6 +1187,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get modelChipNoModel => 'No model set — edit the API key';
 
   @override
+  String get modelChipNoModels => 'No models discovered — re-create this key';
+
+  @override
   String get reasoningNone => 'None';
 
   @override
@@ -1191,6 +1206,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reasoningXhigh => 'Extra high';
+
+  @override
+  String get chatThinking => 'Thinking…';
+
+  @override
+  String get chatCopy => 'Copy';
+
+  @override
+  String get chatCopied => 'Copied';
 
   @override
   String get chatErrNoModel =>
