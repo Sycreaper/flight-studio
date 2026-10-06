@@ -1,14 +1,39 @@
 import 'dart:async';
-import 'dart:io' show Platform, File, Directory, FileMode;
+import 'dart:io' show Platform;
 
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../core/logging/app_log.dart';
 import '../../data/ai/gateway_client.dart';
 import '../../data/ai/gateway_process.dart';
 import '../../data/settings/api_key_entry.dart';
 
 enum ChatRole { user, assistant }
+
+/// Live phase of the running turn, mapped from the OFFICIAL Letta stream
+/// (loop_status / tool_call / reasoning) — extensible for MCP tools: a
+/// custom tool surfaces as [toolCall] with its name in `phaseDetail`.
+enum ChatPhase {
+  idle,
+  thinking,
+  searching,
+  reading,
+  writing,
+  toolCall,
+  waitingApproval,
+  working
+}
+
+/// One pending tool-approval request surfaced by the gateway's official
+/// canUseTool bridge (reusable for MCP tool approvals).
+class PendingApproval {
+  PendingApproval({required this.id, required this.tool, required this.input});
+
+  final String id;
+  final String tool;
+  final Map<String, dynamic> input;
+}
 
 /// One chat bubble. [done] is `false` while an assistant reply is still
 /// streaming in.
@@ -48,6 +73,37 @@ class ChatSession extends ChangeNotifier {
 
   bool get isStreaming => _streaming;
 
+  /// Live turn phase (思考中/搜索中/…) + the tool name driving it, from
+  /// the official stream. Cleared when the turn ends.
+  ChatPhase _phase = ChatPhase.idle;
+  String? _phaseDetail;
+
+  ChatPhase get phase => _phase;
+
+  String? get phaseDetail => _phaseDetail;
+
+  void _setPhase(ChatPhase value, {String? detail}) {
+    if (_phase == value && _phaseDetail == detail) return;
+    _phase = value;
+    _phaseDetail = detail;
+    notifyListeners();
+  }
+
+  static ChatPhase _phaseFromWire(String? raw) =>
+      switch (raw) {
+        'thinking' => ChatPhase.thinking,
+        'searching' => ChatPhase.searching,
+        'reading' => ChatPhase.reading,
+        'writing' => ChatPhase.writing,
+        'tool' => ChatPhase.toolCall,
+        'waitingApproval' => ChatPhase.waitingApproval,
+        'working' => ChatPhase.working,
+        _ => ChatPhase.working,
+      };
+
+  /// Pending tool approval (permission card). Null when none.
+  PendingApproval? pendingApproval;
+
   /// Selected OpenAI-compatible API key entry (credentials + models).
   ApiKeyEntry? selectedKey;
 
@@ -66,23 +122,9 @@ class ChatSession extends ChangeNotifier {
 
   StreamSubscription<Map<String, dynamic>>? _eventSub;
 
-  /// Diagnostic trace (appended to %TEMP%\flightstudio-chat.log). Secrets
-  /// are never logged — only lengths and ids.
-  void _diag(String line) {
-    if (kDebugMode) debugPrint('[chat] $line');
-    try {
-      final f = File(
-        '${Directory.systemTemp.path}${Platform.pathSeparator}'
-        'flightstudio-chat.log',
-      );
-      f.writeAsStringSync(
-        '${DateTime.now().toIso8601String()} $line\n',
-        mode: FileMode.append,
-      );
-    } on Exception {
-      // Best-effort diagnostics.
-    }
-  }
+  /// Structured log entry (app-*.log). Secrets are never logged — only
+  /// lengths and ids.
+  void _diag(String message) => AppLog.i('chat', message);
 
   void selectKey(ApiKeyEntry? key, {String? modelId}) {
     selectedKey = key;
@@ -219,6 +261,11 @@ class ChatSession extends ChangeNotifier {
         final type = event['event'] as String?;
         _diag('sse event: $type');
         switch (type) {
+          case 'phase':
+            _setPhase(
+              _phaseFromWire(event['phase'] as String?),
+              detail: event['detail'] as String?,
+            );
           case 'delta':
             final content = event['content'] as String?;
             if (content != null && messages.isNotEmpty) {
@@ -236,6 +283,7 @@ class ChatSession extends ChangeNotifier {
             }
             messages.last.done = true;
             _streaming = false;
+            _setPhase(ChatPhase.idle);
             notifyListeners();
           case 'error':
             final message = event['message'] as String? ?? 'Unknown error';
@@ -245,7 +293,30 @@ class ChatSession extends ChangeNotifier {
                 ..content = message;
             }
             _streaming = false;
+            _setPhase(ChatPhase.idle);
             notifyListeners();
+          case 'approval_request':
+            final id = event['id'] as String?;
+            final tool = event['tool'] as String? ?? '';
+            if (id != null) {
+              final rawInput = event['input'];
+              pendingApproval = PendingApproval(
+                id: id,
+                tool: tool,
+                input: rawInput is Map
+                    ? Map<String, dynamic>.from(rawInput)
+                    : const {},
+              );
+              _diag('approval request: $tool ($id)');
+              notifyListeners();
+            }
+          case 'approval_resolved':
+            final id = event['id'] as String?;
+            if (pendingApproval?.id == id) {
+              pendingApproval = null;
+              _setPhase(ChatPhase.working);
+              notifyListeners();
+            }
         }
       },
       onError: (Object e) {
@@ -265,11 +336,25 @@ class ChatSession extends ChangeNotifier {
     }
   }
 
+  /// Sends the user's decision on the pending tool approval (permission
+  /// card) through the official approval endpoint.
+  void answerApproval(bool approve) {
+    final approval = pendingApproval;
+    if (approval == null) return;
+    pendingApproval = null;
+    notifyListeners();
+    GatewayClient.instance.resolveApproval(
+      approval.id,
+      approve: approve,
+    );
+  }
+
   /// Aborts the running turn via the gateway's stop endpoint, keeping
   /// whatever text already streamed in.
   void stop() {
     if (!_streaming) return;
     _streaming = false;
+    _setPhase(ChatPhase.idle);
     GatewayClient.instance.stop();
     notifyListeners();
   }

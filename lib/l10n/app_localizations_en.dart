@@ -1211,6 +1211,41 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatThinking => 'Thinking…';
 
   @override
+  String get phaseThinking => 'Thinking…';
+
+  @override
+  String get phaseSearching => 'Searching…';
+
+  @override
+  String get phaseReading => 'Reading…';
+
+  @override
+  String get phaseWriting => 'Writing…';
+
+  @override
+  String get phaseTool => 'Using tool';
+
+  @override
+  String get phaseWaitingApproval => 'Waiting for your approval…';
+
+  @override
+  String get phaseWorking => 'Working…';
+
+  @override
+  String get approvalTitle => 'Permission request';
+
+  @override
+  String approvalWantsToUse(Object tool) {
+    return 'The copilot wants to use \"$tool\".';
+  }
+
+  @override
+  String get approvalAllow => 'Allow';
+
+  @override
+  String get approvalDeny => 'Deny';
+
+  @override
   String get aiDeleteLettaData => 'Delete Letta data';
 
   @override

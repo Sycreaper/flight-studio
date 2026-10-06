@@ -1,6 +1,7 @@
 import type {FastifyInstance} from "fastify";
 import type {ApprovalController, SessionController} from "./session_controller.js";
 import type {GatewayEvent, LettaRuntime} from "./letta_runtime.js";
+import {log} from "./logger.js";
 
 /// Registers the Flutter-facing API surface:
 ///
@@ -53,8 +54,8 @@ export function registerFlutterApi(
             });
             return {configured: true, model};
         } catch (err) {
-            console.error(
-                "[gateway] provider push failed:",
+            log.error(
+                "flutter-api", "provider push failed:",
                 err instanceof Error ? err.stack ?? err.message : String(err),
             );
             return reply.code(502).send({

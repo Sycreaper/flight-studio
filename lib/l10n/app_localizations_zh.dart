@@ -1173,6 +1173,41 @@ class AppLocalizationsZh extends AppLocalizations {
   String get chatThinking => '思考中…';
 
   @override
+  String get phaseThinking => '思考中…';
+
+  @override
+  String get phaseSearching => '搜索中…';
+
+  @override
+  String get phaseReading => '读取中…';
+
+  @override
+  String get phaseWriting => '写入中…';
+
+  @override
+  String get phaseTool => '调用工具';
+
+  @override
+  String get phaseWaitingApproval => '等待你的确认…';
+
+  @override
+  String get phaseWorking => '处理中…';
+
+  @override
+  String get approvalTitle => '权限请求';
+
+  @override
+  String approvalWantsToUse(Object tool) {
+    return '副驾驶请求使用“$tool”。';
+  }
+
+  @override
+  String get approvalAllow => '允许';
+
+  @override
+  String get approvalDeny => '拒绝';
+
+  @override
   String get aiDeleteLettaData => '删除 Letta 数据';
 
   @override

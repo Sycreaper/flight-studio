@@ -1,5 +1,11 @@
 /// Session + approval controllers. v1 runs a single default session
 /// ("default"); the account system later maps sessionId ↔ Letta agent.
+//
+// Approvals bridge the OFFICIAL SDK `canUseTool` callback to the Flutter
+// UI: the gateway emits `approval_request` events over SSE, the app shows
+// a floating permission card, and the user's choice flows back through
+// POST /agent/approval/{id}. MCP tool approvals can reuse the same
+// pipeline later (createApproval + waitForResolution).
 
 import {LettaRuntime} from "./letta_runtime.js";
 
@@ -14,6 +20,10 @@ export interface ApprovalRequest {
 export class SessionController {
     private pending: ApprovalRequest[] = [];
     private nextId = 1;
+    private readonly waiters = new Map<
+        string,
+        (approved: boolean) => void
+    >();
 
     constructor(private readonly runtime: LettaRuntime) {
     }
@@ -38,16 +48,46 @@ export class SessionController {
         return req;
     }
 
+    /// Resolves a pending approval and wakes the waiting canUseTool
+    /// callback (if any).
     resolveApproval(id: string, approved: boolean): ApprovalRequest | null {
         const req = this.pending.find((r) => r.id === id && !r.resolved);
         if (req == null) return null;
         req.resolved = true;
         req.approved = approved;
+        const waiter = this.waiters.get(id);
+        if (waiter != null) {
+            this.waiters.delete(id);
+            waiter(approved);
+        }
+        // Keep the list bounded: drop resolved entries older than the
+        // newest 50.
+        if (this.pending.length > 50) {
+            this.pending = this.pending.filter((r) => !r.resolved)
+                .concat(this.pending.filter((r) => r.resolved).slice(-20));
+        }
         return req;
     }
 
     pendingApprovals(): ApprovalRequest[] {
         return this.pending.filter((r) => !r.resolved);
+    }
+
+    /// Waits until the approval is resolved or [timeoutMs] elapses
+    /// (timeout → deny). Used by the canUseTool bridge.
+    waitForResolution(id: string, timeoutMs: number): Promise<boolean> {
+        return new Promise((resolve) => {
+            let settled = false;
+            const finish = (approved: boolean) => {
+                if (settled) return;
+                settled = true;
+                this.waiters.delete(id);
+                clearTimeout(timer);
+                resolve(approved);
+            };
+            const timer = setTimeout(() => finish(false), timeoutMs);
+            this.waiters.set(id, finish);
+        });
     }
 }
 

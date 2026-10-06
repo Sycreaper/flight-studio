@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart';
 
 import 'app.dart';
+import 'core/logging/app_log.dart';
 import 'data/navdata/built_in_providers.dart';
 import 'data/navdata/startup_scan.dart';
 import 'data/settings/settings_controller.dart';
@@ -16,6 +17,11 @@ import 'sim/built_in_connectors.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Structured logging (app-*.log; the gateway writes gateway-*.log into
+  // the same directory). Failures never block boot.
+  await AppLog.init();
+  AppLog.i('app', 'Flight Studio starting');
 
   // Extension points: built-ins register through the same registries a
   // future plugin manager will use (Phase 10). Must run before the first

@@ -1,8 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io' show Directory, File, FileMode, Platform;
 
 import 'package:dio/dio.dart';
+
+import '../../core/logging/app_log.dart';
 
 /// Gateway/letta API call failed — [message] carries the server's raw error
 /// text (already English; shown to the user verbatim for diagnostics).
@@ -131,6 +132,18 @@ class GatewayClient {
     }
   }
 
+  /// Answers a pending tool-approval request (the permission card).
+  Future<void> resolveApproval(String id, {required bool approve}) async {
+    try {
+      await _dio.post(
+        '$baseUrl/agent/approval/$id',
+        data: {'approve': approve},
+      );
+    } on Exception catch (e) {
+      _diag('resolveApproval($id, $approve) failed: $e');
+    }
+  }
+
   /// Pushes one OpenAI-compatible credential from the key vault to the
   /// Letta runtime (official `connect_provider` protocol under the hood) and
   /// switches the agent's model. Throws [GatewayApiException] carrying the
@@ -168,21 +181,8 @@ class GatewayClient {
     }
   }
 
-  /// Appends a line to %TEMP%\flightstudio-chat.log (diagnostics only).
-  void _diag(String line) {
-    try {
-      final f = File(
-        '${Directory.systemTemp.path}${Platform.pathSeparator}'
-            'flightstudio-chat.log',
-      );
-      f.writeAsStringSync(
-        '${DateTime.now().toIso8601String()} [gw-client] $line\n',
-        mode: FileMode.append,
-      );
-    } on Exception {
-      // Best-effort.
-    }
-  }
+  /// Structured log entry (app-*.log).
+  void _diag(String message) => AppLog.i('gw-client', message);
 
   /// Lists available Letta agents (accounts).
   Future<List<Map<String, dynamic>>> listAgents() async {

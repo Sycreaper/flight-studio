@@ -6,6 +6,7 @@ import '../../../data/settings/settings_controller.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../chat/chat_session.dart';
 import '../../theme/app_colors.dart';
+import '../../widgets/approval_card.dart';
 import '../../widgets/center_card.dart';
 import '../../widgets/model_reasoning_chips.dart';
 import '../../widgets/prompt_box.dart';
@@ -92,10 +93,24 @@ class _ChatTabViewState extends State<ChatTabView> {
                             // (tool calls, reasoning) — and disappears on
                             // turn_done/error.
                             thinking: streaming,
+                            sessionPhase: session.phase,
+                            phaseDetail: session.phaseDetail,
                           );
                         },
                       ),
               ),
+              // ── Pending tool approval (floating card above the prompt
+              //    box — official canUseTool bridge, MCP-ready) ──────────
+              if (session.pendingApproval != null)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
+                  child: Center(
+                    child: ApprovalCard(
+                      approval: session.pendingApproval!,
+                      onAnswer: session.answerApproval,
+                    ),
+                  ),
+                ),
               // ── Prompt box + chips (same constraint → chips align with
               //    the box's left edge, like every chat surface) ─────────
               Padding(
@@ -135,11 +150,21 @@ class _ChatTabViewState extends State<ChatTabView> {
 /// roles are text-selectable and carry a copy button. Error sentinels are
 /// translated here so they follow the app language.
 class _Bubble extends StatelessWidget {
-  const _Bubble(
-      {required this.role, required this.content, this.thinking = false});
+  const _Bubble({
+    required this.role,
+    required this.content,
+    this.thinking = false,
+    this.sessionPhase,
+    this.phaseDetail,
+  });
 
   final ChatRole role;
   final String content;
+
+  /// Live phase of the running turn (思考中/搜索中/…) + the tool name
+  /// driving it; rendered in the status row while [thinking].
+  final ChatPhase? sessionPhase;
+  final String? phaseDetail;
 
   /// Assistant turn started but nothing has streamed yet — show a status
   /// line ("Thinking…") instead of an empty body.
@@ -201,34 +226,60 @@ class _Bubble extends StatelessWidget {
                 padding: EdgeInsets.only(
                   top: display.isNotEmpty && display != ' ▍' ? 6 : 0,
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SizedBox(
-                      width: 11,
-                      height: 11,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 1.4,
-                        valueColor:
-                        AlwaysStoppedAnimation(colors.textSecondary),
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      l10n.chatThinking,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontStyle: FontStyle.italic,
-                        color: colors.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
+                child: _PhaseStatusRow(
+                    phase: sessionPhase, detail: phaseDetail),
               ),
             _CopyButton(text: display),
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Status row inside the streaming bubble: mini spinner + the live phase
+/// label (思考中/搜索中/调用工具…), tool name appended when known.
+class _PhaseStatusRow extends StatelessWidget {
+  const _PhaseStatusRow({this.phase, this.detail});
+
+  final ChatPhase? phase;
+  final String? detail;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<AppColors>()!;
+    final l10n = AppLocalizations.of(context)!;
+    final label = switch (phase) {
+      ChatPhase.thinking => l10n.phaseThinking,
+      ChatPhase.searching => l10n.phaseSearching,
+      ChatPhase.reading => l10n.phaseReading,
+      ChatPhase.writing => l10n.phaseWriting,
+      ChatPhase.toolCall =>
+      detail == null ? l10n.phaseTool : '${l10n.phaseTool} · $detail',
+      ChatPhase.waitingApproval => l10n.phaseWaitingApproval,
+      _ => l10n.phaseWorking,
+    };
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(
+          width: 11,
+          height: 11,
+          child: CircularProgressIndicator(
+            strokeWidth: 1.4,
+            valueColor: AlwaysStoppedAnimation(colors.textSecondary),
+          ),
+        ),
+        const SizedBox(width: 6),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            fontStyle: FontStyle.italic,
+            color: colors.textSecondary,
+          ),
+        ),
+      ],
     );
   }
 }

@@ -2360,6 +2360,72 @@ abstract class AppLocalizations {
   /// **'Thinking…'**
   String get chatThinking;
 
+  /// No description provided for @phaseThinking.
+  ///
+  /// In en, this message translates to:
+  /// **'Thinking…'**
+  String get phaseThinking;
+
+  /// No description provided for @phaseSearching.
+  ///
+  /// In en, this message translates to:
+  /// **'Searching…'**
+  String get phaseSearching;
+
+  /// No description provided for @phaseReading.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading…'**
+  String get phaseReading;
+
+  /// No description provided for @phaseWriting.
+  ///
+  /// In en, this message translates to:
+  /// **'Writing…'**
+  String get phaseWriting;
+
+  /// No description provided for @phaseTool.
+  ///
+  /// In en, this message translates to:
+  /// **'Using tool'**
+  String get phaseTool;
+
+  /// No description provided for @phaseWaitingApproval.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for your approval…'**
+  String get phaseWaitingApproval;
+
+  /// No description provided for @phaseWorking.
+  ///
+  /// In en, this message translates to:
+  /// **'Working…'**
+  String get phaseWorking;
+
+  /// No description provided for @approvalTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Permission request'**
+  String get approvalTitle;
+
+  /// No description provided for @approvalWantsToUse.
+  ///
+  /// In en, this message translates to:
+  /// **'The copilot wants to use \"{tool}\".'**
+  String approvalWantsToUse(Object tool);
+
+  /// No description provided for @approvalAllow.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow'**
+  String get approvalAllow;
+
+  /// No description provided for @approvalDeny.
+  ///
+  /// In en, this message translates to:
+  /// **'Deny'**
+  String get approvalDeny;
+
   /// No description provided for @aiDeleteLettaData.
   ///
   /// In en, this message translates to:

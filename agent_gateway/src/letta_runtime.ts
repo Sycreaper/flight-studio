@@ -21,6 +21,7 @@ import {createRequire} from "node:module";
 import {type ChildProcess, spawn} from "node:child_process";
 import {flightStudioTools} from "./mcp_registry.js";
 import type {LlmProxy} from "./llm_proxy.js";
+import {log} from "./logger.js";
 
 export type {GatewayEvent} from "./event_types.js";
 
@@ -39,6 +40,8 @@ export interface GatewayStatus {
 
 const DEFAULT_AGENT_NAME = "FlightStudio Copilot";
 const STARTUP_TIMEOUT_MS = 60_000;
+/// A permission card that nobody answers blocks the turn this long.
+const ApprovalTimeoutMs = 300_000;
 const LISTENING_RE = /^Listening on\s+(ws:\/\/\S+)\s*$/m;
 
 const require = createRequire(import.meta.url);
@@ -86,6 +89,33 @@ export class LettaRuntime extends EventEmitter {
         this.llmProxy = proxy;
     }
 
+    private approvals: {
+        createApproval: (tool: string, input: unknown) => { id: string };
+        waitForResolution: (id: string, timeoutMs: number) => Promise<boolean>;
+    } | null = null;
+
+    /// custom tools surface as `tool` with the tool name in `detail`.
+    static phaseFromLoopStatus(status: string): string {
+        const s = status.toLowerCase();
+        // Model-related states first — they are the classic "thinking".
+        if (
+            s.includes("api") ||
+            s.includes("model") ||
+            s.includes("llm") ||
+            s.includes("think") ||
+            s.includes("reason")
+        ) {
+            return "thinking";
+        }
+        if (s.includes("search") || s.includes("retriev")) return "searching";
+        if (s.includes("read") || s.includes("load")) return "reading";
+        if (s.includes("writ") || s.includes("edit")) return "writing";
+        if (s.includes("execut") || s.includes("run") || s.includes("tool"))
+            return "tool";
+        if (s.includes("approval")) return "waitingApproval";
+        return "working";
+    }
+
     private emitEvent(event: Record<string, unknown>) {
         this.events.emit("event", event);
     }
@@ -121,6 +151,45 @@ export class LettaRuntime extends EventEmitter {
         this.emitStatus();
     }
 
+    /** Injected by index.ts at boot — bridges the official canUseTool
+     *  callback to the Flutter permission card. */
+    attachApprovals(
+        approvals: {
+            createApproval: (tool: string, input: unknown) => {
+                id: string;
+            };
+            waitForResolution: (id: string, timeoutMs: number) => Promise<boolean>;
+        },
+    ): void {
+        this.approvals = approvals;
+    }
+
+    /** Official provider listing — used for the configured flag. */
+    async listConnectProviders(): Promise<
+        Array<Record<string, unknown>>
+    > {
+        if (this.backend !== "local" || this.serverUrl == null) return [];
+        try {
+            const socket = await this.providerSocket();
+            const response = await socket.request("list_connect_providers", {
+                request_id: socket.nextRequestId("list-providers"),
+                target: "local",
+            });
+            const providers = (response as unknown as { providers?: unknown })
+                .providers;
+            return Array.isArray(providers)
+                ? (providers as Array<Record<string, unknown>>)
+                : [];
+        } catch {
+            return [];
+        }
+    }
+
+    async deleteAgent(agentId: string): Promise<void> {
+        await (this.client as any)?.deleteAgent?.(agentId);
+        if (this.agentId === agentId) this.agentId = null;
+    }
+
     /**
      * Lends one OpenAI-compatible credential from the FlightStudio vault to
      * the local Letta backend via the official `connect_provider` protocol
@@ -137,8 +206,7 @@ export class LettaRuntime extends EventEmitter {
         if (this.backend !== "local") {
             throw new Error("provider push is only supported on the local backend");
         }
-        const diag = (...parts: unknown[]) =>
-            console.log("[provider-push]", ...parts);
+        const diag = (...parts: unknown[]) => log.info("provider-push", ...parts);
         diag("start: baseUrl=", input.baseUrl.replace(/\/\/[^/]*@/, "//***@"),
             "model=", input.model,
             "keyLen=", input.apiKey.trim().length);
@@ -193,31 +261,17 @@ export class LettaRuntime extends EventEmitter {
         diag("updateModel done");
     }
 
-    /** Official provider listing — used for the configured flag. */
-    async listConnectProviders(): Promise<
-        Array<Record<string, unknown>>
-    > {
-        if (this.backend !== "local" || this.serverUrl == null) return [];
-        try {
-            const socket = await this.providerSocket();
-            const response = await socket.request("list_connect_providers", {
-                request_id: socket.nextRequestId("list-providers"),
-                target: "local",
-            });
-            const providers = (response as unknown as { providers?: unknown })
-                .providers;
-            return Array.isArray(providers)
-                ? (providers as Array<Record<string, unknown>>)
-                : [];
-        } catch {
-            return [];
-        }
+    /// Resolves the agent id once more after a "not found" failure (stale
+
+    /// Aborts the running turn (user pressed stop).
+    stopTurn(): void {
+        this.abortTurn();
     }
 
-    async deleteAgent(agentId: string): Promise<void> {
-        await (this.client as any)?.deleteAgent?.(agentId);
-        if (this.agentId === agentId) this.agentId = null;
-    }
+    // ── Live phase (status) + tool approvals ─────────────────────────────────
+
+    /// Maps OFFICIAL SDK loop-status strings (e.g. WAITING_FOR_API_RESPONSE,
+    /// PROCESSING_API_RESPONSE) to coarse UI phases. Extensible for MCP:
 
     /// (or `{type:"error",message}`). One turn at a time.
     async runTurn(text: string): Promise<{ accepted: boolean; reason?: string }> {
@@ -231,7 +285,7 @@ export class LettaRuntime extends EventEmitter {
         if (this.turnActive) {
             // A previous run is stuck (e.g. a dead approval) — abort it so
             // this turn can proceed instead of colliding with it.
-            console.log("[turn] previous run active — aborting it first");
+            log.info("turn", "previous run active — aborting it first");
             this.abortTurn();
             await new Promise((r) => setTimeout(r, 300));
         }
@@ -245,9 +299,14 @@ export class LettaRuntime extends EventEmitter {
             try {
                 const runStream = async (agentId: string) => {
                         await using session = client.resumeSession(agentId, {
-                            // The gateway owns approval policy — headless turns
-                            // must never deadlock on a tool approval request.
-                            permissionMode: "unrestricted",
+                            // Standard mode: safe tools auto-run; risky ones
+                            // flow to our canUseTool bridge (official SDK
+                            // callback) → Flutter permission card.
+                            permissionMode: "standard",
+                            canUseTool: this.approvals
+                                ? (toolName, toolInput) =>
+                                    this.handleToolApproval(toolName, toolInput)
+                                : undefined,
                         });
                     this.activeSession = session as never;
                     // Clear any approval left pending by a previous session
@@ -262,10 +321,10 @@ export class LettaRuntime extends EventEmitter {
                         // Optional — continue when unsupported.
                     }
                     await session.send(text);
-                    console.log("[turn] sent, streaming…");
+                    log.info("turn", "sent, streaming");
                     for await (const message of session.stream()) {
-                        console.log(
-                            "[turn] msg type=", message.type,
+                        log.debug(
+                            "turn", "msg type=", message.type,
                             "content=" in message
                                 ? JSON.stringify(
                                     (message as { content?: unknown })
@@ -283,8 +342,8 @@ export class LettaRuntime extends EventEmitter {
                                 errorCode?: string;
                                 stopReason?: string;
                             };
-                            console.log(
-                                "[turn] error full:",
+                            log.error(
+                                "turn", "error full:",
                                 JSON.stringify(message).slice(0, 500),
                             );
                             // Never surface an empty error — join every
@@ -310,8 +369,8 @@ export class LettaRuntime extends EventEmitter {
                                 success: boolean;
                             };
                             if (result.error != null && result.error !== "") {
-                                console.log(
-                                    "[turn] result error:",
+                                log.error(
+                                    "turn", "result error:",
                                     JSON.stringify(message).slice(0, 500),
                                 );
                                 this.turnActive = false;
@@ -331,6 +390,38 @@ export class LettaRuntime extends EventEmitter {
                             if (result.result != null && full.length === 0) {
                                 full = result.result;
                             }
+                            continue;
+                        }
+                        // Live phase forwarding: official loop_status /
+                        // tool_call / reasoning stream messages become
+                        // coarse `status` events for the UI (thinking,
+                        // searching, … — extensible for MCP tools).
+                        if (message.type === "loop_status") {
+                            const status = (
+                                message as unknown as { status?: string }
+                            ).status;
+                            this.emitEvent({
+                                type: "phase",
+                                phase: LettaRuntime.phaseFromLoopStatus(
+                                    status ?? "",
+                                ),
+                                raw: status,
+                            });
+                            continue;
+                        }
+                        if (message.type === "tool_call") {
+                            const call = message as unknown as {
+                                toolName?: string;
+                            };
+                            this.emitEvent({
+                                type: "phase",
+                                phase: "tool",
+                                detail: call.toolName,
+                            });
+                            continue;
+                        }
+                        if (message.type === "reasoning") {
+                            this.emitEvent({type: "phase", phase: "thinking"});
                             continue;
                         }
                         if (message.type === "assistant" && message.content) {
@@ -361,18 +452,9 @@ export class LettaRuntime extends EventEmitter {
         return {accepted: true};
     }
 
-    /// Resolves the agent id once more after a "not found" failure (stale
+    /// Official canUseTool bridge: emit `approval_request` on SSE, wait for
+    /// the Flutter card (or timeout → deny). Unknown/hanging requests never
 
-    /// Aborts the running turn (user pressed stop).
-    stopTurn(): void {
-        this.abortTurn();
-    }
-
-    /// Conversation history from the OFFICIAL Letta API — Flight Studio
-    /// never records chat itself. Uses the raw app-server protocol
-    /// (`conversation_messages_list`) with an explicit `agent_id`: the
-    /// bare-spawned app-server's store otherwise resolves the default
-    /// conversation to its placeholder agent ("agent-local-default") and
     /// 404s. Returns user/assistant turns only, oldest first.
     async listHistory(): Promise<
         Array<{ role: "user" | "assistant"; content: string }>
@@ -399,8 +481,9 @@ export class LettaRuntime extends EventEmitter {
                 error?: string;
             };
             if (result.success === false) {
-                console.log(
-                    "[history] conversation_messages_list failed:",
+                log.warn(
+                    "history",
+                    "conversation_messages_list failed:",
                     result.error,
                 );
                 return [];
@@ -425,14 +508,54 @@ export class LettaRuntime extends EventEmitter {
                 if (text.trim().length === 0) continue;
                 out.push({role, content: text});
             }
+            log.info("history", `loaded ${out.length} messages`);
             return out;
         } catch (err) {
-            console.log(
-                "[history] error:",
+            log.warn(
+                "history", "error:",
                 err instanceof Error ? err.message : String(err),
             );
             return [];
         }
+    }
+
+    /// Conversation history from the OFFICIAL Letta API — Flight Studio
+    /// never records chat itself. Uses the raw app-server protocol
+    /// (`conversation_messages_list`) with an explicit `agent_id`: the
+    /// bare-spawned app-server's store otherwise resolves the default
+    /// conversation to its placeholder agent ("agent-local-default") and
+
+    /// block a turn longer than [ApprovalTimeoutMs].
+    private async handleToolApproval(
+        toolName: string,
+        toolInput: Record<string, unknown>,
+    ): Promise<{ behavior: "allow" | "deny"; message: string }> {
+        const approvals = this.approvals;
+        if (approvals == null) {
+            return {behavior: "allow", message: "auto (no approval UI)"};
+        }
+        const req = approvals.createApproval(toolName, toolInput);
+        log.info("approval", "request", req.id, "tool:", toolName);
+        this.emitEvent({
+            type: "approval_request",
+            id: req.id,
+            tool: toolName,
+            input: toolInput,
+        });
+        this.emitEvent({type: "phase", phase: "waitingApproval", detail: toolName});
+        const approved = await approvals.waitForResolution(
+            req.id,
+            ApprovalTimeoutMs,
+        );
+        log.info("approval", "resolved", req.id, "→", approved ? "allow" : "deny");
+        this.emitEvent({
+            type: "approval_resolved",
+            id: req.id,
+            approved,
+        });
+        return approved
+            ? {behavior: "allow", message: "approved by user"}
+            : {behavior: "deny", message: "denied by user"};
     }
 
     // ── Provider push (official app-server protocol) ─────────────────────────
@@ -743,8 +866,8 @@ export class LettaRuntime extends EventEmitter {
                     }
                 }
             }
-            console.log(
-                "[provider-push] discovered openai-compatible models:",
+            log.info(
+                "provider-push", "discovered openai-compatible models:",
                 JSON.stringify(discovered.slice(0, 30)),
             );
             const wanted = `${prefixes[0]}/${model}`;
@@ -773,7 +896,7 @@ export class LettaRuntime extends EventEmitter {
                 h.toLowerCase().includes(`/${model.toLowerCase()}`),
             );
             if (fuzzy) {
-                console.log("[provider-push] fuzzy-matched:", fuzzy);
+                log.info("provider-push", "fuzzy-matched:", fuzzy);
                 return fuzzy;
             }
             // The catalog may have renamed/dropped the exact variant
@@ -790,8 +913,8 @@ export class LettaRuntime extends EventEmitter {
                 }
             }
             if (best) {
-                console.log(
-                    "[provider-push] prefix-matched:",
+                log.info(
+                    "provider-push", "prefix-matched:",
                     best,
                     "(requested:",
                     model + ")",

@@ -38,7 +38,9 @@ class ModelReasoningChips extends StatelessWidget {
           children: [
             _ModelMenu(groups: groups),
             const SizedBox(width: 8),
-            const _ReasoningMenu(),
+            // NOT const: the chip label must rebuild when the selection
+            // changes (a const instance would be skipped by the framework).
+            _ReasoningMenu(),
           ],
         );
       },

@@ -3,6 +3,7 @@ import {LettaRuntime} from "./letta_runtime.js";
 import {ApprovalController, SessionController} from "./session_controller.js";
 import {registerFlutterApi} from "./flutter_api.js";
 import {LlmProxy} from "./llm_proxy.js";
+import {log} from "./logger.js";
 
 const port = Number(process.env.GATEWAY_PORT ?? 8787);
 
@@ -17,6 +18,10 @@ const app = Fastify({logger: {level: "warn"}});
 const llmProxy = new LlmProxy(port);
 llmProxy.registerFastify(app);
 runtime.attachLlmProxy(llmProxy);
+
+// Bridge the official canUseTool callback to the Flutter permission card
+// (approval_request SSE + POST /agent/approval/{id}).
+runtime.attachApprovals(session);
 
 // Fan gateway events out to every connected SSE client.
 const listeners = new Set<(event: unknown) => void>();
@@ -36,7 +41,7 @@ void runtime.initialize().then(() => runtime.registerFlightStudioToolsSafe());
 const start = async () => {
     try {
         await app.listen({port, host: "127.0.0.1"});
-        console.log(`[gateway] listening on http://127.0.0.1:${port}`);
+        log.info("gateway", `listening on http://127.0.0.1:${port}`);
     } catch (err) {
         app.log.error(err);
         process.exit(1);
@@ -45,7 +50,7 @@ const start = async () => {
 
 for (const signal of ["SIGINT", "SIGTERM"] as const) {
     process.on(signal, () => {
-        console.log(`[gateway] ${signal} received — shutting down`);
+        log.info("gateway", `${signal} received — shutting down`);
         void app.close().then(() => process.exit(0));
     });
 }

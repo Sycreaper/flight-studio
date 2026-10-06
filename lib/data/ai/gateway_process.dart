@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import '../../core/logging/app_log.dart';
 import 'gateway_client.dart';
 
 /// Owns the Agent Gateway subprocess lifecycle.
@@ -86,16 +87,30 @@ class GatewayProcess {
     if (node == null) return false;
 
     try {
-      final process = await Process.start(node, [
-        entry.path,
-      ], workingDirectory: gatewayDir.path);
+      // The gateway logger writes gateway-<date>.log into the shared log
+      // directory (FS_LOG_DIR); stdout/stderr land in gateway-stdout-<date>
+      // .log as a crash capture for anything the logger misses (native
+      // stacks, library errors).
+      final logDir = AppLog.dirPath ?? Directory.systemTemp.path;
+      final day = DateTime.now();
+      final dayStr =
+          '${day.year.toString().padLeft(4, '0')}-'
+          '${day.month.toString().padLeft(2, '0')}-'
+          '${day.day.toString().padLeft(2, '0')}';
+      final process = await Process.start(
+        node,
+        [entry.path],
+        workingDirectory: gatewayDir.path,
+        environment: {...Platform.environment, 'FS_LOG_DIR': logDir},
+      );
       _process = process;
-      // Drain output to a log file (never block the pipe; keep crashes
-      // diagnosable).
       final logSink = File(
-        '${Directory.systemTemp.path}${Platform.pathSeparator}'
-        'flightstudio-gateway.log',
+        '$logDir${Platform.pathSeparator}gateway-stdout-$dayStr.log',
       ).openWrite(mode: FileMode.append);
+      logSink.writeln(
+        '${DateTime.now().toIso8601String()} [INFO ] [gateway-process]'
+            ' spawn pid=${process.pid} entry=${entry.path}',
+      );
       process.stdout
           .transform(utf8.decoder)
           .transform(const LineSplitter())
@@ -105,9 +120,14 @@ class GatewayProcess {
           .transform(const LineSplitter())
           .listen(logSink.writeln, onError: (Object _) {});
       unawaited(
-        process.exitCode.then((_) {
+        process.exitCode.then((code) {
           if (_process == process) _process = null;
+          logSink.writeln(
+            '${DateTime.now().toIso8601String()} [INFO ] [gateway-process]'
+                ' exit code=$code',
+          );
           logSink.close();
+          AppLog.i('gateway-process', 'gateway exited code=$code');
         }),
       );
 
