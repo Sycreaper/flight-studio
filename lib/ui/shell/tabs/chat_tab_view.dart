@@ -205,7 +205,9 @@ class _Bubble extends StatelessWidget {
           children: [
             // Body: content when there is any (user text always; assistant
             // once the first delta arrived) — the thinking row renders in
-            // ADDITION, not instead, so pauses mid-turn keep the status.
+            // ADDITION, not instead, so pauses mid-turn keep the status..
+            // Assistant text is split into segments so <think> blocks fold
+            // into a collapsible row
             if (isUser)
               SelectableText(
                 display,
@@ -214,13 +216,7 @@ class _Bubble extends StatelessWidget {
               )
             else
               if (display.isNotEmpty && display != ' ▍')
-                SelectionArea(
-                  child: GptMarkdown(
-                    display,
-                    style:
-                    TextStyle(fontSize: 12.5, color: colors.textPrimary),
-                  ),
-                ),
+                ..._buildAssistantSegments(context, display),
             if (thinking)
               Padding(
                 padding: EdgeInsets.only(
@@ -232,6 +228,127 @@ class _Bubble extends StatelessWidget {
             _CopyButton(text: display),
           ],
         ),
+      ),
+    );
+  }
+
+  /// Splits assistant text into markdown segments and collapsible think
+  /// blocks (`<think>…</think>`, `<thinking>…</thinking>`, and an unclosed
+  /// trailing `<think>` while streaming).
+  static List<Widget> _buildAssistantSegments(BuildContext context,
+      String display,) {
+    final colors = Theme.of(context).extension<AppColors>()!;
+    final style = TextStyle(fontSize: 12.5, color: colors.textPrimary);
+    final segments = <Widget>[];
+
+    final thinkRegex = RegExp(
+      r'<think(?:ing)?>([\s\S]*?)(?:</think(?:ing)?>|\s*▍$|$)',
+      caseSensitive: false,
+    );
+    var lastEnd = 0;
+    for (final match in thinkRegex.allMatches(display)) {
+      final before = display.substring(lastEnd, match.start);
+      if (before
+          .trim()
+          .isNotEmpty) {
+        segments.add(SelectionArea(child: GptMarkdown(before, style: style)));
+      }
+      segments.add(_ThinkBlock(body: match.group(1)?.trim() ?? ''));
+      lastEnd = match.end;
+    }
+    final tail = display.substring(lastEnd);
+    if (tail
+        .trim()
+        .isNotEmpty && tail.trim() != '▍') {
+      segments.add(SelectionArea(child: GptMarkdown(tail, style: style)));
+    }
+    // Nothing but whitespace → keep the bubble non-empty for layout.
+    if (segments.isEmpty) {
+      segments.add(
+        SelectionArea(child: GptMarkdown(display, style: style)),
+      );
+    }
+    return segments;
+  }
+}
+
+/// A folded `<think>` block: collapsed to a one-line toggle by default,
+/// expands to the raw reasoning text in a subdued monospace block.
+class _ThinkBlock extends StatefulWidget {
+  const _ThinkBlock({required this.body});
+
+  final String body;
+
+  @override
+  State<_ThinkBlock> createState() => _ThinkBlockState();
+}
+
+class _ThinkBlockState extends State<_ThinkBlock> {
+  bool _expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<AppColors>()!;
+    final l10n = AppLocalizations.of(context)!;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          InkWell(
+            onTap: () => setState(() => _expanded = !_expanded),
+            borderRadius: BorderRadius.circular(6),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.psychology_alt_outlined,
+                    size: 13,
+                    color: colors.textDisabled,
+                  ),
+                  const SizedBox(width: 5),
+                  Text(
+                    '${l10n.thinkBlockLabel} · ${widget.body.length}',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: colors.textDisabled,
+                    ),
+                  ),
+                  AnimatedRotation(
+                    turns: _expanded ? 0.25 : 0,
+                    duration: const Duration(milliseconds: 120),
+                    child: Icon(
+                      Icons.chevron_right_rounded,
+                      size: 14,
+                      color: colors.textDisabled,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          if (_expanded)
+            Container(
+              width: double.infinity,
+              margin: const EdgeInsets.only(top: 4),
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: colors.surfaceLowered,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: SelectableText(
+                widget.body,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontFamily: 'monospace',
+                  color: colors.textSecondary,
+                  height: 1.45,
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }

@@ -445,6 +445,7 @@
   "reasoningXhigh": "Extra high",
   "chatThinking": "Thinking…",
   "phaseThinking": "Thinking…",
+  "thinkBlockLabel": "Reasoning",
   "phaseSearching": "Searching…",
   "phaseReading": "Reading…",
   "phaseWriting": "Writing…",

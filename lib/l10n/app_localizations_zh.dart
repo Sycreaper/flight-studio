@@ -1,6 +1,5 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
-
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -1174,6 +1173,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get phaseThinking => '思考中…';
+
+  @override
+  String get thinkBlockLabel => '思考过程';
 
   @override
   String get phaseSearching => '搜索中…';

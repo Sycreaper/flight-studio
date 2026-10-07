@@ -456,6 +456,7 @@
   "reasoningXhigh": "超高",
   "chatThinking": "思考中…",
   "phaseThinking": "思考中…",
+  "thinkBlockLabel": "思考过程",
   "phaseSearching": "搜索中…",
   "phaseReading": "读取中…",
   "phaseWriting": "写入中…",

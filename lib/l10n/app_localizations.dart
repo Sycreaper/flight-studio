@@ -2366,6 +2366,12 @@ abstract class AppLocalizations {
   /// **'Thinking…'**
   String get phaseThinking;
 
+  /// No description provided for @thinkBlockLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reasoning'**
+  String get thinkBlockLabel;
+
   /// No description provided for @phaseSearching.
   ///
   /// In en, this message translates to:

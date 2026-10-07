@@ -455,6 +455,23 @@ export class LettaRuntime extends EventEmitter {
     /// Official canUseTool bridge: emit `approval_request` on SSE, wait for
     /// the Flutter card (or timeout → deny). Unknown/hanging requests never
 
+    /// ENTIRELY of wrappers are dropped by the caller.
+    private static stripInjectedWrappers(text: string): string {
+        return text
+            .replace(
+                /<(system-reminder|task-notification|env-reminder|context-reminder|memory-reminder)[^>]*>[\s\S]*?<\/\1>/gi,
+                "",
+            )
+            .replace(
+                /<(system-reminder|task-notification|env-reminder|context-reminder|memory-reminder)[^>]*\/>/gi,
+                "",
+            )
+            .trim();
+    }
+
+    /// Strips harness-injected wrapper tags (<system-reminder>,
+    /// <task-notification>, …) from message text. User turns that consist
+
     /// 404s. Returns user/assistant turns only, oldest first.
     async listHistory(): Promise<
         Array<{ role: "user" | "assistant"; content: string }>
@@ -505,6 +522,8 @@ export class LettaRuntime extends EventEmitter {
                                 : "")
                         .join("");
                 }
+                // Remove harness-injected wrappers the user never typed.
+                text = LettaRuntime.stripInjectedWrappers(text);
                 if (text.trim().length === 0) continue;
                 out.push({role, content: text});
             }
