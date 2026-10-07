@@ -51,8 +51,8 @@ void main() {
 
     // The chat tab is selected and shows the inert prompt box.
     expect(find.byType(PromptBox), findsOneWidget);
-    // The tab strip contains the Chat tab chip.
-    expect(find.text('Chat'), findsOneWidget);
+    // The tab strip contains the Chat tab chip (titled 新对话/New chat).
+    expect(find.text('New chat'), findsOneWidget);
     // History area is empty (no message bubbles).
     expect(find.textContaining('user'), findsNothing);
   });

@@ -1,5 +1,7 @@
 /// Session + approval controllers. v1 runs a single default session
-/// ("default"); the account system later maps sessionId ↔ Letta agent.
+/// ("default") — all conversations belong to the one 飞行助理 agent and are
+/// routed per-request via `conversationId`, so there is no session ↔ agent
+/// mapping anymore.
 //
 // Approvals bridge the OFFICIAL SDK `canUseTool` callback to the Flutter
 // UI: the gateway emits `approval_request` events over SSE, the app shows

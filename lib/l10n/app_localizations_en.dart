@@ -75,6 +75,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tabChat => 'Chat';
 
   @override
+  String get chatNewConversation => 'New chat';
+
+  @override
+  String get panelConversations => 'Conversations';
+
+  @override
+  String get conversationNew => 'New conversation';
+
+  @override
+  String get conversationEmpty => 'No conversations yet';
+
+  @override
+  String get conversationDelete => 'Delete conversation';
+
+  @override
+  String get conversationDeleteConfirm =>
+      'Delete this conversation? This cannot be undone.';
+
+  @override
+  String get conversationDeleteAction => 'Delete';
+
+  @override
   String get tabMapUnnamed => 'Map';
 
   @override

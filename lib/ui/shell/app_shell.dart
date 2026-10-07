@@ -11,6 +11,7 @@ import '../../../data/navdata/navdata_service.dart';
 import '../../../data/settings/settings_controller.dart';
 import '../../../data/system/system_stats_service.dart';
 import '../../../l10n/app_localizations.dart';
+import '../chat/chat_session.dart';
 import '../map/map_canvas.dart';
 import '../map/nav_markers.dart';
 import '../settings/settings_page.dart';
@@ -42,6 +43,7 @@ class AppShell extends StatefulWidget {
     required this.settings,
     this.initialTab,
     this.initialSettingsSection,
+    this.initialChatSessionKey,
   });
 
   final SettingsController settings;
@@ -51,6 +53,11 @@ class AppShell extends StatefulWidget {
   /// tab. Used by the gear menu to push a settings-only workspace from the
   /// welcome screen.
   final String? initialTab;
+
+  /// [ChatSessionManager] key of the conversation the initial chat tab
+  /// mirrors — used by the welcome screen when a send there spawns this
+  /// workspace, so the tab lands on the conversation the text went into.
+  final String? initialChatSessionKey;
 
   /// When [initialTab] is [TabIds.settings], optionally land on this section.
   final SettingsSection? initialSettingsSection;
@@ -95,6 +102,12 @@ class AppShellState extends State<AppShell> {
       _tabController.close(seeded.id);
       if (widget.initialTab == TabIds.settings) {
         _tabController.openOrCreate(TabIds.settings);
+      } else if (widget.initialTab == TabIds.chat &&
+          widget.initialChatSessionKey != null) {
+        _tabController.add(
+          TabIds.chat,
+          chatSessionKey: widget.initialChatSessionKey,
+        );
       } else {
         _tabController.add(widget.initialTab!);
       }
@@ -103,6 +116,13 @@ class AppShellState extends State<AppShell> {
     // Default panels are registered on first build (see [_registerDefaults])
     // so we have a BuildContext for localised titles.
 
+    // Conversation titles summarized by the gateway rewrite their chat tabs'
+    // labels (新对话 → summarized title).
+    ChatSessionManager.instance.addListener(_syncChatTabTitles);
+    if (!Platform.environment.containsKey('FLUTTER_TEST')) {
+      ChatSessionManager.instance.refreshConversations();
+    }
+
     // Live status-bar data — skipped inside `flutter test` (FLUTTER_TEST env
     // var): the 1 s clock tick would keep pumpAndSettle from settling.
     if (!Platform.environment.containsKey('FLUTTER_TEST')) {
@@ -110,6 +130,30 @@ class AppShellState extends State<AppShell> {
         _tick.value = _tick.value + 1;
       });
       SystemStatsService.instance.start();
+    }
+  }
+
+  /// Mirrors the manager's conversation titles onto open chat tabs
+  /// (titleOverride wins over the descriptor's localized 新对话 default),
+  /// and closes tabs whose conversation was deleted from the drawer.
+  void _syncChatTabTitles() {
+    if (!mounted) return;
+    final manager = ChatSessionManager.instance;
+    for (final tab in _tabController.tabsOfType(TabIds.chat)) {
+      final session = manager.sessionByKey(tab.chatSessionKey);
+      final conversationId = session?.conversationId;
+      if (conversationId == null) continue; // Draft — untitled.
+      final exists = manager.conversations.any((c) => c.id == conversationId);
+      if (!exists) {
+        // Deleted (or evicted) conversation — drop the tab. Iterating a
+        // snapshot, so closing here is safe.
+        _tabController.close(tab.id);
+        continue;
+      }
+      _tabController.renameChatTab(
+        tab.chatSessionKey ?? tab.id,
+        manager.titleOf(conversationId),
+      );
     }
   }
 
@@ -152,11 +196,13 @@ class AppShellState extends State<AppShell> {
     )..register(
       TabDescriptor(
         id: TabIds.chat,
-        title: (l10n) => l10n.tabChat,
+        title: (l10n) => l10n.chatNewConversation,
         icon: Icons.chat_bubble_outline_rounded,
-        createContent: (tab) =>
-            ChatTabView(
-                key: ValueKey('chat_${tab.id}'), settings: widget.settings),
+        createContent: (tab) => ChatTabView(
+          key: ValueKey('chat_${tab.id}'),
+          settings: widget.settings,
+          sessionKey: tab.chatSessionKey!,
+        ),
       ),
     )..register(
       TabDescriptor(
@@ -185,9 +231,32 @@ class AppShellState extends State<AppShell> {
     for (final p in buildDefaultPanels(
       onCreateFlightPlan: () => _tabController.add(TabIds.flightPlan),
       onFlyTo: _flyTo,
+      onCreateChat: _newChatTab,
+      onOpenConversation: _openConversationTab,
     )) {
       _workspace.register(p);
     }
+  }
+
+  /// 新建对话 — opens a fresh chat tab (the Letta conversation is created
+  /// lazily on the tab's first send).
+  void _newChatTab() => _tabController.add(TabIds.chat);
+
+  /// Opens (or focuses) the chat tab mirroring one conversation id.
+  void _openConversationTab(String conversationId) {
+    final manager = ChatSessionManager.instance;
+    // Already open? Focus it.
+    for (final tab in _tabController.tabsOfType(TabIds.chat)) {
+      final session = manager.sessionByKey(tab.chatSessionKey);
+      if (session?.conversationId == conversationId) {
+        _tabController.select(tab.id);
+        return;
+      }
+    }
+    _tabController.add(
+      TabIds.chat,
+      chatSessionKey: manager.openConversation(conversationId),
+    );
   }
 
   /// Ensures a Map tab exists and is selected, then flies the camera to
@@ -204,6 +273,7 @@ class AppShellState extends State<AppShell> {
 
   @override
   void dispose() {
+    ChatSessionManager.instance.removeListener(_syncChatTabTitles);
     _clockTimer?.cancel();
     _tabController.dispose();
     _workspace.dispose();

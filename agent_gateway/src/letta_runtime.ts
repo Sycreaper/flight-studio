@@ -38,7 +38,7 @@ export interface GatewayStatus {
     model: string | null;
 }
 
-const DEFAULT_AGENT_NAME = "FlightStudio Copilot";
+const DEFAULT_AGENT_NAME = "飞行助理";
 const STARTUP_TIMEOUT_MS = 60_000;
 /// A permission card that nobody answers blocks the turn this long.
 const ApprovalTimeoutMs = 300_000;
@@ -53,6 +53,11 @@ export class LettaRuntime extends EventEmitter {
     private lettaError: string | null = null;
     private turnActive = false;
     private currentModel: string | null = null;
+    /** Conversation the live turn runs in (null = agent default). */
+    private activeConversationId: string | null = null;
+    /** Last successful provider push — powers title summarization. */
+    private lastProvider: {baseUrl: string; apiKey: string; model: string} | null =
+        null;
 
     // Local app-server ownership.
     private serverProcess: ChildProcess | null = null;
@@ -259,6 +264,11 @@ export class LettaRuntime extends EventEmitter {
         diag("resolved handle=", handle);
         await this.updateModel(handle, input.reasoningEffort);
         diag("updateModel done");
+        this.lastProvider = {
+            baseUrl: input.baseUrl.trim().replace(/\/+$/, ""),
+            apiKey: input.apiKey.trim(),
+            model: input.model,
+        };
     }
 
     /// Resolves the agent id once more after a "not found" failure (stale
@@ -273,8 +283,14 @@ export class LettaRuntime extends EventEmitter {
     /// Maps OFFICIAL SDK loop-status strings (e.g. WAITING_FOR_API_RESPONSE,
     /// PROCESSING_API_RESPONSE) to coarse UI phases. Extensible for MCP:
 
-    /// (or `{type:"error",message}`). One turn at a time.
-    async runTurn(text: string): Promise<{ accepted: boolean; reason?: string }> {
+    /// (or `{type:"error",message}`). One turn at a time. When [conversationId]
+    /// is given the turn runs in that conversation (official resumeSession
+    /// contract accepts a conversation id), and every emitted event is tagged
+    /// with it so Flutter can route deltas to the right chat tab.
+    async runTurn(
+        text: string,
+        conversationId?: string,
+    ): Promise<{ accepted: boolean; reason?: string }> {
         await this.initialize();
         if (this.lettaState !== "ok" || this.client == null || this.agentId == null) {
             return {
@@ -290,7 +306,18 @@ export class LettaRuntime extends EventEmitter {
             await new Promise((r) => setTimeout(r, 300));
         }
         this.turnActive = true;
-        this.emitEvent({type: "turn_start", role: "assistant"});
+        this.activeConversationId = conversationId ?? null;
+        const emitTurn = (event: Record<string, unknown>) => {
+            if (this.activeConversationId != null) {
+                this.emitEvent({
+                    ...event,
+                    conversationId: this.activeConversationId,
+                });
+            } else {
+                this.emitEvent(event);
+            }
+        };
+        emitTurn({type: "turn_start", role: "assistant"});
 
         const client = this.client!;
         void (async () => {
@@ -298,16 +325,19 @@ export class LettaRuntime extends EventEmitter {
             let errored = false;
             try {
                 const runStream = async (agentId: string) => {
-                        await using session = client.resumeSession(agentId, {
-                            // Standard mode: safe tools auto-run; risky ones
-                            // flow to our canUseTool bridge (official SDK
-                            // callback) → Flutter permission card.
-                            permissionMode: "standard",
-                            canUseTool: this.approvals
-                                ? (toolName, toolInput) =>
-                                    this.handleToolApproval(toolName, toolInput)
-                                : undefined,
-                        });
+                        await using session = client.resumeSession(
+                            conversationId ?? agentId,
+                            {
+                                // Standard mode: safe tools auto-run; risky ones
+                                // flow to our canUseTool bridge (official SDK
+                                // callback) → Flutter permission card.
+                                permissionMode: "standard",
+                                canUseTool: this.approvals
+                                    ? (toolName, toolInput) =>
+                                        this.handleToolApproval(toolName, toolInput)
+                                    : undefined,
+                            },
+                        );
                     this.activeSession = session as never;
                     // Clear any approval left pending by a previous session
                     // (disconnect/deadlock) before sending.
@@ -358,7 +388,7 @@ export class LettaRuntime extends EventEmitter {
                                 `turn error (${err.stopReason ?? "unknown"})`;
                             this.turnActive = false;
                             errored = true;
-                            this.emitEvent({type: "error", message: text});
+                            emitTurn({type: "error", message: text});
                             return;
                         }
                         if (message.type === "result") {
@@ -375,7 +405,7 @@ export class LettaRuntime extends EventEmitter {
                                 );
                                 this.turnActive = false;
                                 errored = true;
-                                this.emitEvent({
+                                emitTurn({
                                     type: "error",
                                     message:
                                         `${result.error}` +
@@ -400,7 +430,7 @@ export class LettaRuntime extends EventEmitter {
                             const status = (
                                 message as unknown as { status?: string }
                             ).status;
-                            this.emitEvent({
+                            emitTurn({
                                 type: "phase",
                                 phase: LettaRuntime.phaseFromLoopStatus(
                                     status ?? "",
@@ -413,7 +443,7 @@ export class LettaRuntime extends EventEmitter {
                             const call = message as unknown as {
                                 toolName?: string;
                             };
-                            this.emitEvent({
+                            emitTurn({
                                 type: "phase",
                                 phase: "tool",
                                 detail: call.toolName,
@@ -421,12 +451,12 @@ export class LettaRuntime extends EventEmitter {
                             continue;
                         }
                         if (message.type === "reasoning") {
-                            this.emitEvent({type: "phase", phase: "thinking"});
+                            emitTurn({type: "phase", phase: "thinking"});
                             continue;
                         }
                         if (message.type === "assistant" && message.content) {
                             full += message.content;
-                            this.emitEvent({
+                            emitTurn({
                                 type: "delta",
                                 content: message.content,
                             });
@@ -438,14 +468,23 @@ export class LettaRuntime extends EventEmitter {
                 // An error event already ended this turn — never follow it
                 // with an empty turn_done (it would blank the bubble).
                 if (!errored) {
-                    this.emitEvent({type: "turn_done", content: full});
+                    emitTurn({type: "turn_done", content: full});
+                    void this.maybeSummarizeTitle(
+                        conversationId ?? null,
+                        text,
+                        full,
+                    );
                 }
             } catch (err) {
                 this.turnActive = false;
-                this.emitEvent({
+                emitTurn({
                     type: "error",
                     message: err instanceof Error ? err.message : String(err),
                 });
+            } finally {
+                if (this.activeConversationId === (conversationId ?? null)) {
+                    this.activeConversationId = null;
+                }
             }
         })();
 
@@ -472,8 +511,11 @@ export class LettaRuntime extends EventEmitter {
     /// Strips harness-injected wrapper tags (<system-reminder>,
     /// <task-notification>, …) from message text. User turns that consist
 
-    /// 404s. Returns user/assistant turns only, oldest first.
-    async listHistory(): Promise<
+    /// 404s. Returns user/assistant turns only, oldest first. [conversationId]
+    /// scopes the query to one conversation (default conversation when null).
+    async listHistory(
+        conversationId?: string,
+    ): Promise<
         Array<{ role: "user" | "assistant"; content: string }>
     > {
         await this.initialize();
@@ -484,7 +526,7 @@ export class LettaRuntime extends EventEmitter {
                 "conversation_messages_list",
                 {
                     request_id: socket.nextRequestId("history"),
-                    conversation_id: "default",
+                    conversation_id: conversationId ?? "default",
                     query: {
                         order: "asc",
                         limit: 200,
@@ -560,6 +602,9 @@ export class LettaRuntime extends EventEmitter {
             id: req.id,
             tool: toolName,
             input: toolInput,
+            ...(this.activeConversationId != null
+                ? {conversationId: this.activeConversationId}
+                : {}),
         });
         this.emitEvent({type: "phase", phase: "waitingApproval", detail: toolName});
         const approved = await approvals.waitForResolution(
@@ -571,6 +616,9 @@ export class LettaRuntime extends EventEmitter {
             type: "approval_resolved",
             id: req.id,
             approved,
+            ...(this.activeConversationId != null
+                ? {conversationId: this.activeConversationId}
+                : {}),
         });
         return approved
             ? {behavior: "allow", message: "approved by user"}
@@ -697,32 +745,168 @@ export class LettaRuntime extends EventEmitter {
         return client;
     }
 
-    // ── Agent management path ────────────────────────────────────────────────
+    // ── Conversations (official Letta API) ────────────────────────────────────
 
-    async listAgents(): Promise<Array<Record<string, unknown>>> {
+    /// One conversation of the flight-assistant agent as the drawer sees it.
+    /// The official Conversation model has no `name`; the LLM-generated title
+    /// lives in `summary`. The local app-server ignores the archive_status
+    /// list filter and agent_id scoping is loose, so both are enforced
+    /// client-side here.
+    async listConversations(): Promise<
+        Array<{
+            id: string;
+            title: string | null;
+            lastMessageAt: string | null;
+        }>
+    > {
         await this.initialize();
-        if (this.lettaState !== "ok") return [];
+        if (this.lettaState !== "ok" || this.client == null || this.agentId == null) {
+            return [];
+        }
         try {
-            const raw = await (this.client as any).listAgents?.({});
-            return Array.isArray(raw)
-                ? raw.map((a: any) => ({id: a.id, name: a.name}))
-                : [];
-        } catch {
+            const all = await this.client.conversations.list({
+                agentId: this.agentId,
+            });
+            return all
+                .filter(
+                    (c) =>
+                        c.archived !== true && c.agent_id === this.agentId,
+                )
+                .map((c) => ({
+                    id: c.id,
+                    title: c.summary?.trim() ? c.summary.trim() : null,
+                    lastMessageAt: c.last_message_at ?? c.created_at ?? null,
+                }))
+                .sort((a, b) =>
+                    (b.lastMessageAt ?? "").localeCompare(a.lastMessageAt ?? ""),
+                );
+        } catch (err) {
+            log.warn(
+                "conversations", "list failed:",
+                err instanceof Error ? err.message : String(err),
+            );
             return [];
         }
     }
 
-    async createAgent(name: string, persona?: string): Promise<string> {
+    /// Creates a new conversation owned by the flight assistant.
+    async createConversation(): Promise<string | null> {
         await this.initialize();
-        const client = this.client!;
-        const created = await client.createAgent({
-            ...(name ? {name} : {}),
-            persona:
-                persona ??
-                "You are FlightStudio's flight copilot. Explain-first, ground every " +
-                "answer, never execute simulator actions without approval.",
-        });
-        return typeof created === "string" ? created : String(created ?? "");
+        if (this.lettaState !== "ok" || this.client == null || this.agentId == null) {
+            return null;
+        }
+        try {
+            const conv = await this.client.conversations.create({
+                agentId: this.agentId,
+            });
+            log.info("conversations", "created", conv.id);
+            return conv.id;
+        } catch (err) {
+            log.error(
+                "conversations", "create failed:",
+                err instanceof Error ? err.message : String(err),
+            );
+            return null;
+        }
+    }
+
+    /// Deletes one conversation. The local app-server protocol has no hard
+    /// delete, so deletion uses the official archive semantics
+    /// (`update {archived: true}`); archived conversations never appear in
+    /// [listConversations] again. An actively streaming conversation is
+    /// aborted first (user-confirmed behaviour).
+    async deleteConversation(id: string): Promise<void> {
+        await this.initialize();
+        if (this.client == null) return;
+        if (this.activeConversationId === id) {
+            this.abortTurn();
+            await new Promise((r) => setTimeout(r, 200));
+        }
+        await this.client.conversations.update(id, {archived: true});
+        log.info("conversations", "archived (deleted)", id);
+    }
+
+    /// After the FIRST exchange of a conversation, generates a short title
+    /// with the configured provider (one lightweight official OpenAI-
+    /// compatible call through the same credential the harness uses) and
+    /// writes it into the conversation's official `summary` field. Runs in
+    /// the background; failures never disturb the chat turn.
+    private async maybeSummarizeTitle(
+        conversationId: string | null,
+        userText: string,
+        assistantText: string,
+    ): Promise<void> {
+        if (conversationId == null || this.client == null) return;
+        const provider = this.lastProvider;
+        if (provider == null) {
+            log.info("title", "skip — no provider configured");
+            return;
+        }
+        try {
+            const conv = await this.client.conversations.retrieve(conversationId);
+            if (conv.summary != null && conv.summary.trim().length > 0) return;
+            const clip = (s: string, n: number) =>
+                s.length > n ? `${s.slice(0, n)}…` : s;
+            const res = await fetch(
+                `${provider.baseUrl}/chat/completions`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${provider.apiKey}`,
+                    },
+                    body: JSON.stringify({
+                        model: provider.model,
+                        max_tokens: 48,
+                        temperature: 0.3,
+                        messages: [
+                            {
+                                role: "system",
+                                content:
+                                    "Summarize this flight-assistant " +
+                                    "conversation as a short title in the " +
+                                    "user's language. Reply with ONLY the " +
+                                    "title, at most 16 characters, no quotes, " +
+                                    "no trailing period.",
+                            },
+                            {
+                                role: "user",
+                                content:
+                                    `User: ${clip(userText, 500)}\n` +
+                                    `Assistant: ${clip(assistantText, 800)}`,
+                            },
+                        ],
+                    }),
+                },
+            );
+            if (!res.ok) {
+                log.warn("title", "provider call failed:", res.status);
+                return;
+            }
+            const data = (await res.json()) as {
+                choices?: Array<{ message?: { content?: string } }>;
+            };
+            let title = (data.choices?.[0]?.message?.content ?? "")
+                .replace(/["'「」『』]/g, "")
+                .split("\n")[0]
+                .trim();
+            if (title.length > 24) title = title.slice(0, 24);
+            if (title.length === 0) return;
+            await this.client.conversations.update(conversationId, {
+                summary: title,
+            });
+            log.info("title", `summarized ${conversationId} →`, title);
+            this.emitEvent({
+                type: "conversation_renamed",
+                conversationId,
+                title,
+            });
+        } catch (err) {
+            log.warn(
+                "title", "summarize failed:",
+                err instanceof Error ? err.message : String(err),
+            );
+        }
     }
 
     private createClient(): LettaAgentClient {
@@ -754,14 +938,8 @@ export class LettaRuntime extends EventEmitter {
         }
     }
 
-    switchAgent(agentId: string): void {
-        this.agentId = agentId;
-    }
-
-    // ── Runtime path (one turn) ──────────────────────────────────────────────
-
-    /// Runs one user turn against the current agent. Emits on `events`:
-    /// `{type:"turn_start"}` → `{type:"delta",content}`* → `{type:"turn_done",content}`
+    /// The single flight-assistant agent is managed internally by
+    /// [ensureDefaultAgent]; no external switching exists.
 
     private async ensureDefaultAgent(): Promise<void> {
         const client = this.client!;

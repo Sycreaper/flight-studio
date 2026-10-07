@@ -17,11 +17,18 @@ export type FlightAgentEvent =
     | { type: "status"; letta: string; agentReady: boolean };
 
 /// Internal gateway event (pre-normalisation) — the runtime emits these,
-/// and index.ts bridges them into FlightAgentEvent for SSE.
+/// and index.ts bridges them into FlightAgentEvent for SSE. Turn-scoped
+/// events carry the `conversationId` they belong to so Flutter can route
+/// them to the right chat tab; `conversation_renamed` fires when the
+/// auto-generated title has been written to the conversation's official
+/// `summary` field.
 export type GatewayEvent =
-    | { type: "turn_start"; role: "assistant" }
-    | { type: "delta"; content: string }
-    | { type: "turn_done"; content: string }
-    | { type: "error"; message: string }
-    | { type: "approval_request"; id: string; tool: string; input: unknown }
+    | { type: "turn_start"; role: "assistant"; conversationId?: string }
+    | { type: "delta"; content: string; conversationId?: string }
+    | { type: "turn_done"; content: string; conversationId?: string }
+    | { type: "phase"; phase: string; detail?: string; raw?: string; conversationId?: string }
+    | { type: "error"; message: string; conversationId?: string }
+    | { type: "approval_request"; id: string; tool: string; input: unknown; conversationId?: string }
+    | { type: "approval_resolved"; id: string; approved: boolean; conversationId?: string }
+    | { type: "conversation_renamed"; conversationId: string; title: string }
     | { type: "status"; letta: string; agentReady: boolean };

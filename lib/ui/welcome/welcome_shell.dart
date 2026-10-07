@@ -49,8 +49,9 @@ class _WelcomeShellState extends State<WelcomeShell> {
     );
   }
 
-  /// Sends land in the chat tab: push a workspace that opens directly on it.
-  void _openChatTab() {
+  /// Sends land in a NEW conversation: push a workspace whose chat tab is
+  /// bound to the session the text went into (新对话 until summarized).
+  void _openChatTab(String sessionKey) {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -58,6 +59,7 @@ class _WelcomeShellState extends State<WelcomeShell> {
             AppShell(
               settings: widget.settings,
               initialTab: TabIds.chat,
+              initialChatSessionKey: sessionKey,
             ),
       ),
     );

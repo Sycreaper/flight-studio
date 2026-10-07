@@ -275,7 +275,12 @@ class _TabChipState extends State<_TabChip> {
               ),
               const SizedBox(width: 7),
               Text(
-                _tabTitle(widget.descriptor, widget.tab.typeId, l10n),
+                _tabTitle(
+                  widget.descriptor,
+                  widget.tab.typeId,
+                  l10n,
+                  titleOverride: widget.tab.titleOverride,
+                ),
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight:
@@ -417,10 +422,16 @@ class _MenuItemRow extends StatelessWidget {
   }
 }
 
-/// Resolves a tab's visible label from its descriptor at render time, so the
-/// title tracks the active locale without the controller needing a context.
-String _tabTitle(TabDescriptor? descriptor, String typeId,
-    AppLocalizations l10n) {
+/// Resolves a tab's visible label: a per-tab override (LLM-generated
+/// conversation titles) wins over the descriptor's localized title, so
+/// labels track the active locale unless explicitly renamed.
+String _tabTitle(
+    TabDescriptor? descriptor,
+    String typeId,
+    AppLocalizations l10n, {
+    String? titleOverride,
+    }) {
+  if (titleOverride != null && titleOverride.isNotEmpty) return titleOverride;
   final title = descriptor?.title;
   if (title != null) return title(l10n);
   return typeId;

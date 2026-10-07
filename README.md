@@ -28,14 +28,16 @@ monitoring.
   gets to know the pilot over time. Letta itself stores the conversation
   history — the app never re-implements it.
 - **Gateway architecture** — the Flutter app only speaks a small HTTP + SSE
-  API (`/agent/message`, `/agent/events/{sessionId}`, `/agent/approval/{id}`,
-  `/agent/status`, `/agent/memory/update`); Letta protocol details (streaming,
-  permissions, skills, tools) live entirely in the gateway. The local backend
-  auto-starts a Letta App Server subprocess; switching to a remote backend
-  later requires zero Flutter changes.
-- **Local accounts** — create and switch pilot accounts; every account's
-  agent and long-term memories are fully isolated, and deleting an account
-  deletes its agent and memories.
+  API (`/agent/message`, `/agent/conversations`, `/agent/events/{sessionId}`,
+  `/agent/approval/{id}`, `/agent/status`, `/agent/memory/update`); Letta
+  protocol details (streaming, permissions, skills, tools) live entirely in
+  the gateway. The local backend auto-starts a Letta App Server subprocess;
+  switching to a remote backend later requires zero Flutter changes.
+- **One copilot, many conversations** — a single Letta agent (the flight
+  assistant) backs every conversation. The conversation drawer lists all
+  conversations with auto-generated titles (LLM-summarized after the first
+  exchange); deleting a conversation removes its Letta-side data through the
+  official API.
 - **Welcome-screen chat** — talk to your agent right from the home screen;
   replies stream over the gateway's SSE channel, with a stop button while
   generating.
@@ -45,8 +47,10 @@ monitoring.
   Bring your own key.
 - **Safety-first roadmap** — explain-first: read-only tools (navdata / charts /
   weather / briefing) land before any simulator write action, and every write
-  passes an explicit approval gate enforced by the gateway's safety policy (see AI 架构与侧重点调整建议 LETTA 修订版
-  §8).
+  passes an explicit approval gate enforced by the gateway's safety-policy
+  ladder (L0 Explain / read-only → L1 Observe → L2 Suggest → L3 Confirm with
+  user approval → L4 Automate; VATSIM comms and critical flight controls are
+  always BLOCKED).
 
 ### Route Planning
 
@@ -198,10 +202,8 @@ the official [Letta Agent SDK](https://docs.letta.com/agent-sdk).
 4. Connect a model provider inside the Letta CLI (`letta` → `/connect` —
    OpenAI-compatible, Anthropic, Ollama/LM Studio; the CLI shares agent state
    with the gateway), or configure environment variables for the cloud backend.
-5. In Flight Studio, create a pilot account — each account gets its own Letta
-   agent with isolated long-term memory.
-
-Full details: `docs/plans/letta-alignment-plan.md`.
+5. In Flight Studio, start chatting — the copilot agent is created on first
+   launch, and every conversation is managed through the conversation drawer.
 
 ### Build & Run
 
@@ -361,8 +363,7 @@ for the logging debt this implies.
 **Strategy (2026-09 pivot):** AI-first agent workbench. The MVP loop is:
 *express flight intent (or import an OFP) → agent structures a FlightIntent →
 map + briefing → in-flight read-only telemetry → grounded explanations*.
-Simulator write actions stay behind explicit confirmation gates. Full details:
-`docs/plans/letta-alignment-plan.md`.
+Simulator write actions stay behind explicit confirmation gates.
 
 - [x] **Phase 0** — Project foundation: layered `lib/`, JetBrains-style workspace (tabs, tool docks, drawers, resizable
   cards, custom window chrome), theme, i18n. Settings system with live theme/locale switch, gear popup menu,

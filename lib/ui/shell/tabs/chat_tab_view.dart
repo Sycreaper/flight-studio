@@ -11,14 +11,24 @@ import '../../widgets/center_card.dart';
 import '../../widgets/model_reasoning_chips.dart';
 import '../../widgets/prompt_box.dart';
 
-/// Chat tab: the message history (in-memory — Letta keeps the authoritative
-/// conversation) above a welcome-style prompt box. The model + reasoning
-/// chips ([ModelReasoningChips]) are the same widget as the welcome page —
-/// both surfaces share one selection owned by [ChatSession].
+/// Chat tab: ONE conversation with the 飞行助理 agent — the message list
+/// (in-memory — Letta keeps the authoritative conversation) above a
+/// welcome-style prompt box. The model + reasoning chips
+/// ([ModelReasoningChips]) are the same widget as the welcome page — both
+/// surfaces share one selection owned by [ChatSessionManager].
 class ChatTabView extends StatefulWidget {
-  const ChatTabView({super.key, this.settings});
+  const ChatTabView({
+    super.key,
+    this.settings,
+    required this.sessionKey,
+  });
 
   final SettingsController? settings;
+
+  /// [ChatSessionManager] key of the conversation this tab mirrors. A null
+  /// session is impossible in practice (the shell always resolves a key);
+  /// late binding would show an untitled 新对话.
+  final String sessionKey;
 
   @override
   State<ChatTabView> createState() => _ChatTabViewState();
@@ -27,19 +37,26 @@ class ChatTabView extends StatefulWidget {
 class _ChatTabViewState extends State<ChatTabView> {
   final _prompt = TextEditingController();
   final _historyController = ScrollController();
+  late final ChatSession session;
 
   @override
   void initState() {
     super.initState();
-    ChatSession.instance.addListener(_onSessionChanged);
+    final manager = ChatSessionManager.instance;
+    var bound = manager.sessionByKey(widget.sessionKey);
+    // Defensive: a tab whose session vanished (e.g. deleted conversation)
+    // falls back to a fresh draft instead of crashing.
+    bound ??= manager.sessionByKey(manager.newChat());
+    session = bound!;
+    session.addListener(_onSessionChanged);
     // Hydrate the conversation from Letta's official history API (no-op
-    // when already loaded or running in tests).
-    ChatSession.instance.loadHistory();
+    // when already loaded, a draft, or running in tests).
+    session.loadHistory();
   }
 
   @override
   void dispose() {
-    ChatSession.instance.removeListener(_onSessionChanged);
+    session.removeListener(_onSessionChanged);
     _prompt.dispose();
     _historyController.dispose();
     super.dispose();
@@ -57,7 +74,6 @@ class _ChatTabViewState extends State<ChatTabView> {
 
   @override
   Widget build(BuildContext context) {
-    final session = ChatSession.instance;
     return CenterCard(
       child: ListenableBuilder(
         listenable: session,
@@ -130,7 +146,8 @@ class _ChatTabViewState extends State<ChatTabView> {
                         const SizedBox(height: 8),
                         Padding(
                           padding: const EdgeInsets.only(left: 12),
-                          child: ModelReasoningChips(settings: widget.settings),
+                          child: ModelReasoningChips(
+                              settings: widget.settings),
                         ),
                       ],
                     ),

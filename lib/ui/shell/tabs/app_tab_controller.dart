@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 
+import '../../chat/chat_session.dart';
 import 'app_tab.dart';
 import 'tab_registry.dart';
-
 /// Owns the list of open main-window tabs and the currently selected one.
 ///
 /// Follows the project's ChangeNotifier + MVVM convention; widgets rebuild via
@@ -49,7 +49,9 @@ class AppTabController extends ChangeNotifier {
   /// Opens a new tab of [typeId] and selects it. For singleton kinds
   /// (e.g. settings) an existing tab is selected instead of duplicating —
   /// matching VS Code, where gear → Settings always lands on the same tab.
-  void add(String typeId) {
+  /// Chat tabs carry a [chatSessionKey] so their content (and later their
+  /// summarized title) binds to one conversation.
+  void add(String typeId, {String? chatSessionKey}) {
     if (_isSingleton(typeId)) {
       final existing = _tabs
           .cast<AppTab?>()
@@ -59,7 +61,16 @@ class AppTabController extends ChangeNotifier {
         return;
       }
     }
-    final tab = AppTab(id: _nextId(), typeId: typeId);
+    // Chat tabs ALWAYS carry a stable session key — mint one here when the
+    // caller didn't (e.g. the "+" menu), so rebuilds never re-bind content.
+    final effectiveChatKey = typeId == TabIds.chat
+        ? (chatSessionKey ?? ChatSessionManager.instance.newChat())
+        : chatSessionKey;
+    final tab = AppTab(
+      id: _nextId(),
+      typeId: typeId,
+      chatSessionKey: effectiveChatKey,
+    );
     _tabs.add(tab);
     _selectedId = tab.id;
     notifyListeners();
@@ -90,6 +101,31 @@ class AppTabController extends ChangeNotifier {
     if (_selectedId != id) {
       _selectedId = id;
       notifyListeners();
+    }
+  }
+
+  /// The open chat tab mirroring the session registered under
+  /// [chatSessionKey], if any.
+  AppTab? chatTabFor(String chatSessionKey) {
+    for (final t in _tabs) {
+      if (t.typeId == TabIds.chat && t.chatSessionKey == chatSessionKey) {
+        return t;
+      }
+    }
+    return null;
+  }
+
+  /// Updates a chat tab's override title (LLM-generated conversation
+  /// titles). No-op when the title already matches.
+  void renameChatTab(String chatSessionKey, String? title) {
+    for (final t in _tabs) {
+      if (t.typeId == TabIds.chat && t.chatSessionKey == chatSessionKey) {
+        if (t.titleOverride != title) {
+          t.titleOverride = title;
+          notifyListeners();
+        }
+        return;
+      }
     }
   }
 

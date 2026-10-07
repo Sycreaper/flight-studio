@@ -9,7 +9,8 @@ import '../theme/app_colors.dart';
 
 /// Model + reasoning-effort chips shared by every chat surface (welcome
 /// page, chat tab, future drawers). Both chips render the exact selection
-/// owned by [ChatSession]; the model menu groups **per API key entry** and
+/// owned by [ChatSessionManager]; the model menu groups **per API key
+/// entry** and
 /// lists the models discovered from that endpoint when the key was created.
 ///
 /// Layout contract: place directly below the prompt box inside the SAME
@@ -28,9 +29,9 @@ class ModelReasoningChips extends StatelessWidget {
     final effectiveSettings = settings ?? scope?.settings ??
         SettingsController();
     // Restore the persisted model selection once the key list is available.
-    ChatSession.instance.restoreSelection(effectiveSettings.value.apiKeys);
+    ChatSessionManager.instance.restoreSelection(effectiveSettings.value.apiKeys);
     return ListenableBuilder(
-      listenable: Listenable.merge([effectiveSettings, ChatSession.instance]),
+      listenable: Listenable.merge([effectiveSettings, ChatSessionManager.instance]),
       builder: (context, _) {
         final groups = _groups(effectiveSettings);
         return Row(
@@ -130,7 +131,7 @@ class _ModelMenu extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppColors>()!;
     final l10n = AppLocalizations.of(context)!;
-    final session = ChatSession.instance;
+    final session = ChatSessionManager.instance;
     final selectedId = session.selectedKey?.id;
     final label = session.selectedModelId ?? l10n.modelChipLabel;
 
@@ -143,7 +144,7 @@ class _ModelMenu extends StatelessWidget {
             .where((g) => g.key.id == keyId)
             .firstOrNull;
         if (group != null) {
-          ChatSession.instance.selectKey(group.key, modelId: model);
+          ChatSessionManager.instance.selectKey(group.key, modelId: model);
         }
       },
       color: colors.surfaceRaised,
@@ -248,7 +249,7 @@ class _ReasoningMenu extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppColors>()!;
     final l10n = AppLocalizations.of(context)!;
-    final session = ChatSession.instance;
+    final session = ChatSessionManager.instance;
 
     String levelLabel(String value) => switch (value) {
       'none' => l10n.reasoningNone,

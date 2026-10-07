@@ -19,6 +19,8 @@ String resolvePanelTitle(BuildContext context, DrawerPanelData panel) {
       return l10n.panelSearch;
     case 'flight_plans':
       return l10n.panelFlightPlans;
+    case 'conversations':
+      return l10n.panelConversations;
     case 'inspector':
       return l10n.panelInspector;
     case 'profile':

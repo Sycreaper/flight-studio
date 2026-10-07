@@ -56,13 +56,18 @@ class GatewayClient {
   }
 
   /// Starts one user turn. Returns `null` when accepted, otherwise the
-  /// gateway's rejection reason (e.g. "a turn is already running").
-  Future<String?> sendMessage(String text) async {
+  /// gateway's rejection reason (e.g. "a turn is already running"). When
+  /// [conversationId] is given the turn runs inside that conversation of
+  /// the flight assistant.
+  Future<String?> sendMessage(String text, {String? conversationId}) async {
     Map<String, dynamic>? body;
     try {
       final res = await _dio.post<Map<String, dynamic>>(
         '$baseUrl/agent/message',
-        data: {'text': text},
+        data: {
+          'text': text,
+          'conversationId': ?conversationId,
+        },
       );
       if (res.statusCode == 200) return null;
       body = res.data;
@@ -184,27 +189,69 @@ class GatewayClient {
   /// Structured log entry (app-*.log).
   void _diag(String message) => AppLog.i('gw-client', message);
 
-  /// Lists available Letta agents (accounts).
-  Future<List<Map<String, dynamic>>> listAgents() async {
+  /// Conversations of the flight assistant (official Letta API). Returns
+  /// `id` + LLM-generated `title` (null until summarized) + `lastMessageAt`;
+  /// null when the gateway is unreachable.
+  Future<List<GatewayConversation>?> fetchConversations() async {
     try {
-      final res = await _dio.get<List<dynamic>>('$baseUrl/agent/list');
-      if (res.data == null) return const [];
-      return res.data!
+      final res = await _dio.get<Map<String, dynamic>>(
+        '$baseUrl/agent/conversations',
+      );
+      final raw = res.data?['conversations'];
+      if (raw is! List) return const [];
+      return raw
           .whereType<Map<String, dynamic>>()
-          .map((m) => Map<String, dynamic>.from(m))
+          .map(
+            (m) => GatewayConversation(
+              id: m['id'] as String? ?? '',
+              title: (m['title'] as String?)?.trim().isNotEmpty == true
+                  ? m['title'] as String?
+                  : null,
+              lastMessageAt: m['lastMessageAt'] as String?,
+            ),
+          )
+          .where((c) => c.id.isNotEmpty)
           .toList();
     } on Exception catch (_) {
-      return const [];
+      return null;
+    }
+  }
+
+  /// Creates a new conversation owned by the flight assistant. Returns its
+  /// id, or null when the gateway/Letta runtime is unavailable.
+  Future<String?> createConversation() async {
+    try {
+      final res = await _dio.post<Map<String, dynamic>>(
+        '$baseUrl/agent/conversations',
+      );
+      return res.data?['id'] as String?;
+    } on Exception catch (_) {
+      return null;
+    }
+  }
+
+  /// Deletes (archives, official API) one conversation. Best-effort.
+  Future<void> deleteConversation(String id) async {
+    try {
+      await _dio.delete('$baseUrl/agent/conversations/$id');
+    } on Exception catch (_) {
+      // Best-effort — the drawer refreshes from the server list anyway.
     }
   }
 
   /// Conversation history from the official Letta API (the app never
   /// records chat itself). Returns `role`+`content` pairs, oldest first;
-  /// null when the gateway is unreachable.
-  Future<List<({String role, String content})>?> fetchHistory() async {
+  /// null when the gateway is unreachable. [conversationId] scopes the
+  /// query (the agent's default conversation when null).
+  Future<List<({String role, String content})>?> fetchHistory(
+      {String? conversationId}) async {
     try {
       final res = await _dio.get<Map<String, dynamic>>(
         '$baseUrl/agent/history',
+        queryParameters: {
+          if (conversationId != null && conversationId.isNotEmpty)
+            'conversationId': conversationId,
+        },
       );
       final raw = res.data?['messages'];
       if (raw is! List) return const [];
@@ -224,28 +271,22 @@ class GatewayClient {
       return null;
     }
   }
+}
 
-  /// Creates a new Letta agent (one per local account).
-  Future<String?> createAgent(String name, {String? persona}) async {
-    try {
-      final body = <String, dynamic>{'name': name};
-      if (persona != null) body['persona'] = persona;
-      final res = await _dio.post<Map<String, dynamic>>(
-        '$baseUrl/agent/create',
-        data: body,
-      );
-      return res.data?['id'] as String?;
-    } on Exception catch (_) {
-      return null;
-    }
-  }
+/// One conversation of the flight assistant, as the drawer lists it.
+class GatewayConversation {
+  const GatewayConversation({
+    required this.id,
+    required this.title,
+    required this.lastMessageAt,
+  });
 
-  /// Deletes a Letta agent and its memories.
-  Future<void> deleteAgent(String agentId) async {
-    try {
-      await _dio.post('$baseUrl/agent/delete', data: {'agentId': agentId});
-    } on Exception catch (_) {
-      // Best-effort.
-    }
-  }
+  final String id;
+
+  /// LLM-generated title; null until the first exchange has been
+  /// summarized (UI shows the "new chat" placeholder instead).
+  final String? title;
+
+  /// ISO timestamp of the last message (server-side); may be null.
+  final String? lastMessageAt;
 }

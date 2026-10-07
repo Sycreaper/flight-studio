@@ -75,6 +75,27 @@ class AppLocalizationsZh extends AppLocalizations {
   String get tabChat => '聊天';
 
   @override
+  String get chatNewConversation => '新对话';
+
+  @override
+  String get panelConversations => '对话';
+
+  @override
+  String get conversationNew => '新建对话';
+
+  @override
+  String get conversationEmpty => '暂无对话';
+
+  @override
+  String get conversationDelete => '删除对话';
+
+  @override
+  String get conversationDeleteConfirm => '确定删除该对话？删除后无法恢复。';
+
+  @override
+  String get conversationDeleteAction => '删除';
+
+  @override
   String get tabMapUnnamed => '地图';
 
   @override

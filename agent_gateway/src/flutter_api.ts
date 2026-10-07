@@ -7,19 +7,20 @@ import {log} from "./logger.js";
 ///
 ///   GET  /health                          — liveness + Letta status
 ///   GET  /agent/status                    — gateway/Letta/agent status
-///   POST /agent/message   {text}          — start one user turn
+///   POST /agent/provider                  — vault push (BYOK credential)
+///   POST /agent/message   {text, conversationId?} — start one user turn
 ///   GET  /agent/events/{sessionId}        — SSE event stream
 ///   POST /agent/stop/{sessionId}          — abort the running turn
 ///   POST /agent/approval/{id} {approve}   — resolve an approval request
 ///   GET  /agent/approvals                 — pending approvals
-///   GET  /agent/list                      — Letta agents (账户 = agent)
-///   POST /agent/create    {name, persona} — create an agent
-///   POST /agent/switch    {agentId}       — switch the active agent
-///   POST /agent/delete    {agentId}       — delete an agent
+///   GET  /agent/conversations             — conversations of 飞行助理
+///   POST /agent/conversations             — create a conversation
+///   DELETE /agent/conversations/{id}      — delete (archive) a conversation
+///   GET  /agent/history?conversationId=   — conversation history
 ///   POST /agent/memory/update {blockLabel, value}
 ///
-/// v1 runs a single session (`default`); the account system later maps
-/// sessionId ↔ Letta agent.
+/// One Letta agent (飞行助理) backs every conversation; there is no agent
+/// CRUD surface anymore.
 export function registerFlutterApi(
     app: FastifyInstance,
     runtime: LettaRuntime,
@@ -64,12 +65,13 @@ export function registerFlutterApi(
         }
     });
 
-    app.post<{ Body: { text?: string } }>(
-        "/agent/message",
-        async (request, reply) => {
+    app.post<{
+        Body: { text?: string; conversationId?: string };
+    }>("/agent/message", async (request, reply) => {
             const text = (request.body?.text ?? "").trim();
             if (!text) return reply.code(400).send({error: "text is required"});
-            const result = await runtime.runTurn(text);
+            const conversationId = request.body?.conversationId?.trim() || undefined;
+            const result = await runtime.runTurn(text, conversationId);
             if (!result.accepted) return reply.code(409).send(result);
             return {accepted: true};
         },
@@ -130,43 +132,36 @@ export function registerFlutterApi(
         },
     );
 
-    app.get("/agent/list", async () => ({agents: await runtime.listAgents()}));
+    /// Conversations of the flight assistant (official Letta API).
+    app.get("/agent/conversations", async () => ({
+        conversations: await runtime.listConversations(),
+    }));
+
+    app.post("/agent/conversations", async (_request, reply) => {
+        const id = await runtime.createConversation();
+        if (id == null) {
+            return reply.code(503).send({error: "Letta runtime not ready"});
+        }
+        return reply.code(201).send({id});
+    });
+
+    app.delete<{ Params: { conversationId: string } }>(
+        "/agent/conversations/:conversationId",
+        async (request) => {
+            await runtime.deleteConversation(request.params.conversationId);
+            return {deleted: request.params.conversationId};
+        },
+    );
 
     /// Conversation history (official Letta API — the app never records
     /// chat itself).
-    app.get("/agent/history", async () => ({
-        messages: await runtime.listHistory(),
-    }));
-
-    app.post<{ Body: { name?: string; persona?: string } }>(
-        "/agent/create",
-        async (request, reply) => {
-            const id = await runtime.createAgent(
-                request.body?.name ?? "",
-                request.body?.persona,
-            );
-            return reply.code(201).send({id});
-        },
-    );
-
-    app.post<{ Body: { agentId?: string } }>(
-        "/agent/switch",
-        async (request, reply) => {
-            const id = request.body?.agentId;
-            if (!id) return reply.code(400).send({error: "agentId is required"});
-            runtime.switchAgent(id);
-            return {activeAgentId: id};
-        },
-    );
-
-    app.post<{ Body: { agentId?: string } }>(
-        "/agent/delete",
-        async (request, reply) => {
-            const id = request.body?.agentId;
-            if (!id) return reply.code(400).send({error: "agentId is required"});
-            await runtime.deleteAgent(id);
-            return {deleted: id};
-        },
+    app.get<{ Querystring: { conversationId?: string } }>(
+        "/agent/history",
+        async (request) => ({
+            messages: await runtime.listHistory(
+                request.query?.conversationId?.trim() || undefined,
+            ),
+        }),
     );
 
     app.post<{

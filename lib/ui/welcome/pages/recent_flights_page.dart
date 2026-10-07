@@ -29,8 +29,9 @@ class RecentFlightsPage extends StatefulWidget {
   final VoidCallback? onWorldMap;
   final VoidCallback? onFlightAcademy;
 
-  /// After a prompt send: the shell jumps to the chat tab.
-  final VoidCallback? onOpenChat;
+  /// After a prompt send: jumps to a chat tab bound to the session the
+  /// text went into (receives the `ChatSessionManager` session key).
+  final ValueChanged<String>? onOpenChat;
 
   /// Settings (API key vault) driving the model chips.
   final SettingsController? settings;
@@ -105,10 +106,17 @@ class _RecentFlightsPageState extends State<RecentFlightsPage> {
                                 controller: _prompt,
                                 isStreaming: false,
                                 onSend: (text) {
-                                  ChatSession.instance.send(text);
-                                  widget.onOpenChat?.call();
+                                  // New conversation per welcome send: mint
+                                  // a draft session, start the turn, then
+                                  // open a chat tab bound to that session.
+                                  final manager = ChatSessionManager.instance;
+                                  final key = manager.newChat();
+                                  final session = manager.sessionByKey(key);
+                                  session?.send(text);
+                                  widget.onOpenChat?.call(key);
                                 },
-                                onStop: () => ChatSession.instance.stop(),
+                                onStop: () =>
+                                    ChatSessionManager.instance.stopStreaming(),
                               ),
                               const SizedBox(height: 8),
                               Padding(

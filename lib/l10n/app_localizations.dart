@@ -230,6 +230,48 @@ abstract class AppLocalizations {
   /// **'Chat'**
   String get tabChat;
 
+  /// No description provided for @chatNewConversation.
+  ///
+  /// In en, this message translates to:
+  /// **'New chat'**
+  String get chatNewConversation;
+
+  /// No description provided for @panelConversations.
+  ///
+  /// In en, this message translates to:
+  /// **'Conversations'**
+  String get panelConversations;
+
+  /// No description provided for @conversationNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New conversation'**
+  String get conversationNew;
+
+  /// No description provided for @conversationEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No conversations yet'**
+  String get conversationEmpty;
+
+  /// No description provided for @conversationDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete conversation'**
+  String get conversationDelete;
+
+  /// No description provided for @conversationDeleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this conversation? This cannot be undone.'**
+  String get conversationDeleteConfirm;
+
+  /// No description provided for @conversationDeleteAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get conversationDeleteAction;
+
   /// No description provided for @tabMapUnnamed.
   ///
   /// In en, this message translates to:
