@@ -409,6 +409,30 @@ class ChatSessionManager extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Messages of one conversation for export: prefers the live session's
+  /// in-memory list (complete even mid-turn), otherwise fetches the
+  /// official history. Returns null when neither is available.
+  Future<List<({String role, String content})>?> exportMessages(
+      String conversationId) async {
+    ChatSession? live;
+    for (final s in _sessions.values) {
+      if (s.conversationId == conversationId) {
+        live = s;
+        break;
+      }
+    }
+    if (live != null && live.messages.isNotEmpty) {
+      return [
+        for (final m in live.messages)
+          (
+            role: m.role == ChatRole.user ? 'user' : 'assistant',
+            content: m.content,
+          ),
+      ];
+    }
+    return GatewayClient.instance.fetchHistory(conversationId: conversationId);
+  }
+
   /// Display title of a conversation, or null when not (yet) summarized.
   String? titleOf(String conversationId) {
     for (final c in conversations) {

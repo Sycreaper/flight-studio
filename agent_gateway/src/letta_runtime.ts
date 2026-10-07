@@ -58,6 +58,10 @@ export class LettaRuntime extends EventEmitter {
     /** Last successful provider push — powers title summarization. */
     private lastProvider: {baseUrl: string; apiKey: string; model: string} | null =
         null;
+    /** Conversations this gateway session has already titled. Prevents
+     * re-summarizing AND stops Letta's own auto-summary (which parrots the
+     * assistant's first line) from winning: our first write overwrites it. */
+    private readonly titledConversations = new Set<string>();
 
     // Local app-server ownership.
     private serverProcess: ChildProcess | null = null;
@@ -469,11 +473,20 @@ export class LettaRuntime extends EventEmitter {
                 // with an empty turn_done (it would blank the bubble).
                 if (!errored) {
                     emitTurn({type: "turn_done", content: full});
-                    void this.maybeSummarizeTitle(
-                        conversationId ?? null,
-                        text,
-                        full,
-                    );
+                    // Delayed so Letta's own auto-summary (which would
+                    // otherwise parrot the assistant's first line) lands
+                    // FIRST — our title then overwrites it.
+                    if (conversationId != null) {
+                        setTimeout(
+                            () =>
+                                void this.maybeSummarizeTitle(
+                                    conversationId,
+                                    text,
+                                    full,
+                                ),
+                            2_000,
+                        );
+                    }
                 }
             } catch (err) {
                 this.turnActive = false;
@@ -772,11 +785,16 @@ export class LettaRuntime extends EventEmitter {
                     (c) =>
                         c.archived !== true && c.agent_id === this.agentId,
                 )
-                .map((c) => ({
-                    id: c.id,
-                    title: c.summary?.trim() ? c.summary.trim() : null,
-                    lastMessageAt: c.last_message_at ?? c.created_at ?? null,
-                }))
+                .map((c) => {
+                    // Conversations that already carry a title (from a
+                    // previous gateway run) must not be re-summarized.
+                    if (c.summary?.trim()) this.titledConversations.add(c.id);
+                    return {
+                        id: c.id,
+                        title: c.summary?.trim() ? c.summary.trim() : null,
+                        lastMessageAt: c.last_message_at ?? c.created_at ?? null,
+                    };
+                })
                 .sort((a, b) =>
                     (b.lastMessageAt ?? "").localeCompare(a.lastMessageAt ?? ""),
                 );
@@ -826,84 +844,104 @@ export class LettaRuntime extends EventEmitter {
         log.info("conversations", "archived (deleted)", id);
     }
 
-    /// After the FIRST exchange of a conversation, generates a short title
-    /// with the configured provider (one lightweight official OpenAI-
-    /// compatible call through the same credential the harness uses) and
-    /// writes it into the conversation's official `summary` field. Runs in
-    /// the background; failures never disturb the chat turn.
+    /// After the FIRST exchange of a conversation, writes a short title
+    /// into the conversation's official `summary` field:
+    /// 1. an LLM summary via the configured provider (one lightweight
+    ///    official OpenAI-compatible call with the same credential the
+    ///    harness uses), falling back to
+    /// 2. a clipped version of the user's first question.
+    /// Our write OVERWRITES whatever Letta's auto-summary put there — that
+    /// summary repeats the assistant's first line, which is not a title.
+    /// Runs in the background; failures never disturb the chat turn.
     private async maybeSummarizeTitle(
         conversationId: string | null,
         userText: string,
         assistantText: string,
     ): Promise<void> {
         if (conversationId == null || this.client == null) return;
-        const provider = this.lastProvider;
-        if (provider == null) {
-            log.info("title", "skip — no provider configured");
-            return;
+        if (this.titledConversations.has(conversationId)) return;
+        this.titledConversations.add(conversationId);
+        const clip = (s: string, n: number) =>
+            s.length > n ? `${s.slice(0, n)}…` : s;
+        let title = "";
+        try {
+            const provider = this.lastProvider;
+            if (provider != null) {
+                const res = await fetch(
+                    `${provider.baseUrl}/chat/completions`,
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${provider.apiKey}`,
+                        },
+                        body: JSON.stringify({
+                            model: provider.model,
+                            max_tokens: 48,
+                            temperature: 0.3,
+                            messages: [
+                                {
+                                    role: "system",
+                                    content:
+                                        "Summarize this flight-assistant " +
+                                        "conversation as a short title in the " +
+                                        "user's language. Reply with ONLY the " +
+                                        "title, at most 16 characters, no quotes, " +
+                                        "no trailing period.",
+                                },
+                                {
+                                    role: "user",
+                                    content:
+                                        `User: ${clip(userText, 500)}\n` +
+                                        `Assistant: ${clip(assistantText, 800)}`,
+                                },
+                            ],
+                        }),
+                    },
+                );
+                if (res.ok) {
+                    const data = (await res.json()) as {
+                        choices?: Array<{ message?: { content?: string } }>;
+                    };
+                    title = (data.choices?.[0]?.message?.content ?? "")
+                        .replace(/["'「」『』]/g, "")
+                        .split("\n")[0]
+                        .trim();
+                } else {
+                    log.warn("title", "provider call failed:", res.status);
+                }
+            } else {
+                log.info("title", "no provider configured — using first question");
+            }
+        } catch (err) {
+            log.warn(
+                "title", "summarize failed:",
+                err instanceof Error ? err.message : String(err),
+            );
+        }
+        // Fallback: the user's first question, clipped — always yields a
+        // meaningful title even without a provider.
+        if (title.length === 0) {
+            title = clip(
+                userText.replace(/\s+/g, " ").trim(),
+                24,
+            );
         }
         try {
-            const conv = await this.client.conversations.retrieve(conversationId);
-            if (conv.summary != null && conv.summary.trim().length > 0) return;
-            const clip = (s: string, n: number) =>
-                s.length > n ? `${s.slice(0, n)}…` : s;
-            const res = await fetch(
-                `${provider.baseUrl}/chat/completions`,
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${provider.apiKey}`,
-                    },
-                    body: JSON.stringify({
-                        model: provider.model,
-                        max_tokens: 48,
-                        temperature: 0.3,
-                        messages: [
-                            {
-                                role: "system",
-                                content:
-                                    "Summarize this flight-assistant " +
-                                    "conversation as a short title in the " +
-                                    "user's language. Reply with ONLY the " +
-                                    "title, at most 16 characters, no quotes, " +
-                                    "no trailing period.",
-                            },
-                            {
-                                role: "user",
-                                content:
-                                    `User: ${clip(userText, 500)}\n` +
-                                    `Assistant: ${clip(assistantText, 800)}`,
-                            },
-                        ],
-                    }),
-                },
-            );
-            if (!res.ok) {
-                log.warn("title", "provider call failed:", res.status);
-                return;
-            }
-            const data = (await res.json()) as {
-                choices?: Array<{ message?: { content?: string } }>;
-            };
-            let title = (data.choices?.[0]?.message?.content ?? "")
-                .replace(/["'「」『』]/g, "")
-                .split("\n")[0]
-                .trim();
-            if (title.length > 24) title = title.slice(0, 24);
-            if (title.length === 0) return;
             await this.client.conversations.update(conversationId, {
                 summary: title,
             });
-            log.info("title", `summarized ${conversationId} →`, title);
+            log.info("title", `titled ${conversationId} →`, title);
             this.emitEvent({
                 type: "conversation_renamed",
                 conversationId,
                 title,
             });
         } catch (err) {
+            // Let the next turn retry (untitled again).
+            this.titledConversations.delete(conversationId);
             log.warn(
-                "title", "summarize failed:",
+                "title", "write-back failed:",
                 err instanceof Error ? err.message : String(err),
             );
         }

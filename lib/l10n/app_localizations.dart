@@ -272,6 +272,30 @@ abstract class AppLocalizations {
   /// **'Delete'**
   String get conversationDeleteAction;
 
+  /// No description provided for @conversationExport.
+  ///
+  /// In en, this message translates to:
+  /// **'Export conversation'**
+  String get conversationExport;
+
+  /// No description provided for @conversationExportUser.
+  ///
+  /// In en, this message translates to:
+  /// **'User'**
+  String get conversationExportUser;
+
+  /// No description provided for @conversationExportAssistant.
+  ///
+  /// In en, this message translates to:
+  /// **'Flight Assistant'**
+  String get conversationExportAssistant;
+
+  /// No description provided for @conversationExportDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Exported'**
+  String get conversationExportDone;
+
   /// No description provided for @tabMapUnnamed.
   ///
   /// In en, this message translates to:

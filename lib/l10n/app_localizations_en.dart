@@ -97,6 +97,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get conversationDeleteAction => 'Delete';
 
   @override
+  String get conversationExport => 'Export conversation';
+
+  @override
+  String get conversationExportUser => 'User';
+
+  @override
+  String get conversationExportAssistant => 'Flight Assistant';
+
+  @override
+  String get conversationExportDone => 'Exported';
+
+  @override
   String get tabMapUnnamed => 'Map';
 
   @override

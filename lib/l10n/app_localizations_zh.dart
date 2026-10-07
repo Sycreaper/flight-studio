@@ -96,6 +96,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get conversationDeleteAction => '删除';
 
   @override
+  String get conversationExport => '导出对话';
+
+  @override
+  String get conversationExportUser => '用户';
+
+  @override
+  String get conversationExportAssistant => '飞行助理';
+
+  @override
+  String get conversationExportDone => '已导出';
+
+  @override
   String get tabMapUnnamed => '地图';
 
   @override

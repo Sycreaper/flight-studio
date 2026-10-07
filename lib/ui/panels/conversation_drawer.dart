@@ -1,17 +1,24 @@
+import 'dart:convert';
+import 'dart:io' show File;
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show Uint8List;
 
 import '../../l10n/app_localizations.dart';
 import '../chat/chat_session.dart';
 import '../theme/app_colors.dart';
+import '../widgets/floating_window.dart';
 
 /// Left-drawer panel listing every conversation with the 飞行助理 agent
 /// (official Letta conversations API via [ChatSessionManager]).
 ///
 /// Top: a 新建对话 button that opens a fresh chat tab. Below: the
 /// conversation list — click opens (or focuses) the matching chat tab; the
-/// trailing ⋮ menu offers 删除对话 behind a confirmation dialog (deletion
-/// uses the official archive semantics; an actively streaming conversation
-/// is aborted first, gateway-side).
+/// trailing ⋮ menu offers 导出对话 (Markdown file) and 删除对话 behind a
+/// confirmation floating window (deletion uses the official archive
+/// semantics; an actively streaming conversation is aborted first,
+/// gateway-side).
 class ConversationDrawer extends StatefulWidget {
   const ConversationDrawer({
     super.key,
@@ -105,6 +112,7 @@ class _ConversationDrawerState extends State<ConversationDrawer> {
                     onOpen: () =>
                         widget.onOpenConversation(conversations[i].id),
                     onDelete: () => _confirmDelete(conversations[i].id),
+                    onExport: () => _exportMarkdown(conversations[i].id),
                   ),
                 ),
         ),
@@ -112,70 +120,156 @@ class _ConversationDrawerState extends State<ConversationDrawer> {
     );
   }
 
-  /// 删除对话 confirm dialog — deletion cannot be undone.
-  Future<void> _confirmDelete(String id) async {
-    final colors = Theme.of(context).extension<AppColors>()!;
+  /// 删除对话 confirm floating window — the same style the settings page
+  /// uses for destructive confirmations. Deletion cannot be undone.
+  void _confirmDelete(String id) {
     final l10n = AppLocalizations.of(context)!;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: colors.surfaceRaised,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: BorderSide(color: colors.border),
-        ),
-        title: Text(
-          l10n.conversationDelete,
-          style: TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-            color: colors.textPrimary,
+    late OverlayEntry confirmEntry;
+    confirmEntry = OverlayEntry(
+      builder: (ctx) => FloatingWindow(
+        title: l10n.conversationDelete,
+        titleIcon: Icons.warning_amber_rounded,
+        width: 400,
+        height: 200,
+        onClose: () => confirmEntry.remove(),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Builder(
+            builder: (ctx) {
+              final colors = Theme.of(ctx).extension<AppColors>()!;
+              return Column(
+                children: [
+                  Icon(
+                    Icons.delete_outline_rounded,
+                    size: 32,
+                    color: colors.danger,
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    l10n.conversationDeleteConfirm,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: colors.textSecondary,
+                    ),
+                  ),
+                  const Spacer(),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () => confirmEntry.remove(),
+                        child: Text(
+                          l10n.settingsCancel,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: colors.textSecondary,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      FilledButton(
+                        style: FilledButton.styleFrom(
+                          backgroundColor: colors.danger,
+                        ),
+                        onPressed: () {
+                          confirmEntry.remove();
+                          ChatSessionManager.instance.deleteConversation(id);
+                        },
+                        child: Text(
+                          l10n.conversationDeleteAction,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              );
+            },
           ),
         ),
-        content: Text(
-          l10n.conversationDeleteConfirm,
-          style: TextStyle(fontSize: 13, color: colors.textSecondary),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(
-              l10n.settingsCancel,
-              style: TextStyle(fontSize: 13, color: colors.textSecondary),
-            ),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: Text(
-              l10n.conversationDeleteAction,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: colors.danger,
-              ),
-            ),
-          ),
-        ],
       ),
     );
-    if (confirmed == true) {
-      await ChatSessionManager.instance.deleteConversation(id);
+    Overlay.of(context).insert(confirmEntry);
+  }
+
+  /// 导出对话 — one Markdown file (title header + user/assistant turns)
+  /// written through the platform save dialog.
+  Future<void> _exportMarkdown(String id) async {
+    final l10n = AppLocalizations.of(context)!;
+    final manager = ChatSessionManager.instance;
+    final title = manager.titleOf(id);
+    final messages = await manager.exportMessages(id);
+    if (!mounted) return;
+    if (messages == null || messages.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.conversationEmpty)),
+      );
+      return;
     }
+
+    final now = DateTime.now();
+    String two(int v) => v.toString().padLeft(2, '0');
+    final buffer = StringBuffer()
+      ..writeln('# ${title ?? l10n.chatNewConversation}')
+      ..writeln()
+      ..writeln(
+        '> Flight Studio · ${l10n.conversationExport} · '
+        '${now.year}-${two(now.month)}-${two(now.day)} '
+        '${two(now.hour)}:${two(now.minute)}',
+      );
+    for (final m in messages) {
+      buffer
+        ..writeln()
+        ..writeln('## ${m.role == 'user'
+            ? l10n.conversationExportUser
+            : l10n.conversationExportAssistant}')
+        ..writeln()
+        ..writeln(m.content);
+    }
+
+    final safeTitle = (title ?? id)
+        .replaceAll(RegExp(r'[\\/:*?"<>|]'), '_')
+        .trim();
+    final fileName =
+        '${safeTitle.isEmpty ? 'conversation' : safeTitle}_'
+        '${now.year}${two(now.month)}${two(now.day)}_'
+        '${two(now.hour)}${two(now.minute)}.md';
+    final uri = await FilePicker.saveFile(
+      dialogTitle: l10n.conversationExport,
+      fileName: fileName,
+      bytes: Uint8List.fromList(utf8.encode(buffer.toString())),
+    );
+    if (uri == null || !mounted) return; // Cancelled.
+    // Some platforms return the uri without writing the bytes themselves.
+    final file = File(uri.toFilePath());
+    if (!file.existsSync()) {
+      await file.writeAsString(buffer.toString(), flush: true);
+    }
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('${l10n.conversationExportDone}: ${file.path}')),
+    );
   }
 }
 
 /// One conversation row: title (新对话 placeholder until summarized),
-/// relative activity time, trailing ⋮ menu with 删除对话.
+/// relative activity time, trailing ⋮ menu with 导出对话 / 删除对话.
 class _ConversationRow extends StatefulWidget {
   const _ConversationRow({
     required this.conversation,
     required this.onOpen,
     required this.onDelete,
+    required this.onExport,
   });
 
   final GatewayConversation conversation;
   final VoidCallback onOpen;
   final VoidCallback onDelete;
+  final VoidCallback onExport;
 
   @override
   State<_ConversationRow> createState() => _ConversationRowState();
@@ -260,8 +354,28 @@ class _ConversationRowState extends State<_ConversationRow> {
                   position: PopupMenuPosition.under,
                   onSelected: (value) {
                     if (value == 'delete') widget.onDelete();
+                    if (value == 'export') widget.onExport();
                   },
                   itemBuilder: (context) => [
+                    PopupMenuItem(
+                      value: 'export',
+                      height: 36,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.file_download_outlined,
+                              size: 15, color: colors.accent),
+                          const SizedBox(width: 8),
+                          Text(
+                            l10n.conversationExport,
+                            style: TextStyle(
+                              fontSize: 12.5,
+                              color: colors.textPrimary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                     PopupMenuItem(
                       value: 'delete',
                       height: 36,
