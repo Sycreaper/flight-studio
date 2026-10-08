@@ -22,6 +22,7 @@ import {type ChildProcess, spawn} from "node:child_process";
 import {flightStudioTools} from "./mcp_registry.js";
 import type {LlmProxy} from "./llm_proxy.js";
 import {log} from "./logger.js";
+import {cleanTitleText, clipText, looksAutoSummary} from "./title_text.js";
 
 export type {GatewayEvent} from "./event_types.js";
 
@@ -809,7 +810,7 @@ export class LettaRuntime extends EventEmitter {
                             .update(c.id, {summary: known})
                             .catch(() => undefined);
                     }
-                } else if (summary.length > 0 && !this.looksAutoSummary(summary)) {
+                } else if (summary.length > 0 && !looksAutoSummary(summary)) {
                     // Short single-line title (ours, from a previous gateway
                     // run) — adopt it so the guard protects it too.
                     this.titledConversations.set(c.id, summary);
@@ -841,27 +842,10 @@ export class LettaRuntime extends EventEmitter {
     /// `<think>…</think>` — sometimes unclosed — which must never become
     /// the title), strips harness wrappers and quotes, then keeps the
     /// first line. Empty when nothing usable remains (caller falls back
-    /// to the user's first question).
-    private cleanTitleText(raw: string): string {
-        return raw
-            .replace(/<(system-reminder|task-notification|env-reminder)[^>]*>[\s\S]*?<\/\1>/gi, "")
-            .replace(/<think(?:ing)?>[\s\S]*?<\/think(?:ing)?>/gi, "")
-            .replace(/<think(?:ing)?>[\s\S]*$/i, "")
-            .replace(/["'「」『』]/g, "")
-            .trim()
-            .split("\n")[0]
-            ?.trim() ?? "";
-    }
-
-    /// Heuristic for the backend's auto-summary junk: it repeats the
-    /// assistant's first line — `<think>` fragments, reasoning text, or a
-    /// long unbroken sentence. Real titles are short and single-line.
-    private looksAutoSummary(summary: string): boolean {
-        return summary.includes("<think") ||
-            summary.includes("</think") ||
-            summary.includes("<system-reminder") ||
-            summary.includes("\n") ||
-            summary.length > 40;
+    /// to the user's first question). Pure logic lives in `title_text.ts`
+    /// (unit-tested there).
+    private titleFromLlm(raw: string): string {
+        return cleanTitleText(raw);
     }
 
     /// Rebuilds a conversation's title from its first user message (the
@@ -877,9 +861,7 @@ export class LettaRuntime extends EventEmitter {
             const history = await this.listHistory(conversationId);
             const first = history.find((m) => m.role === "user");
             if (first == null) return null;
-            const clip = (s: string, n: number) =>
-                s.length > n ? `${s.slice(0, n)}…` : s;
-            const title = clip(first.content.replace(/\s+/g, " ").trim(), 24);
+            const title = clipText(first.content.replace(/\s+/g, " ").trim(), 24);
             if (title.length === 0) return null;
             await client.conversations.update(conversationId, {summary: title});
             this.titledConversations.set(conversationId, title);
@@ -951,8 +933,6 @@ export class LettaRuntime extends EventEmitter {
             await this.guardConversationTitle(conversationId, existing);
             return;
         }
-        const clip = (s: string, n: number) =>
-            s.length > n ? `${s.slice(0, n)}…` : s;
         let title = "";
         try {
             const provider = this.lastProvider;
@@ -983,8 +963,8 @@ export class LettaRuntime extends EventEmitter {
                                 {
                                     role: "user",
                                     content:
-                                        `User: ${clip(userText, 500)}\n` +
-                                        `Assistant: ${clip(assistantText, 800)}`,
+                                        `User: ${clipText(userText, 500)}\n` +
+                                        `Assistant: ${clipText(assistantText, 800)}`,
                                 },
                             ],
                         }),
@@ -994,7 +974,7 @@ export class LettaRuntime extends EventEmitter {
                     const data = (await res.json()) as {
                         choices?: Array<{ message?: { content?: string } }>;
                     };
-                    title = this.cleanTitleText(
+                    title = this.titleFromLlm(
                         data.choices?.[0]?.message?.content ?? "",
                     );
                 } else {
@@ -1012,10 +992,7 @@ export class LettaRuntime extends EventEmitter {
         // Fallback: the user's first question, clipped — always yields a
         // meaningful title even without a provider.
         if (title.length === 0) {
-            title = clip(
-                userText.replace(/\s+/g, " ").trim(),
-                24,
-            );
+            title = clipText(userText.replace(/\s+/g, " ").trim(), 24);
         }
         try {
             await this.client.conversations.update(conversationId, {

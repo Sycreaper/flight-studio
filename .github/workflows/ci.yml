@@ -10,10 +10,11 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # Static analysis + full test suite (unit + widget). The real-data smoke
-  # tests skip automatically when the X-Plane install is absent (CI).
-  analyze-and-test:
-    name: Analyze & Test (ubuntu)
+  # Flutter/Dart: static analysis + full test suite (unit + widget). The
+  # real-data smoke tests skip automatically when the X-Plane install is
+  # absent (CI).
+  flutter-analyze-and-test:
+    name: Flutter analyze & test (ubuntu)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -31,6 +32,30 @@ jobs:
       - run: flutter analyze --no-pub
 
       - run: flutter test --reporter compact
+
+  # TypeScript Agent Gateway (`agent_gateway/`): typecheck + unit tests
+  # (safety policy, title normalization, LLM proxy, tool registry, phase
+  # mapping). No Letta backend or network credentials needed.
+  gateway-test:
+    name: Gateway typecheck & test (Node 22, ubuntu)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: agent_gateway
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: agent_gateway/package-lock.json
+
+      - run: npm ci
+
+      - run: npm run build
+
+      - run: npm test
 
   # Primary desktop target — verifies the Windows runner, version resource
   # and the full native toolchain compile.
