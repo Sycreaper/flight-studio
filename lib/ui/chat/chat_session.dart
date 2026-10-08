@@ -386,14 +386,25 @@ class ChatSessionManager extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Conversations deleted in this app session — the shell closes the
+  /// matching chat tabs when it sees an id in here (more precise than
+  /// inferring from the list, which may not have loaded yet).
+  final Set<String> _deletedConversations = {};
+
+  bool isDeleted(String conversationId) =>
+      _deletedConversations.contains(conversationId);
+
   /// Deletes one conversation (official archive semantics) and drops its
-  /// session. The UI closes the matching tab itself before calling this.
+  /// session. Notifies while the session is STILL registered so listeners
+  /// (the shell) can resolve the session → conversation → tab and close it;
+  /// the session itself is removed afterwards.
   Future<void> deleteConversation(String id) async {
     await GatewayClient.instance.deleteConversation(id);
+    _deletedConversations.add(id);
     conversations.removeWhere((c) => c.id == id);
+    notifyListeners();
     _sessions.removeWhere((_, s) => s.conversationId == id);
     if (streamingSession?.conversationId == id) streamingSession = null;
-    notifyListeners();
   }
 
   /// Reloads the conversation list from the official Letta API (starts the
@@ -654,6 +665,7 @@ class ChatSessionManager extends ChangeNotifier {
     streamingSession = null;
     conversations.clear();
     _sessions.clear();
+    _deletedConversations.clear();
     notifyListeners();
   }
 

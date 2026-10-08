@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
@@ -83,6 +85,9 @@ class _AddApiKeyBodyState extends State<_AddApiKeyBody> {
 
   /// Connectivity + discovery probe: GET `{baseUrl}/models` with the key.
   /// Returns the discovered model ids (empty when the endpoint lists none).
+  /// The whole probe is capped by a HARD timeout — a wedged TLS handshake
+  /// (firewall dropping packets mid-handshake) is covered by neither the
+  /// connection nor the receive timeout, and would spin forever.
   Future<List<String>> _fetchModels() async {
     final base = _baseUrlCtrl.text.trim().replaceAll(RegExp(r'/+$'), '');
     final key = _valueCtrl.text.trim();
@@ -95,12 +100,14 @@ class _AddApiKeyBodyState extends State<_AddApiKeyBody> {
       _dio ??= Dio()
         ..options.connectTimeout = const Duration(seconds: 8)
         ..options.receiveTimeout = const Duration(seconds: 10);
-      final res = await _dio!.get<Map<String, dynamic>>(
-        '$base/models',
-        options: Options(headers: {
-          if (key.isNotEmpty) 'Authorization': 'Bearer $key',
-        }),
-      );
+      final res = await _dio!
+          .get<Map<String, dynamic>>(
+            '$base/models',
+            options: Options(headers: {
+              if (key.isNotEmpty) 'Authorization': 'Bearer $key',
+            }),
+          )
+          .timeout(const Duration(seconds: 20));
       final data = res.data?['data'];
       final models = data is List
           ? data
@@ -119,7 +126,9 @@ class _AddApiKeyBodyState extends State<_AddApiKeyBody> {
       });
       return models;
     } on Exception catch (e) {
-      final status = e is DioException
+      final status = e is TimeoutException
+          ? 'timeout'
+          : e is DioException
           ? 'HTTP ${e.response?.statusCode}'
           : e.toString();
       if (!mounted) return const [];

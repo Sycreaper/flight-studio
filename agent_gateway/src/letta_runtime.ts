@@ -58,10 +58,12 @@ export class LettaRuntime extends EventEmitter {
     /** Last successful provider push — powers title summarization. */
     private lastProvider: {baseUrl: string; apiKey: string; model: string} | null =
         null;
-    /** Conversations this gateway session has already titled. Prevents
-     * re-summarizing AND stops Letta's own auto-summary (which parrots the
-     * assistant's first line) from winning: our first write overwrites it. */
-    private readonly titledConversations = new Set<string>();
+    /** Title this gateway wrote per conversation id. Guards against the
+     * local backend's OWN auto-summary (which parrots the assistant's
+     * first line and may land at ANY time — even after our write, e.g.
+     * when the next resumeSession bootstraps): every turn re-verifies and
+     * restores our title when it was overwritten. */
+    private readonly titledConversations = new Map<string, string>();
 
     // Local app-server ownership.
     private serverProcess: ChildProcess | null = null;
@@ -479,7 +481,7 @@ export class LettaRuntime extends EventEmitter {
                     if (conversationId != null) {
                         setTimeout(
                             () =>
-                                void this.maybeSummarizeTitle(
+                                void this.ensureConversationTitle(
                                     conversationId,
                                     text,
                                     full,
@@ -761,10 +763,15 @@ export class LettaRuntime extends EventEmitter {
     // ── Conversations (official Letta API) ────────────────────────────────────
 
     /// One conversation of the flight-assistant agent as the drawer sees it.
-    /// The official Conversation model has no `name`; the LLM-generated title
-    /// lives in `summary`. The local app-server ignores the archive_status
-    /// list filter and agent_id scoping is loose, so both are enforced
-    /// client-side here.
+    /// The official Conversation model has no `name`; the title lives in
+    /// `summary` — a field the local backend ALSO writes itself (an
+    /// auto-summary that parrots the assistant's first line and can land at
+    /// any time, even after our write). This list therefore SELF-HEALS on
+    /// every read:
+    /// - a title we wrote that was clobbered → restored;
+    /// - a legacy/auto title (long or `<think>`-prefixed) we never wrote →
+    ///   rebuilt from the conversation's first user message;
+    /// - short single-line titles are adopted as ours.
     async listConversations(): Promise<
         Array<{
             id: string;
@@ -780,30 +787,110 @@ export class LettaRuntime extends EventEmitter {
             const all = await this.client.conversations.list({
                 agentId: this.agentId,
             });
-            return all
-                .filter(
-                    (c) =>
-                        c.archived !== true && c.agent_id === this.agentId,
-                )
-                .map((c) => {
-                    // Conversations that already carry a title (from a
-                    // previous gateway run) must not be re-summarized.
-                    if (c.summary?.trim()) this.titledConversations.add(c.id);
-                    return {
-                        id: c.id,
-                        title: c.summary?.trim() ? c.summary.trim() : null,
-                        lastMessageAt: c.last_message_at ?? c.created_at ?? null,
-                    };
-                })
-                .sort((a, b) =>
-                    (b.lastMessageAt ?? "").localeCompare(a.lastMessageAt ?? ""),
-                );
+            const out: Array<{
+                id: string;
+                title: string | null;
+                lastMessageAt: string | null;
+            }> = [];
+            for (const c of all) {
+                if (c.archived === true || c.agent_id !== this.agentId) continue;
+                const summary = c.summary?.trim() ?? "";
+                const known = this.titledConversations.get(c.id);
+                let title: string | null = null;
+                if (known != null) {
+                    // We titled this conversation before.
+                    title = known;
+                    if (summary !== known) {
+                        log.info(
+                            "conversations",
+                            `self-heal: restoring title of ${c.id}`,
+                        );
+                        await this.client.conversations
+                            .update(c.id, {summary: known})
+                            .catch(() => undefined);
+                    }
+                } else if (summary.length > 0 && !this.looksAutoSummary(summary)) {
+                    // Short single-line title (ours, from a previous gateway
+                    // run) — adopt it so the guard protects it too.
+                    this.titledConversations.set(c.id, summary);
+                    title = summary;
+                } else {
+                    // No title, or the backend's auto-summary junk.
+                    title = await this.rebuildTitleFromFirstQuestion(c.id);
+                }
+                out.push({
+                    id: c.id,
+                    title,
+                    lastMessageAt: c.last_message_at ?? c.created_at ?? null,
+                });
+            }
+            return out.sort((a, b) =>
+                (b.lastMessageAt ?? "").localeCompare(a.lastMessageAt ?? ""),
+            );
         } catch (err) {
             log.warn(
                 "conversations", "list failed:",
                 err instanceof Error ? err.message : String(err),
             );
             return [];
+        }
+    }
+
+    /// Normalizes raw LLM output into a title: strips reasoning blocks
+    /// (reasoning models like GLM prefix their answer with
+    /// `<think>…</think>` — sometimes unclosed — which must never become
+    /// the title), strips harness wrappers and quotes, then keeps the
+    /// first line. Empty when nothing usable remains (caller falls back
+    /// to the user's first question).
+    private cleanTitleText(raw: string): string {
+        return raw
+            .replace(/<(system-reminder|task-notification|env-reminder)[^>]*>[\s\S]*?<\/\1>/gi, "")
+            .replace(/<think(?:ing)?>[\s\S]*?<\/think(?:ing)?>/gi, "")
+            .replace(/<think(?:ing)?>[\s\S]*$/i, "")
+            .replace(/["'「」『』]/g, "")
+            .trim()
+            .split("\n")[0]
+            ?.trim() ?? "";
+    }
+
+    /// Heuristic for the backend's auto-summary junk: it repeats the
+    /// assistant's first line — `<think>` fragments, reasoning text, or a
+    /// long unbroken sentence. Real titles are short and single-line.
+    private looksAutoSummary(summary: string): boolean {
+        return summary.includes("<think") ||
+            summary.includes("</think") ||
+            summary.includes("<system-reminder") ||
+            summary.includes("\n") ||
+            summary.length > 40;
+    }
+
+    /// Rebuilds a conversation's title from its first user message (the
+    /// user-approved fallback) when only auto-summary junk is stored.
+    /// Persists it and remembers it; returns null when the conversation has
+    /// no user message yet.
+    private async rebuildTitleFromFirstQuestion(
+        conversationId: string,
+    ): Promise<string | null> {
+        const client = this.client;
+        if (client == null) return null;
+        try {
+            const history = await this.listHistory(conversationId);
+            const first = history.find((m) => m.role === "user");
+            if (first == null) return null;
+            const clip = (s: string, n: number) =>
+                s.length > n ? `${s.slice(0, n)}…` : s;
+            const title = clip(first.content.replace(/\s+/g, " ").trim(), 24);
+            if (title.length === 0) return null;
+            await client.conversations.update(conversationId, {summary: title});
+            this.titledConversations.set(conversationId, title);
+            log.info("conversations", `rebuilt title of ${conversationId} →`, title);
+            return title;
+        } catch (err) {
+            log.warn(
+                "conversations", "title rebuild failed:",
+                err instanceof Error ? err.message : String(err),
+            );
+            return null;
         }
     }
 
@@ -844,23 +931,26 @@ export class LettaRuntime extends EventEmitter {
         log.info("conversations", "archived (deleted)", id);
     }
 
-    /// After the FIRST exchange of a conversation, writes a short title
-    /// into the conversation's official `summary` field:
-    /// 1. an LLM summary via the configured provider (one lightweight
-    ///    official OpenAI-compatible call with the same credential the
-    ///    harness uses), falling back to
-    /// 2. a clipped version of the user's first question.
-    /// Our write OVERWRITES whatever Letta's auto-summary put there — that
-    /// summary repeats the assistant's first line, which is not a title.
+    /// Ensures a conversation carries OUR title after a turn completes:
+    /// - first exchange → generate one (LLM summary via the configured
+    ///   provider, falling back to the user's first question clipped) and
+    ///   write it into the official `summary` field, overwriting whatever
+    ///   Letta's auto-summary put there;
+    /// - later exchanges → re-verify: if Letta has overwritten our title
+    ///   since (its auto-summary repeats the assistant's first line and can
+    ///   land late, e.g. on the next resumeSession bootstrap), restore it.
     /// Runs in the background; failures never disturb the chat turn.
-    private async maybeSummarizeTitle(
-        conversationId: string | null,
+    private async ensureConversationTitle(
+        conversationId: string,
         userText: string,
         assistantText: string,
     ): Promise<void> {
-        if (conversationId == null || this.client == null) return;
-        if (this.titledConversations.has(conversationId)) return;
-        this.titledConversations.add(conversationId);
+        if (this.client == null) return;
+        const existing = this.titledConversations.get(conversationId);
+        if (existing != null) {
+            await this.guardConversationTitle(conversationId, existing);
+            return;
+        }
         const clip = (s: string, n: number) =>
             s.length > n ? `${s.slice(0, n)}…` : s;
         let title = "";
@@ -886,8 +976,9 @@ export class LettaRuntime extends EventEmitter {
                                         "Summarize this flight-assistant " +
                                         "conversation as a short title in the " +
                                         "user's language. Reply with ONLY the " +
-                                        "title, at most 16 characters, no quotes, " +
-                                        "no trailing period.",
+                                        "title — at most 16 characters, no " +
+                                        "quotes, no trailing period, no " +
+                                        "reasoning and no thinking tags.",
                                 },
                                 {
                                     role: "user",
@@ -903,10 +994,9 @@ export class LettaRuntime extends EventEmitter {
                     const data = (await res.json()) as {
                         choices?: Array<{ message?: { content?: string } }>;
                     };
-                    title = (data.choices?.[0]?.message?.content ?? "")
-                        .replace(/["'「」『』]/g, "")
-                        .split("\n")[0]
-                        .trim();
+                    title = this.cleanTitleText(
+                        data.choices?.[0]?.message?.content ?? "",
+                    );
                 } else {
                     log.warn("title", "provider call failed:", res.status);
                 }
@@ -931,19 +1021,51 @@ export class LettaRuntime extends EventEmitter {
             await this.client.conversations.update(conversationId, {
                 summary: title,
             });
+            this.titledConversations.set(conversationId, title);
             log.info("title", `titled ${conversationId} →`, title);
             this.emitEvent({
                 type: "conversation_renamed",
                 conversationId,
                 title,
             });
+            await this.guardConversationTitle(conversationId, title);
         } catch (err) {
-            // Let the next turn retry (untitled again).
-            this.titledConversations.delete(conversationId);
             log.warn(
                 "title", "write-back failed:",
                 err instanceof Error ? err.message : String(err),
             );
+        }
+    }
+
+    /// Re-checks (twice, a few seconds apart) that the conversation's
+    /// official summary still equals OUR title; restores it when Letta's
+    /// late auto-summary has overwritten it. Stops early once stable.
+    private async guardConversationTitle(
+        conversationId: string,
+        title: string,
+    ): Promise<void> {
+        const client = this.client;
+        if (client == null) return;
+        for (const delayMs of [5_000, 15_000]) {
+            await new Promise((r) => setTimeout(r, delayMs));
+            if (this.client == null) return;
+            try {
+                const conv = await client.conversations.retrieve(conversationId);
+                if (conv.summary === title) return; // Stable — done.
+                log.info(
+                    "title",
+                    `restoring ${conversationId} (was: ${conv.summary?.slice(0, 40)})`,
+                );
+                await client.conversations.update(conversationId, {
+                    summary: title,
+                });
+            } catch (err) {
+                log.warn(
+                    "title", "guard failed:",
+                    err instanceof Error ? err.message : String(err),
+                );
+                return;
+            }
         }
     }
 

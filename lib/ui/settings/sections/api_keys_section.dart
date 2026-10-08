@@ -233,20 +233,29 @@ class _ApiKeyListTileState extends State<_ApiKeyListTile> {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppColors>()!;
     final l10n = AppLocalizations.of(context)!;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return MouseRegion(
       onEnter: (_) => setState(() => _hovering = true),
       onExit: (_) => setState(() => _hovering = false),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 90),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        margin: const EdgeInsets.only(bottom: 8),
         decoration: BoxDecoration(
           color: _hovering
               ? colors.surfaceLowered.withValues(alpha: 0.5)
               : colors.surfaceRaised,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: colors.border),
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: [
+            // Floating welcome-card style — same as the navdata source
+            // cards: no hard border, soft shadow.
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDark ? 0.18 : 0.07),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
-        margin: const EdgeInsets.only(bottom: 8),
         child: Row(
           children: [
             Icon(
@@ -262,22 +271,54 @@ class _ApiKeyListTileState extends State<_ApiKeyListTile> {
                 children: [
                   Row(
                     children: [
-                      Text(
-                        _typeLabel(widget.entry.type, l10n),
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: colors.textPrimary,
+                      Flexible(
+                        child: Text(
+                          _typeLabel(widget.entry.type, l10n),
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: colors.textPrimary,
+                          ),
                         ),
                       ),
+                      // Provider chip — OpenAI-compatible entries carry the
+                      // named provider (GLM / Qwen / … / 自定义).
+                      if (widget.entry.type == ApiKeyType.openAiCompatible &&
+                          widget.entry.provider != null &&
+                          widget.entry.provider!.isNotEmpty) ...[
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 1,
+                          ),
+                          decoration: BoxDecoration(
+                            color: colors.surfaceLowered,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            _providerLabel(widget.entry.provider!, l10n),
+                            style: TextStyle(
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.4,
+                              color: colors.textSecondary,
+                            ),
+                          ),
+                        ),
+                      ],
                       if (widget.entry.label != null &&
                           widget.entry.label!.isNotEmpty) ...[
-                        const SizedBox(width: 8),
-                        Text(
-                          '· ${widget.entry.label}',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: colors.textSecondary,
+                        const SizedBox(width: 6),
+                        Flexible(
+                          child: Text(
+                            '· ${widget.entry.label}',
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: colors.textSecondary,
+                            ),
                           ),
                         ),
                       ],
@@ -314,6 +355,21 @@ class _ApiKeyListTileState extends State<_ApiKeyListTile> {
         ),
       ),
     );
+  }
+
+  /// Localized named-provider label — same mapping as the add-key dialog.
+  static String _providerLabel(String persistedName, AppLocalizations l10n) {
+    final provider = OpenAiProviderX.fromPersistedName(persistedName);
+    return switch (provider) {
+      OpenAiProvider.glm => l10n.openAiProviderGlm,
+      OpenAiProvider.qwen => l10n.openAiProviderQwen,
+      OpenAiProvider.deepseek => l10n.openAiProviderDeepseek,
+      OpenAiProvider.minimax => l10n.openAiProviderMinimax,
+      OpenAiProvider.moonshot => l10n.openAiProviderMoonshot,
+      OpenAiProvider.siliconflow => l10n.openAiProviderSiliconflow,
+      OpenAiProvider.openrouter => l10n.openAiProviderOpenrouter,
+      OpenAiProvider.custom => l10n.openAiProviderCustom,
+    };
   }
 
   static IconData _typeIcon(ApiKeyType type) {

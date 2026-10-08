@@ -133,9 +133,9 @@ class AppShellState extends State<AppShell> {
     }
   }
 
-  /// Mirrors the manager's conversation titles onto open chat tabs
-  /// (titleOverride wins over the descriptor's localized 新对话 default),
-  /// and closes tabs whose conversation was deleted from the drawer.
+  /// Closes chat tabs whose conversation was deleted from the drawer and
+  /// mirrors summarized titles onto open chat tabs (titleOverride wins over
+  /// the descriptor's localized 新对话 default).
   void _syncChatTabTitles() {
     if (!mounted) return;
     final manager = ChatSessionManager.instance;
@@ -143,10 +143,9 @@ class AppShellState extends State<AppShell> {
       final session = manager.sessionByKey(tab.chatSessionKey);
       final conversationId = session?.conversationId;
       if (conversationId == null) continue; // Draft — untitled.
-      final exists = manager.conversations.any((c) => c.id == conversationId);
-      if (!exists) {
-        // Deleted (or evicted) conversation — drop the tab. Iterating a
-        // snapshot, so closing here is safe.
+      if (manager.isDeleted(conversationId)) {
+        // Deleted from the drawer — drop the tab. Iterating a snapshot,
+        // so closing here is safe.
         _tabController.close(tab.id);
         continue;
       }
