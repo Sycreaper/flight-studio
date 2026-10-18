@@ -1,4 +1,7 @@
+import 'dart:io' show Platform, Process;
+
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../data/settings/settings_controller.dart';
 import '../../../l10n/app_localizations.dart';
@@ -16,7 +19,19 @@ class AboutSection extends StatelessWidget {
   // The homepage URL is a project constant — declared here rather than as a
   // setting so it stays in sync with pubspec.yaml.
   static const String homepageUrl =
-      'https://github.com/flight-studio/flight-studio';
+      'https://github.com/Sycreaper/flight-studio';
+
+  /// Opens the project homepage in the system browser (best-effort).
+  Future<void> _openHomepage() async {
+    if (Platform.isWindows) {
+      await Process.run('cmd', ['/c', 'start', '', homepageUrl],
+          runInShell: true);
+    } else if (Platform.isMacOS) {
+      await Process.run('open', [homepageUrl]);
+    } else {
+      await Process.run('xdg-open', [homepageUrl]);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +41,8 @@ class AboutSection extends StatelessWidget {
       title: l10n.settingsAboutTitle,
       description: l10n.settingsCategoryAboutDesc,
       children: [
-        // Flight Studio branded hero.
+        // Flight Studio branded hero — the app logo (same SVG as the
+        // welcome drawer, the launcher icons and the About page).
         Center(
           child: Column(
             children: [
@@ -40,10 +56,9 @@ class AboutSection extends StatelessWidget {
                     color: colors.accent.withValues(alpha: 0.32),
                   ),
                 ),
-                child: Icon(
-                  Icons.flight_rounded,
-                  size: 42,
-                  color: colors.accent,
+                child: Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: SvgPicture.asset('assets/icons/logo.svg'),
                 ),
               ),
               const SizedBox(height: 14),
@@ -109,7 +124,7 @@ class AboutSection extends StatelessWidget {
               subtitle: homepageUrl,
               leading: const Icon(Icons.public_rounded),
               trailing: OutlinedButton(
-                onPressed: () => _showPlannedDialog(context, l10n),
+                onPressed: _openHomepage,
                 child: Text(l10n.settingsAboutOpenSource),
               ),
             ),
@@ -149,24 +164,6 @@ class AboutSection extends StatelessWidget {
           child: Text(
             l10n.settingsAboutThirdPartyDesc,
             style: const TextStyle(fontSize: 12, height: 1.6),
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showPlannedDialog(BuildContext context, AppLocalizations l10n) {
-    showFloatingDialog(
-      context,
-      title: l10n.comingSoon,
-      width: 440,
-      height: 240,
-      body: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Center(
-          child: Text(
-            l10n.settingsRestartHint,
-            style: const TextStyle(fontSize: 13, height: 1.5),
           ),
         ),
       ),

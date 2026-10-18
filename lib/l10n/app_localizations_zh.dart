@@ -671,10 +671,6 @@ class AppLocalizationsZh extends AppLocalizations {
       '仅移除 Letta CLI 程序本身。你的本地账户与长期记忆数据（~/.letta）不会被删除。';
 
   @override
-  String get aiLettaReadyHint =>
-      '下一步：在欢迎页创建飞行员账户——每个账户拥有独立长期记忆的 Letta agent。模型提供商请在 Letta CLI 内通过 /connect 绑定。';
-
-  @override
   String get settingsAiClearApiKey => '清除';
 
   @override

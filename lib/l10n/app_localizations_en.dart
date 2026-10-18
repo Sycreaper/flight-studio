@@ -692,10 +692,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'This only removes the Letta CLI program. Your local accounts and long-term memory data (~/.letta) are not deleted.';
 
   @override
-  String get aiLettaReadyHint =>
-      'Next: create a pilot account on the welcome screen — each account owns a Letta agent with isolated long-term memory. Connect a model provider inside the Letta CLI via /connect.';
-
-  @override
   String get settingsAiClearApiKey => 'Clear';
 
   @override

@@ -349,22 +349,6 @@ class _AiCopilotSectionState extends State<AiCopilotSection> {
             ),
           ]),
         ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-          child: Row(
-            children: [
-              Icon(Icons.check_circle_outline_rounded,
-                  size: 13, color: colors.success),
-              const SizedBox(width: 6),
-              Expanded(
-                child: Text(
-                  l10n.aiLettaReadyHint,
-                  style: TextStyle(fontSize: 10.5, color: colors.textDisabled),
-                ),
-              ),
-            ],
-          ),
-        ),
       ],
     );
   }

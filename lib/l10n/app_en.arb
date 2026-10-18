@@ -259,7 +259,6 @@
   "aiLettaLog": "Output log",
   "aiLettaUninstallConfirmTitle": "Uninstall Letta CLI?",
   "aiLettaUninstallConfirmDesc": "This only removes the Letta CLI program. Your local accounts and long-term memory data (~/.letta) are not deleted.",
-  "aiLettaReadyHint": "Next: create a pilot account on the welcome screen — each account owns a Letta agent with isolated long-term memory. Connect a model provider inside the Letta CLI via /connect.",
   "settingsAiClearApiKey": "Clear",
 
   "settingsRemoteTitle": "Remote access",

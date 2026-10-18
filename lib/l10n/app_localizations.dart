@@ -1376,12 +1376,6 @@ abstract class AppLocalizations {
   /// **'This only removes the Letta CLI program. Your local accounts and long-term memory data (~/.letta) are not deleted.'**
   String get aiLettaUninstallConfirmDesc;
 
-  /// No description provided for @aiLettaReadyHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Next: create a pilot account on the welcome screen — each account owns a Letta agent with isolated long-term memory. Connect a model provider inside the Letta CLI via /connect.'**
-  String get aiLettaReadyHint;
-
   /// No description provided for @settingsAiClearApiKey.
   ///
   /// In en, this message translates to:

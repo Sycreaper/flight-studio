@@ -57,7 +57,7 @@ class PromptBox extends StatelessWidget {
       padding: EdgeInsets.zero,
     );
 
-    // Black circular send / stop button (img style).
+    // Theme-accent circular send / stop button.
     final sendButton = GestureDetector(
       onTap: isStreaming ? onStop : _submit,
       child: Container(
@@ -66,9 +66,7 @@ class PromptBox extends StatelessWidget {
         decoration: BoxDecoration(
           color: isStreaming
               ? colors.accent.withValues(alpha: 0.2)
-              : isDark
-              ? colors.accent
-              : colors.textPrimary,
+              : colors.accent,
           shape: BoxShape.circle,
         ),
         child: Icon(

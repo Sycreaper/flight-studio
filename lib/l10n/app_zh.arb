@@ -276,7 +276,6 @@
   "aiLettaLog": "输出日志",
   "aiLettaUninstallConfirmTitle": "卸载 Letta CLI？",
   "aiLettaUninstallConfirmDesc": "仅移除 Letta CLI 程序本身。你的本地账户与长期记忆数据（~/.letta）不会被删除。",
-  "aiLettaReadyHint": "下一步：在欢迎页创建飞行员账户——每个账户拥有独立长期记忆的 Letta agent。模型提供商请在 Letta CLI 内通过 /connect 绑定。",
   "settingsAiClearApiKey": "清除",
 
   "settingsRemoteTitle": "远程访问",
