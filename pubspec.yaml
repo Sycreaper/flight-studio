@@ -3,9 +3,9 @@ description: "Open-source, cross-platform AI flight agent workbench. Chat with a
 publish_to: 'none'
 version: 0.1.0+1
 
-homepage: https://github.com/flight-studio/flight-studio
-repository: https://github.com/flight-studio/flight-studio
-issue_tracker: https://github.com/flight-studio/flight-studio/issues
+homepage: https://github.com/Sycreaper/flight-studio
+repository: https://github.com/Sycreaper/flight-studio
+issue_tracker: https://github.com/Sycreaper/flight-studio/issues
 # documentation: https://flight-studio.github.io/docs
 
 environment:
@@ -33,6 +33,7 @@ dependencies:
 
   # Local database (reactive SQLite, isolate-friendly)
   drift: ^2.34.1
+  sqlite3: ^3.0.0
   sqlite3_flutter_libs: ^0.5.28
 
   # Serialization & immutable models

@@ -2,6 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
+
 import '../../core/logging/app_log.dart';
 import 'gateway_client.dart';
 
@@ -63,6 +66,30 @@ class GatewayProcess {
     }
   }
 
+  /// Environment handed to the gateway so it can mount FlightStudio Core
+  /// (the Dart stdio MCP server) for the agent:
+  /// - `FLIGHTSTUDIO_NAVDATA_DB` — the app's navdata database (read-only
+  ///   for the MCP server; audited tool calls land next to it).
+  /// - `FLIGHTSTUDIO_PROJECT_ROOT` — project root containing
+  ///   `bin/mcp_flightstudio_core.dart`; only set in dev-style layouts, so
+  ///   release builds simply run the agent without MCP tools.
+  Future<Map<String, String>> _flightStudioEnv() async {
+    final env = <String, String>{};
+    try {
+      final dir = await getApplicationSupportDirectory();
+      env['FLIGHTSTUDIO_NAVDATA_DB'] =
+          p.join(dir.path, 'navdata.sqlite');
+    } on Exception {
+      // No support directory (tests) — skip.
+    }
+    final cwd = Directory.current.path;
+    if (await File(p.join(cwd, 'bin', 'mcp_flightstudio_core.dart'))
+        .exists()) {
+      env['FLIGHTSTUDIO_PROJECT_ROOT'] = cwd;
+    }
+    return env;
+  }
+
   Future<bool> _isHealthy() async {
     try {
       final res = await GatewayClient.instance.status();
@@ -101,7 +128,11 @@ class GatewayProcess {
         node,
         [entry.path],
         workingDirectory: gatewayDir.path,
-        environment: {...Platform.environment, 'FS_LOG_DIR': logDir},
+        environment: {
+          ...Platform.environment,
+          'FS_LOG_DIR': logDir,
+          ...await _flightStudioEnv(),
+        },
       );
       _process = process;
       final logSink = File(

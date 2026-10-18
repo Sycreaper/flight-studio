@@ -34,9 +34,10 @@ registerFlutterApi(app, runtime, session, approvals, (listener) => {
     return () => listeners.delete(listener);
 });
 
-// Boot the Letta runtime (and its client tools) in the background —
-// /health + /agent/status report progress while it starts.
-void runtime.initialize().then(() => runtime.registerFlightStudioToolsSafe());
+// Boot the Letta runtime in the background — /health + /agent/status
+// report progress while it starts. (FlightStudio Core tools are mounted
+// per-session in runTurn via mcpServers.)
+void runtime.initialize();
 
 const start = async () => {
     try {

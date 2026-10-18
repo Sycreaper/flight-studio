@@ -1,64 +1,92 @@
-/// Safety policy v1 — level ladder from the architecture doc (§8).
+/// FlightStudio AI safety ladder (v2) — how much of the app the AI copilot
+/// may touch, per tool. The gateway denies any tool whose level exceeds the
+/// user's granted level (`FLIGHTSTUDIO_AI_LEVEL`, default 1).
 ///
-/// L0 Explain  — read-only tools (charts, weather, navdata)
-/// L1 Observe  — read simulator state
-/// L2 Suggest  — generate suggestions / action plans
-/// L3 Confirm  — execute low-risk sim actions after user approval
-/// L4 Automate — restricted flows (future, default off)
-/// BLOCKED     — never allowed (VATSIM comms, critical flight controls)
+/// - L0 — nothing: no tools granted at all
+/// - L1 — public read-only aeronautical data (airports, runways,
+///        frequencies, weather, charts)
+/// - L2 — app-state reads (flight plans, settings overview, telemetry)
+/// - L3 — writes behind explicit user confirmation (permission card)
+/// - L4 — low-risk writes executed automatically
+/// - L5 — full control, including simulator commands
+///
+/// Within the granted level, the SDK's `standard` permission mode still
+/// routes risky tools through the canUseTool approval bridge.
 
-export type SafetyLevel = "L0" | "L1" | "L2" | "L3" | "L4" | "BLOCKED";
+export type SafetyLevel = 0 | 1 | 2 | 3 | 4 | 5;
 
-const TOOL_LEVELS: Record<string, SafetyLevel> = {
-    charts_read: "L0",
-    weather_read: "L0",
-    search_navdata: "L0",
-    search_manual: "L0",
-    get_sim_state: "L1",
-    propose_action_plan: "L2",
-    set_com_frequency: "L3",
-};
+export const DEFAULT_GRANTED_LEVEL: SafetyLevel = 1;
+
+/** Tool name → required level. Names may arrive MCP-qualified
+ * (`mcp__flightstudio-core__get_airport_data`) — matched by suffix. */
+const TOOL_LEVELS: Array<{tool: string; level: SafetyLevel}> = [
+    {tool: "get_airport_data", level: 1},
+    {tool: "charts_read", level: 1},
+    {tool: "weather_read", level: 1},
+    {tool: "search_navdata", level: 1},
+    {tool: "search_manual", level: 1},
+    {tool: "get_sim_state", level: 2},
+    {tool: "render_map", level: 3},
+    {tool: "propose_action_plan", level: 2},
+    {tool: "set_com_frequency", level: 3},
+    {tool: "send_sim_command", level: 5},
+];
 
 export interface GuardDecision {
     allowed: boolean;
-    level: SafetyLevel;
+    /** Required level of the tool; null when unknown.
+     *  Unknown tools are never auto-allowed. */
+    level: SafetyLevel | null;
     requiresApproval: boolean;
     reason: string;
 }
 
-export function evaluateToolCall(tool: string): GuardDecision {
-    const level = TOOL_LEVELS[tool];
+/// Parses the granted level from the environment (default L1).
+export function grantedLevelFromEnv(
+    env: NodeJS.ProcessEnv = process.env,
+): SafetyLevel {
+    const raw = Number.parseInt(env.FLIGHTSTUDIO_AI_LEVEL ?? "", 10);
+    if (Number.isInteger(raw) && raw >= 0 && raw <= 5) return raw as SafetyLevel;
+    return DEFAULT_GRANTED_LEVEL;
+}
+
+function levelOf(tool: string): SafetyLevel | null {
+    const name = tool.trim().toLowerCase();
+    for (const entry of TOOL_LEVELS) {
+        if (name === entry.tool || name.endsWith(`__${entry.tool}`)) {
+            return entry.level;
+        }
+    }
+    return null;
+}
+
+export function evaluateToolCall(
+    tool: string,
+    granted: SafetyLevel = grantedLevelFromEnv(),
+): GuardDecision {
+    const level = levelOf(tool);
     if (level == null) {
         return {
             allowed: false,
-            level: "BLOCKED",
+            level: null,
             requiresApproval: false,
             reason: `tool "${tool}" is not registered with the safety policy`,
         };
     }
-    if (level === "L0" || level === "L1") {
-        return {allowed: true, level, requiresApproval: false, reason: "read-only"};
-    }
-    if (level === "L2") {
+    if (level > granted) {
         return {
-            allowed: true,
+            allowed: false,
             level,
             requiresApproval: false,
-            reason: "suggestion only (no execution)",
-        };
-    }
-    if (level === "L3") {
-        return {
-            allowed: true,
-            level,
-            requiresApproval: true,
-            reason: "requires explicit user confirmation",
+            reason:
+                `tool "${tool}" requires level L${level}, ` +
+                `granted is L${granted}`,
         };
     }
     return {
-        allowed: false,
+        allowed: true,
         level,
-        requiresApproval: false,
-        reason: `${level} is not enabled in this build`,
+        requiresApproval: level >= 3,
+        reason: level >= 3 ? "within granted level; needs confirmation" : "read-only within granted level",
     };
 }

@@ -237,12 +237,13 @@ lib/
 ├── domain/      Cloud-ready domain model (Pilot/Aircraft/Intent/FlightRecord)
 ├── data/        Drift/SQLite persistence + repositories + navdata importer
 ├── sim/         Simulator adapters (X-Plane UDP + FlyWithLua, MSFS bridge, MCDU proxy)
-├── ai/          Letta gateway client (HTTP + SSE), local accounts & memory sync,
-│                BYOK LLM providers, MCP tool registry (deterministic tools)
+├── ai/          Letta gateway client (HTTP + SSE), BYOK LLM providers
+├── mcp/         FlightStudio Core — the app's stdio MCP server (tools the
+│                Letta agent calls: airport dossier, charts, weather), plus
+│                the L0–L5 safety ladder levels and the audited tool-invocation
+│                log (mcp-audit.sqlite); entry point bin/mcp_flightstudio_core.dart
 ├── plugins/     Extension-point registries (tabs, exporters, sim connectors,
 │                navdata providers) — the seams third-party plugins will use
-├── mcp_servers/ FlightStudio MCP tool servers (SimBrief, manual RAG, navdata,
-│                map commands, telemetry) consumed by the Letta agent
 ├── server/      Embedded shelf HTTP/WebSocket server for remote clients
 ├── ui/          Flutter widgets — JetBrains IDEA-style shell, map, panels, profile
 └── shared/      Common utilities and extensions
@@ -265,7 +266,8 @@ lib/
 - **AI as conductor, not calculator:** the assistant is constrained to call MCP tools for anything with side effects.
   `compute_route`, `export_flight_plan`
   and `send_sim_command` are deterministic Dart — the model decides *what* to invoke, the trusted core does the actual
-  work. A stdio MCP server may be exposed later so external clients (e.g. Claude Desktop) can reuse the same tools.
+  work. The tools live in **FlightStudio Core**, a Dart stdio MCP server (`bin/mcp_flightstudio_core.dart`) the
+  gateway mounts per Letta session — external MCP clients (e.g. Claude Desktop) can reuse the same server.
 - **Extensibility:** first-party features and third-party plugins go through the same registries (tab factories,
   exporters, sim connectors, navdata providers, MCP tools). Script plugins run in a QuickJS JavaScript sandbox;
   free-form-canvas UI access is permission-gated and marketplace-reviewed. Heavyweight connectors (sim bridges) may
@@ -376,14 +378,21 @@ Simulator write actions stay behind explicit confirmation gates.
   rendering with LNM taxonomy markers, search drawer, inspector with AIRAC / paired runways / ATC frequencies /
   METAR+TAF decoding (NOAA feed), sunrise/sunset. Plugin-ready extension-point registries (tabs, exporters, sim
   connectors, navdata providers). CI (analyze + tests + Windows/Android builds).
-- [/] **Sprint A — Agent foundation (AI-first pivot)**: TypeScript Agent
+- [x] **Sprint A — Agent foundation (AI-first pivot)**: TypeScript Agent
   Gateway (`agent_gateway/`) on the Letta Agent SDK (local backend, auto-start),
-  one-click install/start (Settings → AI, Node.js detection), local pilot
-  accounts mapped 1:1 to Letta agents (isolated memory blocks; delete = delete
-  agent), welcome-screen chat over the gateway's SSE stream (conversation-only
-  toolset first).
-- [ ] **Sprint B — MCP-first tools (P0)**: `tool_invocations` audit log, echo / render_map / search_navdata /
-  import_simbrief_ofp / generate_preflight_briefing tools with `SafetyPolicy` levels (L0 read-only first).
+  one-click install/start (Settings → AI, Node.js detection), a single
+  飞行助理 agent owning every conversation — official-API conversation CRUD in
+  the conversations drawer (new/open/delete-with-confirm, Markdown export,
+  LLM-summarized titles with self-healing against the backend's auto-summary),
+  per-conversation chat tabs, welcome/chat SSE streaming, BYOK provider push,
+  tool-approval cards, and a gateway unit suite wired into CI.
+- [/] **Sprint B — MCP-first tools (P0)**: **FlightStudio Core** — the app's Dart stdio
+  MCP server (`bin/mcp_flightstudio_core.dart`) mounted per-session by the gateway —
+  ships `get_airport_data` (full inspector dossier), `charts_read`, `weather_read`
+  behind the L0–L5 safety ladder (default grant L1; over-level calls are denied before
+  any prompt), with every invocation audited to `mcp-audit.sqlite` (tool, level, args,
+  result summary, duration). Remaining: echo / render_map / search_navdata /
+  import_simbrief_ofp / generate_preflight_briefing + the in-app audit viewer.
 - [ ] **Sprint C — Preflight briefing**: SimBrief/OFP import → structured `FlightIntent` behind one `RouteSource`
   (local A\* engine deferred until after this loop), briefing cards in the workspace.
 - [ ] **Sprint D — Read-only telemetry**: X-Plane UDP state → `AircraftState` context for the agent (explain and

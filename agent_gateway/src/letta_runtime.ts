@@ -19,9 +19,9 @@ import {type AppServerClient, createAppServerClient,} from "@letta-ai/letta-code
 import {EventEmitter} from "node:events";
 import {createRequire} from "node:module";
 import {type ChildProcess, spawn} from "node:child_process";
-import {flightStudioTools} from "./mcp_registry.js";
 import type {LlmProxy} from "./llm_proxy.js";
 import {log} from "./logger.js";
+import {evaluateToolCall} from "./safety_policy_guard.js";
 import {cleanTitleText, clipText, looksAutoSummary} from "./title_text.js";
 
 export type {GatewayEvent} from "./event_types.js";
@@ -332,17 +332,25 @@ export class LettaRuntime extends EventEmitter {
             let errored = false;
             try {
                 const runStream = async (agentId: string) => {
+                        const mcpServers = this.buildMcpServers();
                         await using session = client.resumeSession(
                             conversationId ?? agentId,
                             {
                                 // Standard mode: safe tools auto-run; risky ones
                                 // flow to our canUseTool bridge (official SDK
-                                // callback) → Flutter permission card.
+                                // callback) → safety-policy check → Flutter
+                                // permission card.
                                 permissionMode: "standard",
                                 canUseTool: this.approvals
                                     ? (toolName, toolInput) =>
                                         this.handleToolApproval(toolName, toolInput)
                                     : undefined,
+                                // FlightStudio Core — the app's Dart stdio MCP
+                                // server (tools run in the app's ecosystem:
+                                // navdata DB reads, weather, charts; audited to
+                                // mcp-audit.sqlite). Only mounted in dev-style
+                                // layouts where the project root is known.
+                                ...(mcpServers ? {mcpServers} : {}),
                             },
                         );
                     this.activeSession = session as never;
@@ -602,11 +610,20 @@ export class LettaRuntime extends EventEmitter {
     /// bare-spawned app-server's store otherwise resolves the default
     /// conversation to its placeholder agent ("agent-local-default") and
 
-    /// block a turn longer than [ApprovalTimeoutMs].
+    /// block a turn longer than [ApprovalTimeoutMs]. Tools above the
+    /// granted safety level (L0–L5 ladder) are denied outright, before any
+    /// UI prompt.
     private async handleToolApproval(
         toolName: string,
         toolInput: Record<string, unknown>,
     ): Promise<{ behavior: "allow" | "deny"; message: string }> {
+        const guard = evaluateToolCall(toolName);
+        if (!guard.allowed) {
+            log.warn(
+                "approval", "denied by safety policy:", guard.reason,
+            );
+            return {behavior: "deny", message: guard.reason};
+        }
         const approvals = this.approvals;
         if (approvals == null) {
             return {behavior: "allow", message: "auto (no approval UI)"};
@@ -1267,18 +1284,40 @@ export class LettaRuntime extends EventEmitter {
         });
     }
 
-    // ── Memory ────────────────────────────────────────────────────────────────
+    // ── FlightStudio Core MCP server (Dart stdio) ────────────────────────────
 
-    /// FlightStudio client tools (charts / weather) — registration lands when
-    /// the SDK's tool-attachment API is confirmed (G4). Pure conversation
-    /// works without tools.
-    registerFlightStudioToolsSafe(): void {
-        // Intentionally empty — charts_read / weather_read are catalogued in
-        // mcp_registry.ts and will be attached at G4 via the SDK's tool API or
-        // External Tools protocol.
-    }
-
-    get toolCatalog() {
-        return flightStudioTools;
+    /** Session-scoped MCP servers for resumeSession. The app's Dart stdio
+     *  server (`dart run bin/mcp_flightstudio_core.dart`) exposes the
+     *  L0–L5-gated FlightStudio toolset (airport dossier, charts, weather)
+     *  with per-call audit logging. Returns undefined when the project
+     *  root is unknown (release layout) — the agent then runs tool-less. */
+    buildMcpServers():
+        | Record<
+              string,
+              {
+                  type: "stdio";
+                  command: string;
+                  args: string[];
+                  env: Record<string, string>;
+                  cwd: string;
+              }
+          >
+        | undefined {
+        const cwd = process.env.FLIGHTSTUDIO_PROJECT_ROOT?.trim();
+        if (!cwd) return undefined;
+        const command =
+            process.env.FLIGHTSTUDIO_DART_CMD?.trim() || "dart";
+        const env: Record<string, string> = {};
+        const db = process.env.FLIGHTSTUDIO_NAVDATA_DB?.trim();
+        if (db) env.FLIGHTSTUDIO_NAVDATA_DB = db;
+        return {
+            "flightstudio-core": {
+                type: "stdio",
+                command,
+                args: ["run", "bin/mcp_flightstudio_core.dart"],
+                env,
+                cwd,
+            },
+        };
     }
 }
