@@ -296,6 +296,18 @@ abstract class AppLocalizations {
   /// **'Exported'**
   String get conversationExportDone;
 
+  /// No description provided for @approvalResolvedAllow.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved'**
+  String get approvalResolvedAllow;
+
+  /// No description provided for @approvalResolvedDeny.
+  ///
+  /// In en, this message translates to:
+  /// **'Denied'**
+  String get approvalResolvedDeny;
+
   /// No description provided for @tabMapUnnamed.
   ///
   /// In en, this message translates to:

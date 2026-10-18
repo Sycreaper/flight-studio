@@ -95,11 +95,38 @@ class _ChatTabViewState extends State<ChatTabView> {
                         itemCount: session.messages.length,
                         itemBuilder: (context, i) {
                           final m = session.messages[i];
-                          final isLast = i == session.messages.length - 1;
-                          final streaming =
-                              isLast &&
-                              m.role == ChatRole.assistant &&
-                              session.isStreaming;
+                          // Permission rows render as embedded approval
+                          // cards (collapsed once answered).
+                          if (m.approval != null) {
+                            return Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 4),
+                              child: Align(
+                                alignment: Alignment.centerLeft,
+                                child: _ApprovalTile(
+                                  message: m,
+                                  onAnswer: session.answerApproval,
+                                ),
+                              ),
+                            );
+                          }
+                          // The streaming cursor lives on the LAST real
+                          // assistant message — permission rows appended
+                          // after it never take the cursor.
+                          var streamingIndex = -1;
+                          if (session.isStreaming) {
+                            for (var k = session.messages.length - 1;
+                                k >= 0;
+                                k--) {
+                              final c = session.messages[k];
+                              if (c.role == ChatRole.assistant &&
+                                  c.approval == null) {
+                                streamingIndex = k;
+                                break;
+                              }
+                            }
+                          }
+                          final streaming = i == streamingIndex;
                           return _Bubble(
                             role: m.role,
                             content:
@@ -115,18 +142,6 @@ class _ChatTabViewState extends State<ChatTabView> {
                         },
                       ),
               ),
-              // ── Pending tool approval (floating card above the prompt
-              //    box — official canUseTool bridge, MCP-ready) ──────────
-              if (session.pendingApproval != null)
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
-                  child: Center(
-                    child: ApprovalCard(
-                      approval: session.pendingApproval!,
-                      onAnswer: session.answerApproval,
-                    ),
-                  ),
-                ),
               // ── Prompt box + chips (same constraint → chips align with
               //    the box's left edge, like every chat surface) ─────────
               Padding(
@@ -460,6 +475,122 @@ class _CopyButtonState extends State<_CopyButton> {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// One embedded tool-permission row in the transcript. Unanswered: the
+/// full [ApprovalCard] (allow / deny). Answered: collapsed to a one-line
+/// summary (已批准/已拒绝 · tool) that can be tapped to review the request
+/// parameters again.
+class _ApprovalTile extends StatefulWidget {
+  const _ApprovalTile({required this.message, required this.onAnswer});
+
+  final ChatMessage message;
+  final ValueChanged<bool> onAnswer;
+
+  @override
+  State<_ApprovalTile> createState() => _ApprovalTileState();
+}
+
+class _ApprovalTileState extends State<_ApprovalTile> {
+  bool _expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<AppColors>()!;
+    final l10n = AppLocalizations.of(context)!;
+    final m = widget.message;
+    final approval = m.approval!;
+
+    if (!m.approvalResolved) {
+      return ApprovalCard(
+        approval: approval,
+        onAnswer: widget.onAnswer,
+      );
+    }
+
+    // Collapsed summary row — tap to expand the reviewed parameters.
+    final ok = m.approvalApproved;
+    final inputPreview = approval.input.entries
+        .take(4)
+        .map((e) => '${e.key}: ${e.value}')
+        .join('\n');
+    return Container(
+      width: 360,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: colors.surfaceRaised.withValues(alpha: 0.6),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: (ok ? colors.success : colors.danger).withValues(alpha: 0.4),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          InkWell(
+            onTap: () => setState(() => _expanded = !_expanded),
+            borderRadius: BorderRadius.circular(6),
+            child: Row(
+              children: [
+                Icon(
+                  ok
+                      ? Icons.check_circle_rounded
+                      : Icons.cancel_rounded,
+                  size: 14,
+                  color: ok ? colors.success : colors.danger,
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    '${ok ? l10n.approvalResolvedAllow : l10n.approvalResolvedDeny}'
+                    ' · ${approval.tool}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      color: colors.textSecondary,
+                    ),
+                  ),
+                ),
+                AnimatedRotation(
+                  turns: _expanded ? 0.5 : 0,
+                  duration: const Duration(milliseconds: 120),
+                  child: Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    size: 15,
+                    color: colors.textDisabled,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (_expanded && inputPreview.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: colors.surfaceLowered,
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                inputPreview,
+                maxLines: 8,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 10.5,
+                  fontFamily: 'monospace',
+                  color: colors.textSecondary,
+                  height: 1.4,
+                ),
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }

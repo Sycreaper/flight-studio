@@ -109,6 +109,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get conversationExportDone => 'Exported';
 
   @override
+  String get approvalResolvedAllow => 'Approved';
+
+  @override
+  String get approvalResolvedDeny => 'Denied';
+
+  @override
   String get tabMapUnnamed => 'Map';
 
   @override

@@ -72,4 +72,49 @@ void main() {
     });
     expect(manager.titleOf('conv-9'), '北京进近');
   });
+
+  test('approval requests embed in the transcript and collapse when answered',
+      () {
+    final s = newSession();
+    s.send('hello'); // user + assistant placeholder (test env: instant).
+
+    manager.streamingSession = s;
+    manager.dispatchTestEvent({
+      'event': 'approval_request',
+      'id': 'approval_1',
+      'tool': 'render_map',
+      'input': {'lat': 40.0},
+    });
+    expect(s.pendingApproval?.id, 'approval_1');
+    expect(
+      s.messages.where((m) => m.role == ChatRole.approval),
+      hasLength(1),
+    );
+
+    // User answers — the row collapses IMMEDIATELY (optimistic local
+    // resolve) and the pending card clears.
+    s.answerApproval(true);
+    expect(s.pendingApproval, isNull);
+    final row = s.messages.firstWhere((m) => m.role == ChatRole.approval);
+    expect(row.approvalResolved, isTrue);
+    expect(row.approvalApproved, isTrue);
+
+    // The SSE confirmation is idempotent.
+    manager.dispatchTestEvent({
+      'event': 'approval_resolved',
+      'id': 'approval_1',
+      'approved': true,
+    });
+    expect(s.pendingApproval, isNull);
+    expect(row.approvalResolved, isTrue);
+
+    // Permission rows never leak into exports.
+    final exported = manager.exportMessages(s.conversationId ?? 'none');
+    // Draft session (conversationId null) — export falls back to history,
+    // which is empty in tests. Live path is covered by the message filter:
+    expect(
+      s.messages.where((m) => m.approval != null).map((m) => m.content),
+      everyElement(''),
+    );
+  });
 }

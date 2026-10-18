@@ -117,8 +117,11 @@ class AppShellState extends State<AppShell> {
     // so we have a BuildContext for localised titles.
 
     // Conversation titles summarized by the gateway rewrite their chat tabs'
-    // labels (新对话 → summarized title).
+    // labels (新对话 → summarized title). Listening to BOTH the manager
+    // (title changes) and the tab controller (a conversation tab opened
+    // from the drawer must pick up its real title immediately).
     ChatSessionManager.instance.addListener(_syncChatTabTitles);
+    _tabController.addListener(_syncChatTabTitles);
     if (!Platform.environment.containsKey('FLUTTER_TEST')) {
       ChatSessionManager.instance.refreshConversations();
     }
@@ -273,6 +276,7 @@ class AppShellState extends State<AppShell> {
   @override
   void dispose() {
     ChatSessionManager.instance.removeListener(_syncChatTabTitles);
+    _tabController.removeListener(_syncChatTabTitles);
     _clockTimer?.cancel();
     _tabController.dispose();
     _workspace.dispose();

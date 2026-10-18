@@ -41,6 +41,8 @@
   "conversationExportUser": "User",
   "conversationExportAssistant": "Flight Assistant",
   "conversationExportDone": "Exported",
+  "approvalResolvedAllow": "Approved",
+  "approvalResolvedDeny": "Denied",
   "tabMapUnnamed": "Map",
   "tabPlanUnnamed": "Flight Plan",
   "addTab": "Add tab",

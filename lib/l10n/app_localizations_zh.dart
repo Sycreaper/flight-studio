@@ -108,6 +108,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get conversationExportDone => '已导出';
 
   @override
+  String get approvalResolvedAllow => '已批准';
+
+  @override
+  String get approvalResolvedDeny => '已拒绝';
+
+  @override
   String get tabMapUnnamed => '地图';
 
   @override

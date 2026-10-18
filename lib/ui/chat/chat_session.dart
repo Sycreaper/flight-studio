@@ -11,7 +11,7 @@ import '../../data/settings/api_key_entry.dart';
 
 export '../../data/ai/gateway_client.dart' show GatewayConversation;
 
-enum ChatRole { user, assistant }
+enum ChatRole { user, assistant, approval }
 
 /// Live phase of the running turn, mapped from the OFFICIAL Letta stream
 /// (loop_status / tool_call / reasoning) — extensible for MCP tools: a
@@ -38,13 +38,26 @@ class PendingApproval {
 }
 
 /// One chat bubble. [done] is `false` while an assistant reply is still
-/// streaming in.
+/// streaming in. An [approval] message renders as an embedded permission
+/// card (collapsed to a summary row once resolved) instead of a bubble.
 class ChatMessage {
-  ChatMessage({required this.role, required this.content, this.done = true});
+  ChatMessage({
+    required this.role,
+    required this.content,
+    this.done = true,
+    this.approval,
+  });
 
   final ChatRole role;
   String content;
   bool done;
+
+  /// Non-null for permission rows — the tool-approval request embedded in
+  /// the transcript. [approvalResolved]/[approvalApproved] flip when the
+  /// user answered (locally optimistic, confirmed by SSE).
+  final PendingApproval? approval;
+  bool approvalResolved = false;
+  bool approvalApproved = false;
 }
 
 /// Sentinel bubble contents — the UI translates these at render time so the
@@ -211,17 +224,28 @@ class ChatSession extends ChangeNotifier {
     }
   }
 
-  /// Sends the user's decision on the pending tool approval (permission
-  /// card) through the official approval endpoint.
+  /// Sends the user's decision on the pending tool approval (the embedded
+  /// permission card). Resolves the transcript row immediately (optimistic)
+  /// and forwards the choice through the official approval endpoint.
   void answerApproval(bool approve) {
     final approval = pendingApproval;
     if (approval == null) return;
-    pendingApproval = null;
-    notifyListeners();
+    _resolveApproval(approval.id, approve);
     GatewayClient.instance.resolveApproval(
       approval.id,
       approve: approve,
     );
+  }
+
+  void _resolveApproval(String id, bool approved) {
+    if (pendingApproval?.id == id) pendingApproval = null;
+    for (final m in messages) {
+      if (m.approval?.id == id && !m.approvalResolved) {
+        m.approvalResolved = true;
+        m.approvalApproved = approved;
+      }
+    }
+    notifyListeners();
   }
 
   /// Aborts the running turn via the gateway's stop endpoint, keeping
@@ -274,17 +298,21 @@ class ChatSession extends ChangeNotifier {
   }
 
   void onApprovalRequest(String id, String tool, Map<String, dynamic> input) {
-    pendingApproval = PendingApproval(id: id, tool: tool, input: input);
+    final approval = PendingApproval(id: id, tool: tool, input: input);
+    pendingApproval = approval;
+    // Embedded in the transcript — renders as a permission card and stays
+    // there (collapsed) after the user answers.
+    messages.add(
+      ChatMessage(role: ChatRole.approval, content: '', approval: approval),
+    );
     _diag('approval request: $tool ($id)');
     notifyListeners();
   }
 
-  void onApprovalResolved(String? id) {
-    if (pendingApproval?.id == id) {
-      pendingApproval = null;
-      _setPhase(ChatPhase.working);
-      notifyListeners();
-    }
+  void onApprovalResolved(String? id, {bool approved = false}) {
+    if (id == null) return;
+    _resolveApproval(id, approved);
+    _setPhase(ChatPhase.working);
   }
 
   // ── History ───────────────────────────────────────────────────────────────
@@ -434,11 +462,13 @@ class ChatSessionManager extends ChangeNotifier {
     }
     if (live != null && live.messages.isNotEmpty) {
       return [
+        // Permission rows are UI-only; they never reach exports.
         for (final m in live.messages)
-          (
-            role: m.role == ChatRole.user ? 'user' : 'assistant',
-            content: m.content,
-          ),
+          if (m.approval == null && m.content.trim().isNotEmpty)
+            (
+              role: m.role == ChatRole.user ? 'user' : 'assistant',
+              content: m.content,
+            ),
       ];
     }
     return GatewayClient.instance.fetchHistory(conversationId: conversationId);
@@ -637,7 +667,10 @@ class ChatSessionManager extends ChangeNotifier {
           );
         }
       case 'approval_resolved':
-        target.onApprovalResolved(event['id'] as String?);
+        target.onApprovalResolved(
+          event['id'] as String?,
+          approved: event['approved'] == true,
+        );
     }
   }
 

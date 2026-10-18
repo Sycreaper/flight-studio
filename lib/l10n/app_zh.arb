@@ -41,6 +41,8 @@
   "conversationExportUser": "用户",
   "conversationExportAssistant": "飞行助理",
   "conversationExportDone": "已导出",
+  "approvalResolvedAllow": "已批准",
+  "approvalResolvedDeny": "已拒绝",
   "tabMapUnnamed": "地图",
   "tabPlanUnnamed": "飞行计划",
   "addTab": "新建标签页",
