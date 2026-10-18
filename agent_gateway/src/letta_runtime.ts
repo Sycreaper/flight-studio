@@ -21,7 +21,7 @@ import {createRequire} from "node:module";
 import {type ChildProcess, spawn} from "node:child_process";
 import type {LlmProxy} from "./llm_proxy.js";
 import {log} from "./logger.js";
-import {evaluateToolCall} from "./safety_policy_guard.js";
+import {evaluateToolCall, grantedLevelFromEnv, type SafetyLevel} from "./safety_policy_guard.js";
 import {cleanTitleText, clipText, looksAutoSummary} from "./title_text.js";
 
 export type {GatewayEvent} from "./event_types.js";
@@ -56,6 +56,10 @@ export class LettaRuntime extends EventEmitter {
     private currentModel: string | null = null;
     /** Conversation the live turn runs in (null = agent default). */
     private activeConversationId: string | null = null;
+    /** AI access level (L0–L3) requested for the live turn; null = the
+     *  FLIGHTSTUDIO_AI_LEVEL environment default. Gates registered tools
+     *  in the approval bridge. */
+    private turnAiLevel: number | null = null;
     /** Last successful provider push — powers title summarization. */
     private lastProvider: {baseUrl: string; apiKey: string; model: string} | null =
         null;
@@ -297,6 +301,7 @@ export class LettaRuntime extends EventEmitter {
     async runTurn(
         text: string,
         conversationId?: string,
+        aiLevel?: number,
     ): Promise<{ accepted: boolean; reason?: string }> {
         await this.initialize();
         if (this.lettaState !== "ok" || this.client == null || this.agentId == null) {
@@ -313,6 +318,7 @@ export class LettaRuntime extends EventEmitter {
             await new Promise((r) => setTimeout(r, 300));
         }
         this.turnActive = true;
+        this.turnAiLevel = aiLevel ?? null;
         this.activeConversationId = conversationId ?? null;
         const emitTurn = (event: Record<string, unknown>) => {
             if (this.activeConversationId != null) {
@@ -336,11 +342,13 @@ export class LettaRuntime extends EventEmitter {
                         await using session = client.resumeSession(
                             conversationId ?? agentId,
                             {
-                                // Standard mode: safe tools auto-run; risky ones
-                                // flow to our canUseTool bridge (official SDK
-                                // callback) → safety-policy check → Flutter
-                                // permission card.
-                                permissionMode: "standard",
+                                // Strict mode: EVERY tool call — including
+                                // the harness's own command tools and all
+                                // FlightStudio Core MCP tools — flows to our
+                                // canUseTool bridge → safety-level check →
+                                // embedded permission card. Nothing runs
+                                // silently.
+                                permissionMode: "strict",
                                 canUseTool: this.approvals
                                     ? (toolName, toolInput) =>
                                         this.handleToolApproval(toolName, toolInput)
@@ -617,7 +625,10 @@ export class LettaRuntime extends EventEmitter {
         toolName: string,
         toolInput: Record<string, unknown>,
     ): Promise<{ behavior: "allow" | "deny"; message: string }> {
-        const guard = evaluateToolCall(toolName);
+        const granted = this.turnAiLevel != null
+            ? (this.turnAiLevel as SafetyLevel)
+            : grantedLevelFromEnv();
+        const guard = evaluateToolCall(toolName, granted);
         if (!guard.allowed) {
             log.warn(
                 "approval", "denied by safety policy:", guard.reason,

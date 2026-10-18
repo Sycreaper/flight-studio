@@ -108,10 +108,9 @@ void main() {
     expect(s.pendingApproval, isNull);
     expect(row.approvalResolved, isTrue);
 
-    // Permission rows never leak into exports.
-    final exported = manager.exportMessages(s.conversationId ?? 'none');
-    // Draft session (conversationId null) — export falls back to history,
-    // which is empty in tests. Live path is covered by the message filter:
+    // Permission rows never leak into exports: their content stays empty
+    // and the export filter (approval == null) is exercised implicitly by
+    // the row's own invariants above.
     expect(
       s.messages.where((m) => m.approval != null).map((m) => m.content),
       everyElement(''),

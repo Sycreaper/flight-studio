@@ -308,6 +308,36 @@ abstract class AppLocalizations {
   /// **'Denied'**
   String get approvalResolvedDeny;
 
+  /// No description provided for @aiLevelChipLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'AI access level (L0–L3) — every tool call still needs your approval'**
+  String get aiLevelChipLabel;
+
+  /// No description provided for @aiLevel0.
+  ///
+  /// In en, this message translates to:
+  /// **'L0 · None'**
+  String get aiLevel0;
+
+  /// No description provided for @aiLevel1.
+  ///
+  /// In en, this message translates to:
+  /// **'L1 · Public aero data'**
+  String get aiLevel1;
+
+  /// No description provided for @aiLevel2.
+  ///
+  /// In en, this message translates to:
+  /// **'L2 · App state'**
+  String get aiLevel2;
+
+  /// No description provided for @aiLevel3.
+  ///
+  /// In en, this message translates to:
+  /// **'L3 · Full access'**
+  String get aiLevel3;
+
   /// No description provided for @tabMapUnnamed.
   ///
   /// In en, this message translates to:

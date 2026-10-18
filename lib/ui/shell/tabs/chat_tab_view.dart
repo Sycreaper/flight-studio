@@ -511,8 +511,11 @@ class _ApprovalTileState extends State<_ApprovalTile> {
       );
     }
 
-    // Collapsed summary row — tap to expand the reviewed parameters.
+    // Collapsed summary row — floating-card style (same as the settings
+    // cards): solid raised surface, no hard border, soft shadow. Tap to
+    // expand the reviewed parameters.
     final ok = m.approvalApproved;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final inputPreview = approval.input.entries
         .take(4)
         .map((e) => '${e.key}: ${e.value}')
@@ -521,11 +524,15 @@ class _ApprovalTileState extends State<_ApprovalTile> {
       width: 360,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: colors.surfaceRaised.withValues(alpha: 0.6),
+        color: colors.surfaceRaised,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: (ok ? colors.success : colors.danger).withValues(alpha: 0.4),
-        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.18 : 0.07),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

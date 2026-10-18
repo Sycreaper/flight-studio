@@ -58,8 +58,13 @@ class GatewayClient {
   /// Starts one user turn. Returns `null` when accepted, otherwise the
   /// gateway's rejection reason (e.g. "a turn is already running"). When
   /// [conversationId] is given the turn runs inside that conversation of
-  /// the flight assistant.
-  Future<String?> sendMessage(String text, {String? conversationId}) async {
+  /// the flight assistant; [aiLevel] (0–3) is this turn's granted access
+  /// level — every tool call still requires manual approval.
+  Future<String?> sendMessage(
+    String text, {
+    String? conversationId,
+    int? aiLevel,
+  }) async {
     Map<String, dynamic>? body;
     try {
       final res = await _dio.post<Map<String, dynamic>>(
@@ -67,6 +72,7 @@ class GatewayClient {
         data: {
           'text': text,
           'conversationId': ?conversationId,
+          'aiLevel': ?aiLevel,
         },
       );
       if (res.statusCode == 200) return null;

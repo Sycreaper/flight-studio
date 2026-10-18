@@ -115,6 +115,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get approvalResolvedDeny => 'Denied';
 
   @override
+  String get aiLevelChipLabel =>
+      'AI access level (L0–L3) — every tool call still needs your approval';
+
+  @override
+  String get aiLevel0 => 'L0 · None';
+
+  @override
+  String get aiLevel1 => 'L1 · Public aero data';
+
+  @override
+  String get aiLevel2 => 'L2 · App state';
+
+  @override
+  String get aiLevel3 => 'L3 · Full access';
+
+  @override
   String get tabMapUnnamed => 'Map';
 
   @override

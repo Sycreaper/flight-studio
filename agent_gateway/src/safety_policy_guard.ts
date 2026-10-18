@@ -1,19 +1,21 @@
-/// FlightStudio AI safety ladder (v2) — how much of the app the AI copilot
-/// may touch, per tool. The gateway denies any tool whose level exceeds the
-/// user's granted level (`FLIGHTSTUDIO_AI_LEVEL`, default 1).
+/// FlightStudio AI safety ladder (v3) — how much of the app the AI copilot
+/// may touch, per tool. The user picks the granted level (L0–L3) next to
+/// the reasoning chip; the gateway denies registered tools above it.
+///
+/// EVERY tool call — at any level, registered or not (including the Letta
+/// harness's own command/shell tools) — requires explicit manual approval
+/// via the embedded permission card: the session runs in `strict`
+/// permission mode and the canUseTool bridge gates all of them.
+/// (Future: time-critical actions like a go-around may auto-run after a
+/// countdown — deliberately NOT implemented yet.)
 ///
 /// - L0 — nothing: no tools granted at all
 /// - L1 — public read-only aeronautical data (airports, runways,
 ///        frequencies, weather, charts)
 /// - L2 — app-state reads (flight plans, settings overview, telemetry)
-/// - L3 — writes behind explicit user confirmation (permission card)
-/// - L4 — low-risk writes executed automatically
-/// - L5 — full control, including simulator commands
-///
-/// Within the granted level, the SDK's `standard` permission mode still
-/// routes risky tools through the canUseTool approval bridge.
+/// - L3 — everything, including writes and simulator commands
 
-export type SafetyLevel = 0 | 1 | 2 | 3 | 4 | 5;
+export type SafetyLevel = 0 | 1 | 2 | 3;
 
 export const DEFAULT_GRANTED_LEVEL: SafetyLevel = 1;
 
@@ -26,27 +28,27 @@ const TOOL_LEVELS: Array<{tool: string; level: SafetyLevel}> = [
     {tool: "search_navdata", level: 1},
     {tool: "search_manual", level: 1},
     {tool: "get_sim_state", level: 2},
-    {tool: "render_map", level: 3},
     {tool: "propose_action_plan", level: 2},
+    {tool: "render_map", level: 3},
     {tool: "set_com_frequency", level: 3},
-    {tool: "send_sim_command", level: 5},
+    {tool: "send_sim_command", level: 3},
 ];
 
 export interface GuardDecision {
     allowed: boolean;
-    /** Required level of the tool; null when unknown.
-     *  Unknown tools are never auto-allowed. */
+    /** Required level of the tool; null when unknown (unregistered tools
+     *  still surface for manual approval — the human decides). */
     level: SafetyLevel | null;
     requiresApproval: boolean;
     reason: string;
 }
 
-/// Parses the granted level from the environment (default L1).
+/// Parses the granted level from the environment (default L1, clamp 0–3).
 export function grantedLevelFromEnv(
     env: NodeJS.ProcessEnv = process.env,
 ): SafetyLevel {
     const raw = Number.parseInt(env.FLIGHTSTUDIO_AI_LEVEL ?? "", 10);
-    if (Number.isInteger(raw) && raw >= 0 && raw <= 5) return raw as SafetyLevel;
+    if (Number.isInteger(raw) && raw >= 0 && raw <= 3) return raw as SafetyLevel;
     return DEFAULT_GRANTED_LEVEL;
 }
 
@@ -60,17 +62,22 @@ function levelOf(tool: string): SafetyLevel | null {
     return null;
 }
 
+/// [granted] may come per-turn from the Flutter message send. Everything
+/// within (or below) the ladder goes to the manual-approval card — the
+/// gateway never auto-runs a tool.
 export function evaluateToolCall(
     tool: string,
     granted: SafetyLevel = grantedLevelFromEnv(),
 ): GuardDecision {
     const level = levelOf(tool);
     if (level == null) {
+        // Unregistered tool — Letta's own command/shell tools land here.
+        // The USER decides; nothing runs silently.
         return {
-            allowed: false,
+            allowed: true,
             level: null,
-            requiresApproval: false,
-            reason: `tool "${tool}" is not registered with the safety policy`,
+            requiresApproval: true,
+            reason: "unregistered tool — requires manual approval",
         };
     }
     if (level > granted) {
@@ -86,7 +93,7 @@ export function evaluateToolCall(
     return {
         allowed: true,
         level,
-        requiresApproval: level >= 3,
-        reason: level >= 3 ? "within granted level; needs confirmation" : "read-only within granted level",
+        requiresApproval: true,
+        reason: `within granted level L${granted} — requires manual approval`,
     };
 }

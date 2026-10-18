@@ -46,11 +46,14 @@ monitoring.
   through Letta.
   Bring your own key.
 - **Safety-first roadmap** — explain-first: read-only tools (navdata / charts /
-  weather / briefing) land before any simulator write action, and every write
-  passes an explicit approval gate enforced by the gateway's safety-policy
-  ladder (L0 Explain / read-only → L1 Observe → L2 Suggest → L3 Confirm with
-  user approval → L4 Automate; VATSIM comms and critical flight controls are
-  always BLOCKED).
+  weather / briefing) land before any simulator write action. The copilot runs
+  in strict permission mode: **every** tool call — including the harness's own
+  command tools — surfaces as an embedded approval card in the transcript;
+  nothing runs silently. On top of that, a user-picked access ladder
+  (L0 None → L1 public aeronautical data → L2 app-state reads → L3 full
+  access, persistent per pilot) bounds what can even be requested.
+  (Future: time-critical actions like a go-around may auto-run after a
+  countdown — deliberately not implemented yet.)
 
 ### Route Planning
 

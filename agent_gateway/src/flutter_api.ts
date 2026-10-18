@@ -66,12 +66,19 @@ export function registerFlutterApi(
     });
 
     app.post<{
-        Body: { text?: string; conversationId?: string };
+        Body: { text?: string; conversationId?: string; aiLevel?: number };
     }>("/agent/message", async (request, reply) => {
             const text = (request.body?.text ?? "").trim();
             if (!text) return reply.code(400).send({error: "text is required"});
             const conversationId = request.body?.conversationId?.trim() || undefined;
-            const result = await runtime.runTurn(text, conversationId);
+            const aiLevel = request.body?.aiLevel;
+            const result = await runtime.runTurn(
+                text,
+                conversationId,
+                aiLevel != null && Number.isInteger(aiLevel) && aiLevel >= 0 && aiLevel <= 3
+                    ? aiLevel
+                    : undefined,
+            );
             if (!result.accepted) return reply.code(409).send(result);
             return {accepted: true};
         },

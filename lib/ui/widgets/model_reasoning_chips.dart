@@ -34,14 +34,18 @@ class ModelReasoningChips extends StatelessWidget {
       listenable: Listenable.merge([effectiveSettings, ChatSessionManager.instance]),
       builder: (context, _) {
         final groups = _groups(effectiveSettings);
-        return Row(
-          mainAxisSize: MainAxisSize.min,
+        // Wrap instead of Row: on narrow (phone) widths the three chips
+        // flow onto a second line instead of overflowing.
+        return Wrap(
+          spacing: 8,
+          runSpacing: 6,
+          crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             _ModelMenu(groups: groups),
-            const SizedBox(width: 8),
             // NOT const: the chip label must rebuild when the selection
             // changes (a const instance would be skipped by the framework).
             _ReasoningMenu(),
+            _AiLevelMenu(),
           ],
         );
       },
@@ -299,6 +303,72 @@ class _ReasoningMenu extends StatelessWidget {
             Icon(Icons.psychology_outlined, size: 12, color: colors.accent),
             const SizedBox(width: 5),
             Text(levelLabel(session.reasoningEffort),
+                style:
+                TextStyle(fontSize: 11, color: colors.textSecondary)),
+            Icon(Icons.arrow_drop_down_rounded,
+                size: 15, color: colors.textSecondary),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// AI access-level chip (权限级别 L0–L3) — the RANGE of tools the copilot
+/// may request. Every tool call still requires manual approval regardless
+/// of level; the level only bounds what can even be asked for.
+class _AiLevelMenu extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<AppColors>()!;
+    final l10n = AppLocalizations.of(context)!;
+    final manager = ChatSessionManager.instance;
+
+    String levelLabel(int level) => switch (level) {
+      0 => l10n.aiLevel0,
+      1 => l10n.aiLevel1,
+      2 => l10n.aiLevel2,
+      _ => l10n.aiLevel3,
+    };
+
+    return PopupMenuButton<int>(
+      tooltip: l10n.aiLevelChipLabel,
+      onSelected: (v) => manager.aiLevel = v,
+      color: colors.surfaceRaised,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+        side: BorderSide(color: colors.border),
+      ),
+      elevation: 8,
+      padding: EdgeInsets.zero,
+      menuPadding: const EdgeInsets.symmetric(vertical: 4),
+      position: PopupMenuPosition.under,
+      itemBuilder: (context) => [
+        for (final level in const [0, 1, 2, 3])
+          PopupMenuItem(
+            value: level,
+            height: 34,
+            child: Row(
+              children: [
+                if (level == manager.aiLevel)
+                  Icon(Icons.check_rounded, size: 14, color: colors.accent)
+                else
+                  const SizedBox(width: 14),
+                const SizedBox(width: 4),
+                Text(levelLabel(level),
+                    style:
+                    TextStyle(fontSize: 12, color: colors.textPrimary)),
+              ],
+            ),
+          ),
+      ],
+      child: _HoverChip(
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.shield_outlined, size: 12, color: colors.accent),
+            const SizedBox(width: 5),
+            Text('L${manager.aiLevel}',
                 style:
                 TextStyle(fontSize: 11, color: colors.textSecondary)),
             Icon(Icons.arrow_drop_down_rounded,

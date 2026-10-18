@@ -114,6 +114,21 @@ class AppLocalizationsZh extends AppLocalizations {
   String get approvalResolvedDeny => '已拒绝';
 
   @override
+  String get aiLevelChipLabel => 'AI 权限级别（L0–L3）——任何工具调用仍需你手动批准';
+
+  @override
+  String get aiLevel0 => 'L0 · 无权限';
+
+  @override
+  String get aiLevel1 => 'L1 · 公开航数据';
+
+  @override
+  String get aiLevel2 => 'L2 · 应用状态';
+
+  @override
+  String get aiLevel3 => 'L3 · 完全访问';
+
+  @override
   String get tabMapUnnamed => '地图';
 
   @override

@@ -216,6 +216,7 @@ class ChatSession extends ChangeNotifier {
     final rejectReason = await GatewayClient.instance.sendMessage(
       trimmed,
       conversationId: conversationId,
+      aiLevel: manager.aiLevel,
     );
     _diag('sendMessage: ${rejectReason ?? 'accepted'}');
     if (rejectReason != null) {
@@ -266,29 +267,41 @@ class ChatSession extends ChangeNotifier {
   void onPhase(String? phase, String? detail) =>
       _setPhase(_phaseFromWire(phase), detail: detail);
 
-  void onDelta(String content) {
-    if (content.isEmpty || messages.isEmpty) return;
-    final last = messages.last;
-    if (last.role == ChatRole.assistant) {
-      // Each SSE delta is an INCREMENTAL chunk — append it.
-      last.content += content;
-      notifyListeners();
+  /// The assistant message the streaming text belongs to — the LAST real
+  /// assistant row, skipping permission rows that may sit after it.
+  ChatMessage? _lastAssistant() {
+    for (var i = messages.length - 1; i >= 0; i--) {
+      final m = messages[i];
+      if (m.approval != null) continue;
+      if (m.role == ChatRole.assistant) return m;
     }
+    return null;
+  }
+
+  void onDelta(String content) {
+    if (content.isEmpty) return;
+    final last = _lastAssistant();
+    if (last == null) return;
+    // Each SSE delta is an INCREMENTAL chunk — append it.
+    last.content += content;
+    notifyListeners();
   }
 
   void onTurnDone(String? content) {
-    if (content != null && content.isNotEmpty && messages.isNotEmpty) {
-      messages.last.content = content;
+    final last = _lastAssistant();
+    if (last != null) {
+      if (content != null && content.isNotEmpty) last.content = content;
+      last.done = true;
     }
-    messages.last.done = true;
     _streaming = false;
     _setPhase(ChatPhase.idle);
     notifyListeners();
   }
 
   void onTurnError(String message) {
-    if (messages.isNotEmpty) {
-      messages.last
+    final last = _lastAssistant();
+    if (last != null) {
+      last
         ..done = true
         ..content = message;
     }
@@ -495,6 +508,20 @@ class ChatSessionManager extends ChangeNotifier {
   String? selectedModelId;
   String _reasoningEffort = 'medium';
 
+  /// Granted AI access level (L0–L3): the RANGE of tools the copilot may
+  /// request — every call still requires manual approval. Persistent.
+  int _aiLevel = 1;
+
+  int get aiLevel => _aiLevel;
+
+  set aiLevel(int value) {
+    final clamped = value.clamp(0, 3);
+    if (_aiLevel == clamped) return;
+    _aiLevel = clamped;
+    _persistSelection();
+    notifyListeners();
+  }
+
   String get reasoningEffort => _reasoningEffort;
 
   set reasoningEffort(String value) {
@@ -517,6 +544,7 @@ class ChatSessionManager extends ChangeNotifier {
   static const _selectedKeyPref = 'chat.selectedKeyId';
   static const _selectedModelPref = 'chat.selectedModelId';
   static const _reasoningPref = 'chat.reasoningEffort';
+  static const _aiLevelPref = 'chat.aiLevel';
   bool _restoreAttempted = false;
 
   Future<void> _persistSelection() async {
@@ -525,6 +553,7 @@ class ChatSessionManager extends ChangeNotifier {
       await prefs.setString(_selectedKeyPref, selectedKey?.id ?? '');
       await prefs.setString(_selectedModelPref, selectedModelId ?? '');
       await prefs.setString(_reasoningPref, _reasoningEffort);
+      await prefs.setInt(_aiLevelPref, _aiLevel);
     } on Exception {
       // Best-effort — selection persistence is a convenience.
     }
@@ -539,6 +568,8 @@ class ChatSessionManager extends ChangeNotifier {
       final prefs = SharedPreferencesAsync();
       final effort = await prefs.getString(_reasoningPref);
       if (effort != null && effort.isNotEmpty) _reasoningEffort = effort;
+      final level = await prefs.getInt(_aiLevelPref);
+      if (level != null) _aiLevel = level.clamp(0, 3);
       final id = await prefs.getString(_selectedKeyPref);
       if (id != null && id.isNotEmpty) {
         selectedKey = keys.where((k) => k.id == id).firstOrNull;
