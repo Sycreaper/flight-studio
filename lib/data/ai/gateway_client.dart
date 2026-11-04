@@ -59,7 +59,8 @@ class GatewayClient {
   /// gateway's rejection reason (e.g. "a turn is already running"). When
   /// [conversationId] is given the turn runs inside that conversation of
   /// the flight assistant; [aiLevel] (0–3) is this turn's granted access
-  /// level — every tool call still requires manual approval.
+  /// level — L1 public aeronautical tools auto-run, L2/L3 and unknown
+  /// tools still require manual approval.
   Future<String?> sendMessage(
     String text, {
     String? conversationId,

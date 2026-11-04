@@ -509,7 +509,8 @@ class ChatSessionManager extends ChangeNotifier {
   String _reasoningEffort = 'medium';
 
   /// Granted AI access level (L0–L3): the RANGE of tools the copilot may
-  /// request — every call still requires manual approval. Persistent.
+  /// request. L1 public aeronautical reads auto-run; L2/L3 and unknown
+  /// tools require manual approval. Persistent.
   int _aiLevel = 1;
 
   int get aiLevel => _aiLevel;

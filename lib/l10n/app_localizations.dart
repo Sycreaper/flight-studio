@@ -311,7 +311,7 @@ abstract class AppLocalizations {
   /// No description provided for @aiLevelChipLabel.
   ///
   /// In en, this message translates to:
-  /// **'AI access level (L0–L3) — every tool call still needs your approval'**
+  /// **'AI access level (L0–L3) — L1 public aero data runs automatically; L2/L3 and unknown tools need your approval'**
   String get aiLevelChipLabel;
 
   /// No description provided for @aiLevel0.

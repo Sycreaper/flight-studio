@@ -190,8 +190,7 @@ export function registerFlutterApi(
     });
 
     app.get("/models", async () => {
-        const result = await runtime.listModels();
-        return result;
+        return runtime.listModels();
     });
 
     app.post<{ Body: { model?: string; reasoningEffort?: string } }>(

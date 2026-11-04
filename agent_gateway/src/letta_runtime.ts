@@ -665,6 +665,22 @@ export class LettaRuntime extends EventEmitter {
             );
             return {behavior: "deny", message: guard.reason};
         }
+        // L1 (public aeronautical, read-only) tools run WITHOUT the
+        // approval card — reading public airports/charts/weather is the
+        // copilot's bread and butter and a card per call adds no safety.
+        // L2/L3 and unregistered tools (harness command/shell tools) still
+        // require the manual in-chat approval card, and the audit trail
+        // still records every call. Auto-allowing a non-read-only level
+        // would be a bug.
+        if (guard.level === 1 && granted >= 1) {
+            log.info(
+                "approval", "auto-allowed L1 tool:", toolName,
+            );
+            return {
+                behavior: "allow",
+                message: "auto-allowed (L1 public aeronautical data)",
+            };
+        }
         const approvals = this.approvals;
         if (approvals == null) {
             log.warn(

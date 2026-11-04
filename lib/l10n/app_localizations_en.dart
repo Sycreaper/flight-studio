@@ -116,7 +116,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aiLevelChipLabel =>
-      'AI access level (L0–L3) — every tool call still needs your approval';
+      'AI access level (L0–L3) — L1 public aero data runs automatically; L2/L3 and unknown tools need your approval';
 
   @override
   String get aiLevel0 => 'L0 · None';
