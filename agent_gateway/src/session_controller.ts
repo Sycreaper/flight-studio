@@ -35,7 +35,7 @@ export class SessionController {
     }
 
     get isTurnActive(): boolean {
-        return this.runtime["turnActive"] === true;
+        return this.runtime.isTurnActive;
     }
 
     createApproval(tool: string, input: unknown): ApprovalRequest {
