@@ -71,7 +71,7 @@ dev_dependencies:
 
   # Code generation
   build_runner: ^2.4.14
-  freezed: ^4.0.0-dev.3
+  freezed: ^4.0.3
   json_serializable: ^6.9.4
   drift_dev: ^2.34.1
 
