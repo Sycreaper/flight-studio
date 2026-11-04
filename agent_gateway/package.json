@@ -15,8 +15,8 @@
     "start:dev": "tsx src/index.ts"
   },
   "dependencies": {
-    "@letta-ai/letta-agent-sdk": "^0.8.26",
-    "@letta-ai/letta-code": "0.34.0",
+    "@letta-ai/letta-agent-sdk": "^0.8.65",
+    "@letta-ai/letta-code": "0.34.36",
     "fastify": "^5.2.0"
   },
   "devDependencies": {
