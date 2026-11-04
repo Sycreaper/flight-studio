@@ -7,11 +7,16 @@ import 'package:sqlite3/sqlite3.dart';
 /// stored in a dedicated `mcp-audit.sqlite` next to the navdata database
 /// (this process owns the file exclusively; the app reads it for the
 /// future tool-audit UI). Failures never break a tool call — auditing is
-/// best-effort.
+/// best-effort — but `isAvailable` lets callers REFUSE high-risk tools
+/// when the audit trail itself is down (fail-closed for L2+).
 class McpAuditLog {
   McpAuditLog._(this._db);
 
   final Database? _db;
+
+  /// Whether invocations are actually being persisted. When false, the
+  /// audit trail is a no-op and L2+ tools must be denied.
+  bool get isAvailable => _db != null;
 
   /// Opens (or creates) the audit database at [path]. Returns a no-op
   /// instance when [path] is empty or the file cannot be opened.

@@ -179,7 +179,13 @@ export function registerFlutterApi(
         if (!blockLabel || value == null) {
             return reply.code(400).send({error: "blockLabel and value are required"});
         }
-        await runtime.updateMemory(blockLabel, value);
+        try {
+            await runtime.updateMemory(blockLabel, value);
+        } catch (err) {
+            return reply.code(400).send({
+                error: err instanceof Error ? err.message : String(err),
+            });
+        }
         return {updated: blockLabel};
     });
 

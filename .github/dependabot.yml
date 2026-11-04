@@ -1,0 +1,46 @@
+# Dependabot dependency updates. The frequency is deliberately weekly:
+# this is a pre-alpha project, batching updates keeps the noise low while
+# security patches still land fast (Dependabot always opens critical
+# patches immediately regardless of schedule).
+
+version: 2
+updates:
+  # Flutter/Dart (pubspec.yaml).
+  - package-ecosystem: "pub"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+    # Major bumps (SDK-level breaking changes) can break layered code —
+    # let them pile up in the queue rather than auto-merge.
+    open-pull-requests-limit: 5
+
+  # Agent Gateway (agent_gateway/package.json).
+  - package-ecosystem: "npm"
+    directory: "/agent_gateway"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+    # The Letta SDK surface is isolated in letta_runtime.ts, but drift is
+    # still common — group minor/patch to keep review cheap.
+    groups:
+      letta:
+        patterns:
+          - "@letta-ai/*"
+      tooling:
+        patterns:
+          - "typescript"
+          - "tsx"
+          - "@types/*"
+    open-pull-requests-limit: 5
+
+  # GitHub Actions (workflows).
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+    open-pull-requests-limit: 5

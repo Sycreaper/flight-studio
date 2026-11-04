@@ -45,6 +45,35 @@ const STARTUP_TIMEOUT_MS = 60_000;
 const ApprovalTimeoutMs = 300_000;
 const LISTENING_RE = /^Listening on\s+(ws:\/\/\S+)\s*$/m;
 
+/// The only memory blocks /agent/memory/update may touch. The flight
+/// assistant's four blocks; anything else is rejected.
+const MEMORY_BLOCK_ALLOWLIST = new Set([
+    "user_profile",
+    "aircraft_preferences",
+    "learning_history",
+    "safety_preferences",
+]);
+/// Memory values are plain text shown to every future turn — cap them so
+/// a runaway update cannot bloat the agent or smuggle in huge payloads.
+const MEMORY_VALUE_MAX_CHARS = 4_000;
+
+/// Detects obvious credential shapes (Laravel Sanctum PATs, OpenAI-style
+/// `sk-` keys, bearer tokens, `key=value` assignments) so they never get
+/// persisted into readable memory blocks.
+function detectSecretLike(value: string): string | null {
+    const patterns: Array<[string, RegExp]> = [
+        ["bearer token", /\bBearer\s+[A-Za-z0-9\-._~+/]+=*/i],
+        ["sanctum PAT", /\b\d{1,10}\|[A-Za-z0-9]{30,64}\b/],
+        ["api key", /\bsk-[A-Za-z0-9]{20,}\b/],
+        ["api key", /\b[A-Za-z0-9]{32,45}\b(?![\w.])/],
+        ["key assignment", /\b(api[_-]?key|token|secret|password)\b\s*[:=]\s*\S+/i],
+    ];
+    for (const [label, re] of patterns) {
+        if (re.test(value)) return label;
+    }
+    return null;
+}
+
 const require = createRequire(import.meta.url);
 
 export class LettaRuntime extends EventEmitter {
@@ -618,9 +647,10 @@ export class LettaRuntime extends EventEmitter {
     /// bare-spawned app-server's store otherwise resolves the default
     /// conversation to its placeholder agent ("agent-local-default") and
 
-    /// block a turn longer than [ApprovalTimeoutMs]. Tools above the
-    /// granted safety level (L0–L5 ladder) are denied outright, before any
-    /// UI prompt.
+    /// gate longer than [ApprovalTimeoutMs]. Tools above the granted safety
+    /// level (L0–L3 ladder) are denied outright, before any UI prompt. If no
+    /// approval controller is wired, the call is DENIED (fail-closed) — an
+    /// unwired approval path must never fall back to auto-allowing tools.
     private async handleToolApproval(
         toolName: string,
         toolInput: Record<string, unknown>,
@@ -637,7 +667,16 @@ export class LettaRuntime extends EventEmitter {
         }
         const approvals = this.approvals;
         if (approvals == null) {
-            return {behavior: "allow", message: "auto (no approval UI)"};
+            log.warn(
+                "approval",
+                "no approval controller wired — failing closed for tool:",
+                toolName,
+            );
+            return {
+                behavior: "deny",
+                message: "no approval UI available — tool call denied " +
+                    "(fail-closed)",
+            };
         }
         const req = approvals.createApproval(toolName, toolInput);
         log.info("approval", "request", req.id, "tool:", toolName);
@@ -1287,7 +1326,27 @@ export class LettaRuntime extends EventEmitter {
         return `${prefixes[0]}/${model}`;
     }
 
+    /// Updates one of the agent's memory blocks. Strictly guarded: the block
+    /// label must be on the allow-list (the four flight-assistant blocks),
+    /// the value is length-capped, and obvious secret shapes are rejected —
+    /// the memory blocks are plain text visible to every future turn and
+    /// must never become a dumping ground for credentials.
     async updateMemory(blockLabel: string, value: string): Promise<void> {
+        if (!MEMORY_BLOCK_ALLOWLIST.has(blockLabel)) {
+            throw new Error(`memory block not allowed: ${blockLabel}`);
+        }
+        if (value.length > MEMORY_VALUE_MAX_CHARS) {
+            throw new Error(
+                `memory value too long (${value.length} > ` +
+                    `${MEMORY_VALUE_MAX_CHARS} chars)`,
+            );
+        }
+        const secret = detectSecretLike(value);
+        if (secret != null) {
+            throw new Error(
+                "memory value looks like a credential — refusing to store",
+            );
+        }
         await this.initialize();
         if (this.client == null || this.agentId == null) return;
         await (this.client as any).updateBlock?.(this.agentId, blockLabel, {
@@ -1299,7 +1358,7 @@ export class LettaRuntime extends EventEmitter {
 
     /** Session-scoped MCP servers for resumeSession. The app's Dart stdio
      *  server (`dart run bin/mcp_flightstudio_core.dart`) exposes the
-     *  L0–L5-gated FlightStudio toolset (airport dossier, charts, weather)
+     *  L0–L3-gated FlightStudio toolset (airport dossier, charts, weather)
      *  with per-call audit logging. Returns undefined when the project
      *  root is unknown (release layout) — the agent then runs tool-less. */
     buildMcpServers():

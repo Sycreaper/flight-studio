@@ -7,8 +7,19 @@ monitoring.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-ff7f27.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux%20%7C%20Android%20%7C%20iOS%20%7C%20Web-blue)]()
-[![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B)]()
+[![Flutter](https://img.shields.io/badge/Flutter-3.44-02569B)]()
 [![Status](https://img.shields.io/badge/Status-Pre--alpha-red)]()
+
+> **Current status: early alpha / developer preview.**
+> The current build provides the Flutter workbench (map, navdata import,
+> airport inspector), the local Agent Gateway, the BYOK copilot with
+> multi-conversation management, and a first set of read-only
+> FlightStudio Core MCP tools (airport dossier / charts / weather).
+> **X-Plane telemetry and simulator commands are NOT implemented yet**
+> (the connector is a skeleton), and remote monitoring, MSFS/P3D, the
+> plugin runtime and official binary releases are not yet available.
+> CI validates static analysis, unit/widget tests, gateway tests and
+> Windows/Android debug builds — not a real simulator connection.
 
 > Inspired by the design philosophy of [Little Navmap](https://github.com/albar965/littlenavmap).
 > No source code is derived from that project (which is GPL-3.0); Flight Studio is a
@@ -16,14 +27,42 @@ monitoring.
 
 ---
 
+## What works today
+
+The feature list below separates what you can actually run now from what is
+still in progress or planned — so you don't have to reverse-engineer maturity
+from the roadmap.
+
+| Capability | Status | Evidence |
+| --- | --- | --- |
+| Flutter desktop workbench (tabs, drawers, map, inspector) | ✅ Available | CI builds Windows debug |
+| X-Plane navdata import (`apt.dat`/`earth_*`/`awy.dat`) | ✅ Available | Parser smoke tests on real data |
+| Airport inspector (runways, ATC frequencies, METAR/TAF, sunrise/sunset) | ✅ Available | Widget tests |
+| Local Agent Gateway (`agent_gateway/`) + one-click setup | ✅ Available | Gateway test job in CI |
+| BYOK copilot, streaming replies, multi-conversation drawer, titles, Markdown export | ✅ Available (developer-grade) | End-to-end against a local Letta backend |
+| FlightStudio Core MCP tools (airport dossier / charts / weather), L0–L3 approval cards | ✅ First batch (read-only) | Unit + stdio smoke tests |
+| ChartFox chart browser (browser login + inspector Charts tab) | 🧪 Experimental | Needs a ChartFox account; live API |
+| L2+ tools (app-state reads, writes, simulator commands) | 🚧 Planned | Ladder exists, no tools yet |
+| X-Plane UDP telemetry / FlyWithLua commands | 🚧 Planned | `XPlaneConnector` is a skeleton (`connect()` throws) |
+| Local A\* routing, SID/STAR/approach, export formats | 🚧 Planned | Roadmap Phase 3 |
+| Remote monitoring & mobile/web companions | 🚧 Planned | Roadmap Phase 5 |
+| MSFS / Prepar3D connectors | 🚧 Planned | Roadmap Phase 6 |
+| Plugin runtime (QuickJS sandbox), Plugin Center | 🚧 Planned | Roadmap Phase 9; registries only |
+| Official binary releases (Windows installer / Android APK) | 🚧 Planned | CI publishes debug artifacts only |
+
+---
+
 ## Features
 
-### AI Copilot (Letta + Agent Gateway)
+> Status markers: **[Available now]** runs in the current build, **[Planned]**
+> is design/target only. See *What works today* above for details.
+
+### AI Copilot (Letta + Agent Gateway) — [Available now]
 
 - **A long-term co-pilot brain, not a chatbot** — Flight Studio runs a local **TypeScript Agent Gateway**
   (`agent_gateway/`) on top of the official
-  [Letta Agent SDK](https://docs.letta.com/agent-sdk). Each local account owns
-  a dedicated Letta agent with persistent memory blocks (user profile,
+  [Letta Agent SDK](https://docs.letta.com/agent-sdk). One local agent — the
+  flight assistant (飞行助理) — with persistent memory blocks (user profile,
   aircraft preferences, learning history, safety preferences), so the copilot
   gets to know the pilot over time. Letta itself stores the conversation
   history — the app never re-implements it.
@@ -55,7 +94,7 @@ monitoring.
   (Future: time-critical actions like a go-around may auto-run after a
   countdown — deliberately not implemented yet.)
 
-### Route Planning
+### Route Planning — [Planned]
 
 - **Dual route sources** behind one model:
     - **Local A\* engine** — automatic route calculation over the airway network, with multi-factor cost adjustments and
@@ -76,33 +115,45 @@ monitoring.
   | FLP | Aerosoft Airbus / CRJ |
   | GPX | Universal exchange |
 
-### Live Flight Tracking
+### Live Flight Tracking — [Planned]
+
+Depends on the X-Plane telemetry connector (roadmap Phase 4 / Sprint D).
+
 - Real-time aircraft position, attitude, speed and fuel overlaid on the map.
 - Flight path recording with active-leg highlighting.
 - Progress information: distance / ETA / remaining fuel to destination.
 
-### Simulator Connectivity
+### Simulator Connectivity — [Planned]
+
+> None of the connectors work in the current build — `XPlaneConnector`
+> throws `UnimplementedError` on `connect()`. The X-Plane steps further
+> below describe the *intended* setup.
+
 - **X-Plane 12** — native UDP telemetry plus command control via a bundled
   [FlyWithLua](https://github.com/X-Friese/FlyWithLua) bridge script (pause,
   autopilot, and any third-party aircraft command).
 - **MSFS 2020 / 2024 & Prepar3D** — through a C++ bridge daemon wrapping the
-  SimConnect SDK (planned).
+  SimConnect SDK.
 - **FlyByWire A32NX MCDU** — remote control of the MCDU via SimBridge port
-  forwarding (MSFS, planned).
+  forwarding (MSFS).
 
-### Remote Monitoring & Control
+### Remote Monitoring & Control — [Planned]
+
+The gateway is currently **single-instance and single-session** (bound to
+`127.0.0.1`); remote multi-client use is not yet supported. The embedded
+server below lands with roadmap Phase 5, together with session binding,
+per-client tokens and scoped stop/approval semantics.
+
 - An embedded server (in-process) exposes the live flight state over WebSocket and
   a route CRUD API over REST.
 - Companion **mobile** and **web** clients connect over LAN (or the internet) to
   watch the moving map, pause the sim, toggle autopilot modes, and operate the
   MCDU remotely.
 
-  MCDU remotely.
+### Cross-Platform — [Partially verified]
 
-### Cross-Platform
-Desktops (Windows first, then macOS / Linux), all Flutter-supported mobile
-platforms, the web, and a future HarmonyOS NEXT target via the OpenHarmony-SIG
-Flutter fork.
+Windows and Android build in CI (debug builds only). macOS, Linux, web and
+HarmonyOS NEXT are unverified targets, not advertised capabilities.
 
 ---
 
@@ -167,17 +218,33 @@ third-party developers can add functionality safely without forking the app:
 
 ## Screenshots
 
-> _Coming soon._
+> _Coming soon — the UI is stable enough for daily development use but is
+> still changing fast. Until captures exist, treat the feature matrix above
+> as the source of truth._
 
 ---
 
 ## Getting Started
 
-### Prerequisites
-- Flutter 3.x (stable)
-- An X-Plane 12 install (for the MVP target)
-- Optional, for the AI copilot: [Node.js](https://nodejs.org/en/download) 22.19+ (the app detects it and guides the
-  install)
+### Prerequisites & compatibility matrix
+
+| Component | Tested version | Notes |
+| --- | --- | --- |
+| Flutter | 3.44.5 (CI-pinned) | Debug builds only; no release packaging yet |
+| Dart | 3.12.2+ | Follows the Flutter version |
+| Node.js | 22.19+ | Agent Gateway; detected by Settings → AI |
+| Letta Agent SDK | 0.8.x (`^0.8.26`) | May drift — the gateway adapter isolates it |
+| Letta Code | 0.34.0 (pinned) | Local app-server backend |
+| Windows | CI debug build | The only verified desktop target |
+| Android | CI debug APK | Not published as a release |
+| macOS / Linux / Web | Not in CI | Not verified — do not assume they work |
+
+- Required: Flutter 3.44 stable (or matching Dart 3.12 SDK) to build from
+  source — no prebuilt binaries are published yet.
+- Optional: [Node.js](https://nodejs.org/en/download) 22.19+ for the AI
+  copilot (the app detects it and guides the install).
+- Optional later: an X-Plane 12 install — only needed once the telemetry
+  connector ships (planned, see *What works today*).
 
 ### Start the AI service (copilot)
 
@@ -202,9 +269,12 @@ the official [Letta Agent SDK](https://docs.letta.com/agent-sdk).
 
    The first launch creates a local copilot agent — no account/login needed;
    agent state stays on your machine.
-4. Connect a model provider inside the Letta CLI (`letta` → `/connect` —
-   OpenAI-compatible, Anthropic, Ollama/LM Studio; the CLI shares agent state
-   with the gateway), or configure environment variables for the cloud backend.
+4. Connect a model provider **inside Flight Studio**: add an
+   OpenAI-compatible API key under Settings → API keys (BYOK — your key is
+   never uploaded anywhere except the local Letta backend's provider store).
+   The app pushes the credential to the gateway before every turn; the
+   legacy Letta-CLI `/connect` flow still works too (the CLI shares agent
+   state with the gateway).
 5. In Flight Studio, start chatting — the copilot agent is created on first
    launch, and every conversation is managed through the conversation drawer.
 
@@ -216,7 +286,11 @@ dart run build_runner build --delete-conflicting-outputs
 flutter run -d windows
 ```
 
-### Connect to X-Plane 12
+### Connect to X-Plane 12 — [Planned, does not work in this build]
+
+> The telemetry connector is not implemented yet (`connect()` throws
+> `UnimplementedError`); the UI shows the integration as planned. The steps
+> below describe the intended setup for when it lands (roadmap Phase 4).
 
 1. Install the [FlyWithLua NG Plus](https://forums.x-plane.org) plugin into
    `<X-Plane>/Resources/plugins/`.
@@ -243,7 +317,7 @@ lib/
 ├── ai/          Letta gateway client (HTTP + SSE), BYOK LLM providers
 ├── mcp/         FlightStudio Core — the app's stdio MCP server (tools the
 │                Letta agent calls: airport dossier, charts, weather), plus
-│                the L0–L5 safety ladder levels and the audited tool-invocation
+│                the L0–L3 safety ladder levels and the audited tool-invocation
 │                log (mcp-audit.sqlite); entry point bin/mcp_flightstudio_core.dart
 ├── plugins/     Extension-point registries (tabs, exporters, sim connectors,
 │                navdata providers) — the seams third-party plugins will use
@@ -260,12 +334,16 @@ lib/
 - **Domain model:** four core objects — `PilotProfile`, `AircraftState`,
   `FlightIntent`, `FlightRecord` — designed up front with stable ids, timestamps and JSON so an optional cloud sync /
   profile / social layer can be added later without rework. Repositories are abstracted (local today, cloud-ready).
-- **X-Plane control:** telemetry is read over the simulator's UDP Data Output;
-  commands are sent as JSON over UDP to a tiny FlyWithLua bridge script
-  (`command_once` / `dataref` access, including third-party aircraft commands).
-- **Remote access:** the desktop app hosts a `shelf` server in-process with
-  token-based authentication, relaying telemetry and (for MSFS) proxying the
-  FlyByWire SimBridge MCDU WebSocket.
+- **X-Plane control [Planned]:** telemetry would be read over the
+  simulator's UDP Data Output;
+  commands would be sent as JSON over UDP to a tiny FlyWithLua bridge script
+  (`command_once` / `dataref` access, including third-party aircraft
+  commands). None of this exists in the current build.
+- **Remote access [Planned]:** the desktop app would host a `shelf` server
+  in-process with token-based authentication, relaying telemetry and (for
+  MSFS) proxying the FlyByWire SimBridge MCDU WebSocket. Not implemented —
+  the gateway today is single-instance and single-session, bound to
+  127.0.0.1.
 - **AI as conductor, not calculator:** the assistant is constrained to call MCP tools for anything with side effects.
   `compute_route`, `export_flight_plan`
   and `send_sim_command` are deterministic Dart — the model decides *what* to invoke, the trusted core does the actual
@@ -278,88 +356,54 @@ lib/
 
 ---
 
-## Troubleshooting Log: Wiring the BYOK Copilot (2026-10)
+## Troubleshooting (user FAQ)
 
-The AI copilot's model-provider path (Flight Studio vault → Letta local
-backend → real LLM endpoint) took nine distinct bugs to get working. Each
-one is documented here because every trap is easy to re-hit — for future
-maintainers and anyone building on the Letta Agent SDK's local backend.
+Symptom-oriented fixes for the features that exist in this build. (The
+maintainer postmortem behind the BYOK wiring lives in
+[`docs/maintainers/byok-debugging.md`](docs/maintainers/byok-debugging.md).)
 
-**Architecture of the path.** The Flutter app pushes one OpenAI-compatible
-credential from its key vault to the Agent Gateway (`POST /agent/provider`)
-before every turn. The gateway lends it to the Letta local backend via the
-official app-server protocol (`connect_provider`), resolves a model handle
-from the force-refreshed catalog, then runs the turn over SSE.
+**The copilot replies with a gateway/provider error.**
+The error text is shown verbatim in the chat bubble — it names the failing
+stage. "gateway not ready" means the local gateway did not start: open
+Settings → AI and use one-click install/start, and check that Node.js
+22.19+ is installed. Provider errors (401/404/model not found) mean the
+API key or base URL is wrong for the selected model — retest the key under
+Settings → API keys (Test button, capped at 20 s).
 
-1. **Parameter shadowing sent pushes to the wrong server.** `setProvider`'s
-   `baseUrl` parameter shadowed the class constant `GatewayClient.baseUrl`
-   (`http://127.0.0.1:8787`), so the provider push was posted to the *LLM
-   provider's* URL (`.../api/paas/v4/agent/provider`). The provider
-   answered with its own auth error (`code 1001`), which masqueraded as a
-   Letta failure for a long time. Lesson: qualify shared constants in
-   request URLs; log the **actual request URL** on every failure.
-2. **Windows excluded port ranges killed local test servers silently.**
-   Hyper-V/WSL reserve TCP ranges (e.g. 9475–10093). Mock LLM servers on
-   9999/9998/9997 died with `EACCES` at `listen()` — the test harness saw
-   "no requests ever arrived", which misdirected the diagnosis for hours.
-   Check `netsh interface ipv4 show excludedportrange protocol=tcp` before
-   binding test ports.
-3. **BYOK handle prefixes collide.** The Letta harness resolves model
-   handles by prefix; the alias `lc-openai-compatible/…` can be captured by
-   the shorter `lc-openai` alias and misroute to the *openai* provider (credentials then come from the wrong lookup and
-   requests go out
-   unauthenticated). Fix: use the base prefix `openai-compatible/<model>`
-   and, when possible, resolve the exact handle from the catalog returned
-   by a forced `list_models {force: true}` refresh.
-4. **The harness enforces a `/v1` base-URL convention.** Any
-   OpenAI-compatible base URL not ending in `/v1` gets `/v1` appended (`localEndpointOpenAIBaseURL`). bigmodel/GLM's
-   real endpoint is
-   `/api/paas/v4`, so requests hit `/v4/v1/chat/completions` → auth passes
-   → router 404s. The API is not usable through a non-`/v1` path directly (its `/api/paas/v1` alias speaks a *native*,
-   non-OpenAI error format).
-   Fix: the gateway hosts a small **LLM reverse proxy**
-   (`agent_gateway/src/llm_proxy.ts`); provider rows store
-   `http://127.0.0.1:8787/llm-proxy/{token}/v1` (satisfies the convention)
-   and the proxy strips the `/v1` segment, injects `Authorization` from
-   the registry, and streams responses (SSE passthrough) to the real base
-   URL. Any provider path convention works through it.
-5. **A non-existent API silently created an agent per restart.**
-   `ensureDefaultAgent` called `client.listAgents()` — which does not exist
-   on the SDK client (`undefined?.()` → `catch` → "not found") — so every
-   gateway start minted a new copilot agent (23 accumulated) and turns
-   eventually hit half-written agent records ("Agent … not found"). Fix:
-   the real `client.agents.list()`, plus a `withAgentRecovery` wrapper that
-   re-resolves the agent once on "not found" before failing.
-6. **SDK stream failures were swallowed.** The turn loop only forwarded
-   `assistant` messages; `error`/`result` stream messages (how the SDK
-   reports mid-turn failures) were dropped, producing empty replies or
-   silent hangs. Fix: forward every message type, join all error fields (`message | errorDetail | errorCode`) so an
-   error is never empty, and **never emit `turn_done` after an `error`** — the empty payload
-   overwrote the error text in the UI.
-7. **Headless turns deadlocked on tool approvals.** The agent's first tool
-   call raised an approval request nobody answered (`approval_conflict`),
-   leaving a run active; the next message collided with it ("Conversation
-   default already has an active run"). Fix: resume sessions with
-   `permissionMode: "unrestricted"`, recover pending approvals on session
-   start, abort a stuck run before starting a new one, and wire stop to a
-   real `session.abort()`.
-8. **Stale gateway instances squatted the port.** Orphaned gateways from
-   earlier app runs kept serving old code on 8787; the app's health check
-   happily reused them, so fixes "didn't land". Fix: `GatewayProcess`
-   evicts any non-child listener on the port (netstat + taskkill) before
-   spawning, guaranteeing the running build matches the app.
-9. **Model ids drift.** bigmodel's catalog no longer contains
-   `glm-4.7-flash` (the 4.x line dropped `-flash` variants; 5.3 has them).
-   The resolver now prefix-matches the requested id against discovered
-   models (`glm-4.7-flash` → `glm-4.7`) and logs the substitution.
+**I sent a message and nothing streams back.**
+Check that a model is selected in the model chip below the prompt box, and
+that the provider test passes (see above). If a turn got stuck (possible
+after a crash), sending the next message aborts it automatically.
 
-**Process lessons.** Never blanket-kill `node.exe` from an agent shell —
-the agent tooling itself runs on node. When a background server must
-outlive a shell command, start it via `cmd /c "… > log 2>&1"` so the
-parent's pipes close cleanly. Diagnostics currently append to
-`%TEMP%/flightstudio-chat.log` (Flutter side) and
-`%TEMP%/flightstudio-gateway.log` (gateway stdout) — see the commit notes
-for the logging debt this implies.
+**A tool-permission card appeared — is this normal?**
+Yes. The copilot runs in strict permission mode: every tool call (including
+the harness's own command tools) waits for your explicit allow/deny inside
+the transcript. Answered cards collapse to a summary row you can re-expand.
+The L0–L3 chip next to the reasoning selector bounds what can even be
+asked; L0 disables tools entirely.
+
+**The airport inspector shows "not available" for frequencies or charts.**
+Frequencies come from the imported navdata — if you never ran an import
+(Settings → Navigation data), the tables are empty. Charts require a
+ChartFox account: sign in under Settings → API keys → ChartFox (the button
+opens your browser; copy the API token and the dialog completes itself).
+
+**The "Connect to X-Plane" steps do nothing.**
+Expected: the X-Plane telemetry connector is not implemented in this build.
+See *What works today* at the top of this README.
+
+**Where are my API keys and conversations stored?**
+Everything stays local: keys in the app's local configuration store (not an
+OS credential vault), conversations and memories in the local Letta store
+(`~/.letta`), gateway logs under your temp directory. Deleting a
+conversation removes it through the official Letta API; deleting Letta data
+(Settings → AI) wipes agents, memories and stored provider credentials.
+
+**Something feels stuck after a crash.**
+Restart the app — it evicts orphaned gateway processes automatically before
+starting a fresh one.
+
+---
 
 ---
 
@@ -372,7 +416,7 @@ Simulator write actions stay behind explicit confirmation gates.
 
 - [x] **Phase 0** — Project foundation: layered `lib/`, JetBrains-style workspace (tabs, tool docks, drawers, resizable
   cards, custom window chrome), theme, i18n. Settings system with live theme/locale switch, gear popup menu,
-  floating-window dialogs, API key vault, map tile provider integration (flutter_map + OSM/Mapbox/custom), workspace
+  floating-window dialogs, API key settings (local storage), map tile provider integration (flutter_map + OSM/Mapbox/custom), workspace
   layout persistence, adaptive narrow-screen (phone) layout, startup splash.
 - [x] **Phase 1** — Domain core: four cloud-ready objects (`PilotProfile`/`AircraftState`/`FlightIntent`/
   `FlightRecord`),
@@ -392,7 +436,7 @@ Simulator write actions stay behind explicit confirmation gates.
 - [/] **Sprint B — MCP-first tools (P0)**: **FlightStudio Core** — the app's Dart stdio
   MCP server (`bin/mcp_flightstudio_core.dart`) mounted per-session by the gateway —
   ships `get_airport_data` (full inspector dossier), `charts_read`, `weather_read`
-  behind the L0–L5 safety ladder (default grant L1; over-level calls are denied before
+  behind the L0–L3 safety ladder (default grant L1; over-level calls are denied before
   any prompt), with every invocation audited to `mcp-audit.sqlite` (tool, level, args,
   result summary, duration). Remaining: echo / render_map / search_navdata /
   import_simbrief_ofp / generate_preflight_briefing + the in-app audit viewer.

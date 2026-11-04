@@ -10,20 +10,33 @@ import 'audit_log.dart';
 
 /// FlightStudio safety ladder — how much of the app an AI tool may touch.
 ///
+/// The ladder has exactly four rungs (there are deliberately no L4/L5
+/// "auto-execute" rungs — every write requires explicit user approval):
 /// - L0 — nothing (no tools granted at all)
 /// - L1 — public read-only aeronautical data (airports, runways,
 ///   frequencies, weather, charts)
 /// - L2 — app-state reads (flight plans, settings overview, telemetry)
 /// - L3 — writes behind explicit user confirmation
-/// - L4 — low-risk writes executed automatically
-/// - L5 — full control, including simulator commands
 class SafetyLevel {
   static const int nothing = 0;
   static const int publicData = 1;
   static const int appStateRead = 2;
   static const int confirmedWrite = 3;
-  static const int autoWrite = 4;
-  static const int fullControl = 5;
+
+  /// Upper bound of the ladder; levels above this are invalid.
+  static const int max = confirmedWrite;
+
+  /// Human-readable label for a level ([0, max]).
+  static String label(int level) => switch (level) {
+        0 => 'L0 (no tools)',
+        1 => 'L1 (public aeronautical data)',
+        2 => 'L2 (app-state reads)',
+        3 => 'L3 (confirmed writes)',
+        _ => 'invalid level $level',
+      };
+
+  /// Whether [level] is a valid ladder rung.
+  static bool isValid(int level) => level >= nothing && level <= max;
 }
 
 /// One FlightStudio Core tool exposed over MCP.
@@ -134,8 +147,16 @@ class CoreToolServer {
     return null;
   }
 
-  /// Wraps an execution with the audit trail.
+  /// Wraps an execution with the audit trail. Fails closed for tools at
+  /// L2 or above when the audit trail itself is unavailable — an
+  /// unaudited write (or app-state read) must never silently run.
   Future<String> invoke(CoreTool tool, Map<String, dynamic> args) async {
+    if (tool.level >= SafetyLevel.appStateRead &&
+        !_audit.isAvailable) {
+      return 'Tool "${tool.name}" (L${tool.level}) requires the audit '
+          'trail, which is unavailable — refusing to run. '
+          'Restart the app or check mcp-audit.sqlite.';
+    }
     final sw = Stopwatch()..start();
     try {
       final result = await tool.execute(args);

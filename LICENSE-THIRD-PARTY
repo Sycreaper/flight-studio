@@ -1,0 +1,63 @@
+Third-Party Licenses and Notices
+=================================
+
+Flight Studio is released under the MIT license (see LICENSE). This file
+lists the licenses of the third-party software it depends on, and the
+terms that govern the external data services it can access.
+
+Flutter app (pubspec.yaml)
+--------------------------
+
+MIT license:
+- flutter_localizations, cupertino_icons, flutter_svg, go_router,
+  latlong2, drift, json_annotation, dio, web_socket_channel, shelf,
+  shelf_router, fl_chart, logging, collection, path, window_manager,
+  shared_preferences, gpt_markdown
+BSD-3-Clause license:
+- flutter, flutter_map (BSD-3-Clause)
+- sqlite3, sqlite3_flutter_libs (MIT/BSD-style; bundled SQLite
+  database code is Public Domain, authored by the SQLite Consortium)
+MIT license:
+- freezed_annotation (MIT), path_provider (MIT), file_picker (MIT),
+  win32 (BSD-3-Clause), ffi (MIT), intl (BSD-3-Clause)
+
+Agent Gateway (agent_gateway/package.json)
+-------------------------------------------
+
+- @letta-ai/letta-agent-sdk — Apache-2.0 (Letta, Inc.)
+- @letta-ai/letta-code — Elastic License 2.0 (Letta, Inc.)
+- fastify — MIT
+- typescript — Apache-2.0
+- tsx — MIT
+- @types/node — MIT
+
+External data & services (user-brought, never redistributed)
+-------------------------------------------------------------
+
+- Navigraph navdata: user-licensed via Navigraph subscription. Flight
+  Studio parses files the user already owns; the data never ships with
+  the app or this repository.
+- SimBrief OFPs: user account data, imported via OAuth2 on demand.
+  Never redistributed.
+- OpenStreetMap map tiles: (c) OpenStreetMap contributors, ODbL
+  (https://www.openstreetmap.org/copyright). Fetched at runtime from
+  public tile servers; not bundled.
+- OurAirports data: Public Domain (https://ourairports.com/data/).
+- FAA CIFP / NASR: Public Domain (U.S. Government work).
+- ChartFox aviation charts: user account API token; chart PDFs are
+  opened in the user's browser under ChartFox's own terms
+  (https://chartfox.org). Never redistributed or mirrored.
+- aviationweather.gov (METAR/TAF): U.S. government public data.
+- Letta (cloud or local): user account/API key; conversation data
+  stays in the user's local Letta store (~/.letta) by default.
+
+The dependency list above reflects the current development branch;
+some entries may drift as versions update. For the authoritative and
+up-to-date license inventory, generate a report from the lockfiles:
+
+  Flutter:  flutter pub deps --style=list  (then check each package on
+            pub.dev)
+  Gateway:  npm licenses --prefix agent_gateway
+
+Some transitive dependencies are omitted for brevity; their licenses
+ship inside each package on pub.dev / npm.

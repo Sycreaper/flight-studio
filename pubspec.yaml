@@ -6,7 +6,7 @@ version: 0.1.0+1
 homepage: https://github.com/Sycreaper/flight-studio
 repository: https://github.com/Sycreaper/flight-studio
 issue_tracker: https://github.com/Sycreaper/flight-studio/issues
-# documentation: https://flight-studio.github.io/docs
+# license: MIT (see LICENSE and LICENSE-THIRD-PARTY)
 
 environment:
   sdk: ^3.12.2
@@ -16,7 +16,7 @@ dependencies:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
-  intl: any
+  intl: ^0.20.2 # Pin (resolves to 0.20.3); `any` let pub silently drift between CI runs.
   cupertino_icons: ^1.0.8
 
   # SVG rendering (app logo, icons)

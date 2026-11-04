@@ -1,4 +1,4 @@
-/// Safety-policy ladder L0–L5 — grant math, unknown tools, env parsing,
+/// Safety-policy ladder L0–L3 — grant math, unknown tools, env parsing,
 /// MCP-qualified name matching.
 import assert from "node:assert/strict";
 import {test} from "node:test";

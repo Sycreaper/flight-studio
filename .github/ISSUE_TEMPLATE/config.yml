@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions & discussions
+    url: https://github.com/Sycreaper/flight-studio/discussions
+    about: Usage questions and general discussion (feature requests and bugs belong in issues)
+  - name: Security issues
+    url: https://github.com/Sycreaper/flight-studio/security/advisories/new
+    about: Report vulnerabilities privately — do not open a public issue
