@@ -17,7 +17,7 @@
   "dependencies": {
     "@letta-ai/letta-agent-sdk": "^0.8.26",
     "@letta-ai/letta-code": "0.34.0",
-    "fastify": "^5.2.0"
+    "fastify": "^5.12.7"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",
