@@ -78,7 +78,7 @@ jobs:
       - run: flutter build windows --debug
 
       - name: Upload Windows debug build
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: flight-studio-windows-debug
           path: build/windows/x64/runner/Debug/
@@ -110,7 +110,7 @@ jobs:
       - run: flutter build apk --debug
 
       - name: Upload Android debug APK
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: flight-studio-android-debug-apk
           path: build/app/outputs/flutter-apk/app-debug.apk
