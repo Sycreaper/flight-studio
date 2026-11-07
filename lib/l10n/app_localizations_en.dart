@@ -115,20 +115,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get approvalResolvedDeny => 'Denied';
 
   @override
+  String get approvalAutoAllowed => 'Auto-allowed';
+
+  @override
+  String get approvalAutoDenied => 'Auto-denied';
+
+  @override
   String get aiLevelChipLabel =>
-      'AI access level (L0–L3) — L1 public aero data runs automatically; L2/L3 and unknown tools need your approval';
+      'AI access level (L0–L3) — L0 confirms every tool call; L1+ auto-runs data reads; writes and other tools need confirmation; Bash commands are always denied; skills always run';
 
   @override
-  String get aiLevel0 => 'L0 · None';
+  String get aiLevel0 => 'L0 · Manual confirm';
 
   @override
-  String get aiLevel1 => 'L1 · Public aero data';
+  String get aiLevel1 => 'L1 · Auto data';
 
   @override
-  String get aiLevel2 => 'L2 · App state';
+  String get aiLevel2 => 'L2 · Reserved';
 
   @override
-  String get aiLevel3 => 'L3 · Full access';
+  String get aiLevel3 => 'L3 · Reserved';
 
   @override
   String get tabMapUnnamed => 'Map';

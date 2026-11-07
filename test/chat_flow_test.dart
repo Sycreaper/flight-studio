@@ -116,4 +116,128 @@ void main() {
       everyElement(''),
     );
   });
+
+  test('approval cards insert INLINE at the tool-call position mid-turn',
+      () {
+    final s = newSession();
+    // Simulate a live streaming turn (send() short-circuits in tests):
+    // user message + one not-yet-done assistant bubble with text.
+    s.messages.add(ChatMessage(role: ChatRole.user, content: 'hello'));
+    s.messages.add(
+      ChatMessage(role: ChatRole.assistant, content: '正在查询', done: false),
+    );
+    manager.streamingSession = s;
+
+    manager.dispatchTestEvent({
+      'event': 'approval_request',
+      'id': 'approval_2',
+      'tool': 'weather_read',
+      'input': {'icao': 'ZBAA'},
+    });
+
+    // [user, assistant('正在查询'), card, assistant('')] — the card sits
+    // where the tool was requested and the reply continues in a NEW
+    // bubble below it.
+    expect(s.messages.length, 4);
+    expect(s.messages[1].content, '正在查询');
+    expect(s.messages[2].role, ChatRole.approval);
+    expect(s.messages[3].role, ChatRole.assistant);
+    expect(s.messages[3].content, '');
+
+    // Subsequent deltas stream into the post-card bubble, never the
+    // pre-card one.
+    manager.dispatchTestEvent({'event': 'delta', 'content': ' 后续'});
+    expect(s.messages[1].content, '正在查询');
+    expect(s.messages[3].content, ' 后续');
+
+    // Turn end keeps both segments as-is (full text must not overwrite
+    // the split bubbles) and marks everything done.
+    manager.dispatchTestEvent({
+      'event': 'turn_done',
+      'content': '正在查询 后续',
+    });
+    expect(s.messages.length, 4);
+    expect(s.messages[1].content, '正在查询');
+    expect(s.messages[3].content, ' 后续');
+    expect(s.messages[3].done, isTrue);
+    expect(s.isStreaming, isFalse);
+  });
+
+  test('auto-allowed tool calls record a resolved inline card', () {
+    final s = newSession();
+    s.messages.add(ChatMessage(role: ChatRole.user, content: 'hi'));
+    s.messages.add(
+      ChatMessage(role: ChatRole.assistant, content: '前段', done: false),
+    );
+    manager.streamingSession = s;
+
+    manager.dispatchTestEvent({
+      'event': 'approval_auto',
+      'id': 'auto_1',
+      'tool': 'mcp__flightstudio-core__weather_read',
+      'input': {'icao': 'ZBAA'},
+    });
+
+    // Nothing to answer — the card arrives already resolved.
+    expect(s.pendingApproval, isNull);
+    expect(s.messages.length, 4);
+    final row = s.messages[2];
+    expect(row.role, ChatRole.approval);
+    expect(row.approvalResolved, isTrue);
+    expect(row.approvalApproved, isTrue);
+    expect(row.approval!.autoAllowed, isTrue);
+    expect(row.approval!.tool, 'mcp__flightstudio-core__weather_read');
+
+    // The reply continues below the recorded card.
+    manager.dispatchTestEvent({'event': 'delta', 'content': ' 后段'});
+    expect(s.messages[3].content, ' 后段');
+  });
+
+  test('auto-denied tool calls record a denied inline card', () {
+    final s = newSession();
+    s.messages.add(ChatMessage(role: ChatRole.user, content: 'hi'));
+    s.messages.add(
+      ChatMessage(role: ChatRole.assistant, content: '前段', done: false),
+    );
+    manager.streamingSession = s;
+
+    manager.dispatchTestEvent({
+      'event': 'approval_auto',
+      'id': 'auto_9',
+      'tool': 'mcp__flightstudio-core__send_sim_command',
+      'input': {'cmd': 'pause'},
+      'denied': true,
+    });
+
+    expect(s.pendingApproval, isNull);
+    final row = s.messages.firstWhere((m) => m.role == ChatRole.approval);
+    expect(row.approvalResolved, isTrue);
+    expect(row.approvalApproved, isFalse);
+    expect(row.approval!.autoDenied, isTrue);
+    expect(row.approval!.autoAllowed, isFalse);
+  });
+
+  test('turn end drops trailing empty bubbles left after a card', () {
+    final s = newSession();
+    s.messages.add(ChatMessage(role: ChatRole.user, content: 'hi'));
+    s.messages.add(
+      ChatMessage(role: ChatRole.assistant, content: '前段', done: false),
+    );
+    manager.streamingSession = s;
+    manager.dispatchTestEvent({
+      'event': 'approval_auto',
+      'id': 'auto_2',
+      'tool': 'charts_read',
+      'input': {},
+    });
+    // No text streamed after the tool → [user, A('前段'), card, A('')].
+    manager.dispatchTestEvent({'event': 'turn_done', 'content': '前段'});
+    // The empty post-card bubble is dropped; the card keeps its position.
+    expect(s.messages.length, 3);
+    expect(s.messages[1].content, '前段');
+    expect(s.messages[2].role, ChatRole.approval);
+    // The single streamed bubble is not overwritten by the full text
+    // (it is identical here) and stays done.
+    expect(s.messages[1].done, isTrue);
+  });
 }

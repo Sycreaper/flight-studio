@@ -96,16 +96,27 @@ class _ChatTabViewState extends State<ChatTabView> {
                         itemBuilder: (context, i) {
                           final m = session.messages[i];
                           // Permission rows render as embedded approval
-                          // cards (collapsed once answered).
+                          // cards (collapsed once answered). They span the
+                          // SAME width budget as the assistant bubbles —
+                          // the AI reply text area, not the whole tab.
                           if (m.approval != null) {
                             return Padding(
                               padding:
                                   const EdgeInsets.symmetric(vertical: 4),
                               child: Align(
                                 alignment: Alignment.centerLeft,
-                                child: _ApprovalTile(
-                                  message: m,
-                                  onAnswer: session.answerApproval,
+                                child: ConstrainedBox(
+                                  constraints: BoxConstraints(
+                                    maxWidth:
+                                        MediaQuery
+                                            .sizeOf(context)
+                                            .width *
+                                        0.6,
+                                  ),
+                                  child: _ApprovalTile(
+                                    message: m,
+                                    onAnswer: session.answerApproval,
+                                  ),
                                 ),
                               ),
                             );
@@ -480,10 +491,10 @@ class _CopyButtonState extends State<_CopyButton> {
   }
 }
 
-/// One embedded tool-permission row in the transcript. Unanswered: the
-/// full [ApprovalCard] (allow / deny). Answered: collapsed to a one-line
-/// summary (已批准/已拒绝 · tool) that can be tapped to review the request
-/// parameters again.
+/// One embedded tool-permission row in the transcript, spanning the full
+/// reply-text width. Unanswered: the full [ApprovalCard] (allow / deny).
+/// Answered: collapsed to a one-line summary (已批准/已拒绝/已自动允许 · tool)
+/// that can be tapped to review the request parameters again.
 class _ApprovalTile extends StatefulWidget {
   const _ApprovalTile({required this.message, required this.onAnswer});
 
@@ -511,9 +522,11 @@ class _ApprovalTileState extends State<_ApprovalTile> {
       );
     }
 
-    // Collapsed summary row — floating-card style (same as the settings
-    // cards): solid raised surface, no hard border, soft shadow. Tap to
-    // expand the reviewed parameters.
+    // Collapsed summary row — gray (default input-box colour) with a
+    // floating shadow, as wide as the reply text area. Tap to expand the
+    // reviewed parameters.
+    final autoAllowed = approval.autoAllowed;
+    final autoDenied = approval.autoDenied;
     final ok = m.approvalApproved;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final inputPreview = approval.input.entries
@@ -521,10 +534,9 @@ class _ApprovalTileState extends State<_ApprovalTile> {
         .map((e) => '${e.key}: ${e.value}')
         .join('\n');
     return Container(
-      width: 360,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: colors.surfaceRaised,
+        color: colors.surfaceLowered,
         borderRadius: BorderRadius.circular(10),
         boxShadow: [
           BoxShadow(
@@ -544,7 +556,11 @@ class _ApprovalTileState extends State<_ApprovalTile> {
             child: Row(
               children: [
                 Icon(
-                  ok
+                  autoDenied
+                      ? Icons.cancel_rounded
+                      : autoAllowed
+                      ? Icons.done_all_rounded
+                      : ok
                       ? Icons.check_circle_rounded
                       : Icons.cancel_rounded,
                   size: 14,
@@ -553,7 +569,13 @@ class _ApprovalTileState extends State<_ApprovalTile> {
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
-                    '${ok ? l10n.approvalResolvedAllow : l10n.approvalResolvedDeny}'
+                    '${autoDenied
+                        ? l10n.approvalAutoDenied
+                        : autoAllowed
+                        ? l10n.approvalAutoAllowed
+                        : ok
+                        ? l10n.approvalResolvedAllow
+                        : l10n.approvalResolvedDeny}'
                     ' · ${approval.tool}',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -581,7 +603,7 @@ class _ApprovalTileState extends State<_ApprovalTile> {
               width: double.infinity,
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: colors.surfaceLowered,
+                color: colors.surfaceBase,
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Text(

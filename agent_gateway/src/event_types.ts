@@ -29,6 +29,7 @@ export type GatewayEvent =
     | { type: "phase"; phase: string; detail?: string; raw?: string; conversationId?: string }
     | { type: "error"; message: string; conversationId?: string }
     | { type: "approval_request"; id: string; tool: string; input: unknown; conversationId?: string }
+    | { type: "approval_auto"; id: string; tool: string; input: unknown; denied?: boolean; conversationId?: string }
     | { type: "approval_resolved"; id: string; approved: boolean; conversationId?: string }
     | { type: "conversation_renamed"; conversationId: string; title: string }
     | { type: "status"; letta: string; agentReady: boolean };

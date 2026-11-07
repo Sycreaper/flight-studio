@@ -66,3 +66,4 @@ agent_gateway/node_modules/
 # Agent gateway build output + local Letta state
 agent_gateway/dist/
 agent_gateway/.letta/
+.trae/rules/git-commit-message.md

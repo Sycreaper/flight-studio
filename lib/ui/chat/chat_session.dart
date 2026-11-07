@@ -28,13 +28,24 @@ enum ChatPhase {
 }
 
 /// One pending tool-approval request surfaced by the gateway's official
-/// canUseTool bridge (reusable for MCP tool approvals).
+/// canUseTool bridge (reusable for MCP tool approvals). [autoAllowed]
+/// marks a record-only card: the gateway already ran the tool (L1+ data
+/// read) — no user interaction happens. [autoDenied] marks the mirror
+/// case: the policy refused the call before any prompt.
 class PendingApproval {
-  PendingApproval({required this.id, required this.tool, required this.input});
+  PendingApproval({
+    required this.id,
+    required this.tool,
+    required this.input,
+    this.autoAllowed = false,
+    this.autoDenied = false,
+  });
 
   final String id;
   final String tool;
   final Map<String, dynamic> input;
+  final bool autoAllowed;
+  final bool autoDenied;
 }
 
 /// One chat bubble. [done] is `false` while an assistant reply is still
@@ -253,8 +264,7 @@ class ChatSession extends ChangeNotifier {
   /// whatever text already streamed in.
   void stop() {
     if (!_streaming) return;
-    _streaming = false;
-    _setPhase(ChatPhase.idle);
+    _finishTurn();
     if (ChatSessionManager.instance.streamingSession == this) {
       ChatSessionManager.instance.streamingSession = null;
     }
@@ -288,13 +298,25 @@ class ChatSession extends ChangeNotifier {
   }
 
   void onTurnDone(String? content) {
-    final last = _lastAssistant();
-    if (last != null) {
-      if (content != null && content.isNotEmpty) last.content = content;
-      last.done = true;
+    final live = messages
+        .where(
+          (m) =>
+              m.role == ChatRole.assistant &&
+              m.approval == null &&
+              !m.done,
+        )
+        .toList();
+    // The gateway's full turn text only fills a bubble that never
+    // streamed (result-only path) — and only when the reply was never
+    // split by a permission card, otherwise it would duplicate the
+    // earlier segment in the last bubble.
+    if (live.length == 1 &&
+        content != null &&
+        content.isNotEmpty &&
+        live.single.content.isEmpty) {
+      live.single.content = content;
     }
-    _streaming = false;
-    _setPhase(ChatPhase.idle);
+    _finishTurn();
     notifyListeners();
   }
 
@@ -305,9 +327,25 @@ class ChatSession extends ChangeNotifier {
         ..done = true
         ..content = message;
     }
+    _finishTurn();
+    notifyListeners();
+  }
+
+  /// Ends the live turn state: every assistant bubble of the turn is
+  /// marked done and trailing bubbles left empty (no text streamed after
+  /// the last tool card) are dropped so the transcript stays clean.
+  void _finishTurn() {
+    for (final m in messages) {
+      if (m.role == ChatRole.assistant && m.approval == null) m.done = true;
+    }
+    while (messages.isNotEmpty) {
+      final m = messages.last;
+      if (m.role != ChatRole.assistant || m.approval != null) break;
+      if (m.content.trim().isNotEmpty) break;
+      messages.removeLast();
+    }
     _streaming = false;
     _setPhase(ChatPhase.idle);
-    notifyListeners();
   }
 
   void onApprovalRequest(String id, String tool, Map<String, dynamic> input) {
@@ -315,11 +353,56 @@ class ChatSession extends ChangeNotifier {
     pendingApproval = approval;
     // Embedded in the transcript — renders as a permission card and stays
     // there (collapsed) after the user answers.
-    messages.add(
+    _insertApprovalRow(
       ChatMessage(role: ChatRole.approval, content: '', approval: approval),
     );
     _diag('approval request: $tool ($id)');
     notifyListeners();
+  }
+
+  /// A tool call the gateway settled without user interaction —
+  /// auto-allowed (L1+ data read) or auto-denied by policy: recorded as
+  /// an already-resolved card at the tool-call position.
+  void onApprovalAuto(
+    String id,
+    String tool,
+    Map<String, dynamic> input, {
+    bool denied = false,
+  }) {
+    final approval = PendingApproval(
+      id: id,
+      tool: tool,
+      input: input,
+      autoAllowed: !denied,
+      autoDenied: denied,
+    );
+    _insertApprovalRow(
+      ChatMessage(role: ChatRole.approval, content: '', approval: approval)
+        ..approvalResolved = true
+        ..approvalApproved = !denied,
+    );
+    _diag('approval auto ${denied ? 'deny' : 'allow'}: $tool ($id)');
+    notifyListeners();
+  }
+
+  /// Inserts a permission row INLINE at the position where the AI issued
+  /// the tool request: right after the still-streaming assistant bubble,
+  /// which then continues in a NEW bubble below the card. A not-yet-done
+  /// assistant bubble only exists during a live turn, so [ChatMessage.done]
+  /// alone drives the decision; otherwise (tests, finished sessions) the
+  /// row simply appends.
+  void _insertApprovalRow(ChatMessage row) {
+    final last = _lastAssistant();
+    if (last != null && !last.done) {
+      final index = messages.indexOf(last);
+      messages.insert(index + 1, row);
+      messages.insert(
+        index + 2,
+        ChatMessage(role: ChatRole.assistant, content: '', done: false),
+      );
+    } else {
+      messages.add(row);
+    }
   }
 
   void onApprovalResolved(String? id, {bool approved = false}) {
@@ -508,9 +591,11 @@ class ChatSessionManager extends ChangeNotifier {
   String? selectedModelId;
   String _reasoningEffort = 'medium';
 
-  /// Granted AI access level (L0–L3): the RANGE of tools the copilot may
-  /// request. L1 public aeronautical reads auto-run; L2/L3 and unknown
-  /// tools require manual approval. Persistent.
+  /// Granted AI access level (L0–L3): L0 makes every tool call wait for
+  /// manual confirmation; L1+ auto-allows data reads (app + simulator);
+  /// write tools and other harness tools always wait for the manual
+  /// card; bash commands are always denied and skills always run.
+  /// Persistent.
   int _aiLevel = 1;
 
   int get aiLevel => _aiLevel;
@@ -696,6 +781,20 @@ class ChatSessionManager extends ChangeNotifier {
             rawInput is Map
                 ? Map<String, dynamic>.from(rawInput)
                 : const {},
+          );
+        }
+      case 'approval_auto':
+        final autoId = event['id'] as String?;
+        final autoTool = event['tool'] as String? ?? '';
+        if (autoId != null) {
+          final rawInput = event['input'];
+          target.onApprovalAuto(
+            autoId,
+            autoTool,
+            rawInput is Map
+                ? Map<String, dynamic>.from(rawInput)
+                : const {},
+            denied: event['denied'] == true,
           );
         }
       case 'approval_resolved':

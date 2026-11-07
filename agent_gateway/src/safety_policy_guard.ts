@@ -1,45 +1,56 @@
-/// FlightStudio AI safety ladder (v3) — how much of the app the AI copilot
-/// may touch, per tool. The user picks the granted level (L0–L3) next to
-/// the reasoning chip; the gateway denies registered tools above it.
+/// FlightStudio AI tool policy (v5) — how every copilot tool call is
+/// classified and gated. The user picks the granted level (L0–L3) next to
+/// the reasoning chip; the session runs in `strict` permission mode and
+/// the canUseTool bridge routes ALL tool calls through here.
 ///
-/// EVERY tool call — at any level, registered or not (including the Letta
-/// harness's own command/shell tools) — requires explicit manual approval
-/// via the embedded permission card: the session runs in `strict`
-/// permission mode and the canUseTool bridge gates all of them.
-/// (Future: time-critical actions like a go-around may auto-run after a
-/// countdown — deliberately NOT implemented yet.)
-///
-/// - L0 — nothing: no tools granted at all
-/// - L1 — public read-only aeronautical data (airports, runways,
-///        frequencies, weather, charts)
-/// - L2 — app-state reads (flight plans, settings overview, telemetry)
-/// - L3 — everything, including writes and simulator commands
+/// Classification:
+/// - **Skills** (the harness `Skill` tool): silently allowed at every
+///   level — no card, no record.
+/// - **Bash-style command tools** (`Bash`, `exec_command`, `write_stdin`):
+///   DENIED at every level, without any record — the copilot never
+///   drives the host shell.
+/// - **FlightStudio MCP read tools** (navdata, charts, weather, sim
+///   state, map render, action-plan proposal): L0 → manual approval
+///   card; L1+ → auto-allowed with a record card in the transcript.
+/// - **FlightStudio MCP write tools** (simulator commands, COM writes):
+///   manual approval card at EVERY level — writes never auto-run.
+/// - **Everything else** (unregistered MCP tools, other harness tools
+///   like `Read`/`Edit`/`Task`, unknown names): manual approval card at
+///   every level — the user decides. Nothing is blanket-denied except
+///   bash-style commands.
 
 export type SafetyLevel = 0 | 1 | 2 | 3;
 
 export const DEFAULT_GRANTED_LEVEL: SafetyLevel = 1;
 
-/** Tool name → required level. Names may arrive MCP-qualified
+/// Read tools touch data only; write tools act on the simulator.
+export type ToolKind = "read" | "write";
+
+/** Registered FlightStudio Core tools. Names may arrive MCP-qualified
  * (`mcp__flightstudio-core__get_airport_data`) — matched by suffix. */
-const TOOL_LEVELS: Array<{tool: string; level: SafetyLevel}> = [
-    {tool: "get_airport_data", level: 1},
-    {tool: "charts_read", level: 1},
-    {tool: "weather_read", level: 1},
-    {tool: "search_navdata", level: 1},
-    {tool: "search_manual", level: 1},
-    {tool: "get_sim_state", level: 2},
-    {tool: "propose_action_plan", level: 2},
-    {tool: "render_map", level: 3},
-    {tool: "set_com_frequency", level: 3},
-    {tool: "send_sim_command", level: 3},
+const TOOL_KINDS: Array<{tool: string; kind: ToolKind}> = [
+    {tool: "get_airport_data", kind: "read"},
+    {tool: "charts_read", kind: "read"},
+    {tool: "weather_read", kind: "read"},
+    {tool: "search_navdata", kind: "read"},
+    {tool: "search_manual", kind: "read"},
+    {tool: "get_sim_state", kind: "read"},
+    {tool: "propose_action_plan", kind: "read"},
+    {tool: "render_map", kind: "read"},
+    {tool: "set_com_frequency", kind: "write"},
+    {tool: "send_sim_command", kind: "write"},
 ];
 
 export interface GuardDecision {
     allowed: boolean;
-    /** Required level of the tool; null when unknown (unregistered tools
-     *  still surface for manual approval — the human decides). */
-    level: SafetyLevel | null;
+    /** Registered tool kind; null for unclassified names. */
+    kind: ToolKind | null;
+    /// Manual approval card in the chat transcript.
     requiresApproval: boolean;
+    /// Auto-allowed — still recorded as a (resolved) card.
+    autoAllowed: boolean;
+    /// Auto-allowed WITHOUT any card or record (skills only).
+    silent: boolean;
     reason: string;
 }
 
@@ -52,48 +63,109 @@ export function grantedLevelFromEnv(
     return DEFAULT_GRANTED_LEVEL;
 }
 
-function levelOf(tool: string): SafetyLevel | null {
+function kindOf(tool: string): ToolKind | null {
     const name = tool.trim().toLowerCase();
-    for (const entry of TOOL_LEVELS) {
+    for (const entry of TOOL_KINDS) {
         if (name === entry.tool || name.endsWith(`__${entry.tool}`)) {
-            return entry.level;
+            return entry.kind;
         }
     }
     return null;
 }
 
-/// [granted] may come per-turn from the Flutter message send. Everything
-/// within (or below) the ladder goes to the manual-approval card — the
-/// gateway never auto-runs a tool.
+function isSkill(tool: string): boolean {
+    const name = tool.trim().toLowerCase();
+    return name === "skill" || name.endsWith("__skill");
+}
+
+/// Bash-style shell-execution tools of the Letta harness.
+export function isBashCommand(tool: string): boolean {
+    const name = tool.trim().toLowerCase();
+    return (
+        name === "bash" ||
+        name.endsWith("__bash") ||
+        name === "exec_command" ||
+        name.endsWith("__exec_command") ||
+        name === "write_stdin" ||
+        name.endsWith("__write_stdin")
+    );
+}
+
+export function isMcpQualified(tool: string): boolean {
+    return tool.trim().toLowerCase().startsWith("mcp__");
+}
+
+/// [granted] may come per-turn from the Flutter message send.
 export function evaluateToolCall(
     tool: string,
     granted: SafetyLevel = grantedLevelFromEnv(),
 ): GuardDecision {
-    const level = levelOf(tool);
-    if (level == null) {
-        // Unregistered tool — Letta's own command/shell tools land here.
-        // The USER decides; nothing runs silently.
+    // Skills always run — no card, no record.
+    if (isSkill(tool)) {
         return {
             allowed: true,
-            level: null,
-            requiresApproval: true,
-            reason: "unregistered tool — requires manual approval",
+            kind: null,
+            requiresApproval: false,
+            autoAllowed: false,
+            silent: true,
+            reason: "skill usage — always allowed, never recorded",
         };
     }
-    if (level > granted) {
+    // Bash-style commands are denied outright, without any record.
+    if (isBashCommand(tool)) {
         return {
             allowed: false,
-            level,
+            kind: null,
             requiresApproval: false,
-            reason:
-                `tool "${tool}" requires level L${level}, ` +
-                `granted is L${granted}`,
+            autoAllowed: false,
+            silent: false,
+            reason: `bash commands ("${tool}") are denied at every level`,
         };
     }
+    const kind = kindOf(tool);
+    if (kind != null) {
+        // L0 asks for EVERY tool call; L1+ auto-allows data reads
+        // (Flight Studio app data + simulator data).
+        if (kind === "read") {
+            if (granted >= 1) {
+                return {
+                    allowed: true,
+                    kind,
+                    requiresApproval: false,
+                    autoAllowed: true,
+                    silent: false,
+                    reason: "data read auto-allowed (L1+)",
+                };
+            }
+            return {
+                allowed: true,
+                kind,
+                requiresApproval: true,
+                autoAllowed: false,
+                silent: false,
+                reason: "L0 — every tool call needs manual confirmation",
+            };
+        }
+        // Write tools NEVER auto-run — manual card at every level.
+        return {
+            allowed: true,
+            kind,
+            requiresApproval: true,
+            autoAllowed: false,
+            silent: false,
+            reason: "write tool — manual confirmation at every level",
+        };
+    }
+    // Unregistered MCP tools and other harness tools (Read, Edit, Task,
+    // …) — the user decides. Nothing is blanket-denied except bash.
     return {
         allowed: true,
-        level,
+        kind: null,
         requiresApproval: true,
-        reason: `within granted level L${granted} — requires manual approval`,
+        autoAllowed: false,
+        silent: false,
+        reason: isMcpQualified(tool)
+            ? "unregistered MCP tool — requires manual approval"
+            : "harness tool — requires manual approval",
     };
 }

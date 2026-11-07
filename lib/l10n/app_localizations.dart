@@ -308,34 +308,46 @@ abstract class AppLocalizations {
   /// **'Denied'**
   String get approvalResolvedDeny;
 
+  /// No description provided for @approvalAutoAllowed.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-allowed'**
+  String get approvalAutoAllowed;
+
+  /// No description provided for @approvalAutoDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-denied'**
+  String get approvalAutoDenied;
+
   /// No description provided for @aiLevelChipLabel.
   ///
   /// In en, this message translates to:
-  /// **'AI access level (L0–L3) — L1 public aero data runs automatically; L2/L3 and unknown tools need your approval'**
+  /// **'AI access level (L0–L3) — L0 confirms every tool call; L1+ auto-runs data reads; writes and other tools need confirmation; Bash commands are always denied; skills always run'**
   String get aiLevelChipLabel;
 
   /// No description provided for @aiLevel0.
   ///
   /// In en, this message translates to:
-  /// **'L0 · None'**
+  /// **'L0 · Manual confirm'**
   String get aiLevel0;
 
   /// No description provided for @aiLevel1.
   ///
   /// In en, this message translates to:
-  /// **'L1 · Public aero data'**
+  /// **'L1 · Auto data'**
   String get aiLevel1;
 
   /// No description provided for @aiLevel2.
   ///
   /// In en, this message translates to:
-  /// **'L2 · App state'**
+  /// **'L2 · Reserved'**
   String get aiLevel2;
 
   /// No description provided for @aiLevel3.
   ///
   /// In en, this message translates to:
-  /// **'L3 · Full access'**
+  /// **'L3 · Reserved'**
   String get aiLevel3;
 
   /// No description provided for @tabMapUnnamed.

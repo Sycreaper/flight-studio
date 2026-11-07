@@ -314,9 +314,10 @@ class _ReasoningMenu extends StatelessWidget {
   }
 }
 
-/// AI access-level chip (权限级别 L0–L3) — the RANGE of tools the copilot
-/// may request. L1 public aeronautical reads auto-run; L2/L3 and unknown
-/// tools always require the manual approval card.
+/// AI access-level chip (权限级别 L0–L3) — L0 makes every tool call wait
+/// for the manual approval card; L1+ auto-allows data reads (recorded as
+/// cards); write tools and other harness tools always wait for the manual
+/// card; bash commands are always denied; skills always run.
 class _AiLevelMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {

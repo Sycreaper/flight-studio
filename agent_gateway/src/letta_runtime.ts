@@ -42,7 +42,6 @@ import {
     resolveByokHandle,
 } from "./provider_push.js";
 import {type Backend, type GatewayStatus} from "./runtime_types.js";
-import {evaluateToolCall, grantedLevelFromEnv} from "./safety_policy_guard.js";
 import {TurnRunner} from "./turn_runner.js";
 
 export type {GatewayEvent} from "./event_types.js";

@@ -4,12 +4,12 @@ import '../../l10n/app_localizations.dart';
 import '../chat/chat_session.dart';
 import '../theme/app_colors.dart';
 
-/// Floating permission card shown when the Letta agent (or, later, an MCP
-/// tool) requests approval for a tool call — the official `canUseTool`
-/// bridge surfaces these through the gateway.
+/// Embedded permission card shown when the copilot requests approval for
+/// a tool call — the official `canUseTool` bridge surfaces these through
+/// the gateway.
 ///
-/// Style: welcome-screen floating card — pure white surface, NO border,
-/// soft double shadow, large corner radius.
+/// Style: gray (the default input-box colour, `surfaceLowered`) with a
+/// floating shadow, as wide as the reply text area — no fixed width.
 class ApprovalCard extends StatelessWidget {
   const ApprovalCard({
     super.key,
@@ -34,21 +34,15 @@ class ApprovalCard extends StatelessWidget {
         .join('\n');
 
     return Container(
-      width: 360,
-      padding: const EdgeInsets.fromLTRB(18, 16, 18, 14),
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
       decoration: BoxDecoration(
-        color: colors.surfaceRaised,
-        borderRadius: BorderRadius.circular(16),
+        color: colors.surfaceLowered,
+        borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: isDark ? 0.22 : 0.10),
-            blurRadius: 20,
-            offset: const Offset(0, 4),
-          ),
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.14 : 0.05),
-            blurRadius: 4,
-            offset: const Offset(0, 1),
+            blurRadius: 14,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
@@ -81,7 +75,7 @@ class ApprovalCard extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: colors.surfaceLowered,
+                color: colors.surfaceBase,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
