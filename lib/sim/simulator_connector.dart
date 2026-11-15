@@ -11,6 +11,7 @@ enum SimConnectionState { disconnected, connecting, connected, error }
 /// Minimal by design — Phase 4's UDP reader decides the real field set; the
 /// seam stays stable for plugins that bridge other simulators.
 @immutable
+/// One live telemetry snapshot from the connected simulator.
 class SimTelemetry {
   const SimTelemetry({
     required this.latitude,
@@ -46,8 +47,10 @@ abstract class SimulatorConnector {
   /// Live telemetry stream; empty until [connect] succeeds.
   Stream<SimTelemetry> get telemetry;
 
+  /// Connects to the simulator at [install].
   Future<void> connect(SimulatorInstall install);
 
+  /// Disconnects from the simulator.
   Future<void> disconnect();
 
   /// Sends a simulator-side command (e.g. a FlyWithLua `command_once`).

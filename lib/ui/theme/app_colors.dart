@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 /// Exposed via [ThemeExtension] so widgets can read it with
 /// `Theme.of(context).extension<AppColors>()!`.
 @immutable
+/// Semantic color tokens for both brightnesses.
 class AppColors extends ThemeExtension<AppColors> {
   const AppColors({
     required this.accent,

@@ -69,6 +69,12 @@ class ChatMessage {
   final PendingApproval? approval;
   bool approvalResolved = false;
   bool approvalApproved = false;
+
+  /// Whether the approval outcome is known. False only for cards restored
+  /// from the official history — the local backend's history carries no
+  /// approval records, so every restored card shows a neutral ended
+  /// marker instead of approved/denied.
+  bool approvalOutcomeKnown = true;
 }
 
 /// Sentinel bubble contents — the UI translates these at render time so the
@@ -77,10 +83,10 @@ const kErrNoModel = '<<flightstudio:no_model>>';
 const kErrGateway = '<<flightstudio:gateway_not_ready>>';
 const kErrProvider = '<<flightstudio:provider_rejected>>';
 
-/// In-memory state of ONE conversation with the 飞行助理 agent.
+/// In-memory state of ONE conversation with the flight-assistant agent.
 ///
 /// A session starts as a **draft** ([conversationId] null — the UI labels it
-/// 新对话). The first [send] creates the Letta conversation lazily — after
+/// "New chat"). The first [send] creates the Letta conversation lazily — after
 /// the provider push succeeded — and binds the id, so failed turns never
 /// leave ghost conversations behind. Replies stream from the gateway's SSE
 /// channel, dispatched here by [ChatSessionManager]; history hydration uses
@@ -97,7 +103,7 @@ class ChatSession extends ChangeNotifier {
 
   bool get isStreaming => _streaming;
 
-  /// Live turn phase (思考中/搜索中/…) + the tool name driving it, from the
+  /// Live turn phase (thinking/searching/…) + the tool name driving it, from the
   /// official stream. Cleared when the turn ends.
   ChatPhase _phase = ChatPhase.idle;
   String? _phaseDetail;
@@ -133,7 +139,7 @@ class ChatSession extends ChangeNotifier {
 
   // ── Outbound turn ─────────────────────────────────────────────────────────
 
-  /// Appends the user message and starts the 飞行助理 turn via the gateway:
+  /// Appends the user message and starts the flight-assistant turn via the gateway:
   /// ensure gateway process → push provider credentials → (drafts only)
   /// create the conversation → send. No-op while a reply is already
   /// streaming or the text is empty.
@@ -157,6 +163,8 @@ class ChatSession extends ChangeNotifier {
     _streaming = true;
     notifyListeners();
 
+    /// Fails the pending assistant reply with a sentinel content the UI
+    /// translates at render time.
     void fail(String sentinel) {
       messages.last
         ..done = true
@@ -274,6 +282,7 @@ class ChatSession extends ChangeNotifier {
 
   // ── Inbound SSE dispatch (called by [ChatSessionManager]) ─────────────────
 
+  /// SSE `phase` event: updates the live turn phase + driving tool name.
   void onPhase(String? phase, String? detail) =>
       _setPhase(_phaseFromWire(phase), detail: detail);
 
@@ -288,6 +297,7 @@ class ChatSession extends ChangeNotifier {
     return null;
   }
 
+  /// SSE `delta` event: appends streaming text to the last assistant row.
   void onDelta(String content) {
     if (content.isEmpty) return;
     final last = _lastAssistant();
@@ -297,6 +307,7 @@ class ChatSession extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// SSE `turn_done` event: finalizes the assistant reply with the full text.
   void onTurnDone(String? content) {
     final live = messages
         .where(
@@ -320,6 +331,7 @@ class ChatSession extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// SSE `error` event: fails the streaming reply with the error message.
   void onTurnError(String message) {
     final last = _lastAssistant();
     if (last != null) {
@@ -348,6 +360,8 @@ class ChatSession extends ChangeNotifier {
     _setPhase(ChatPhase.idle);
   }
 
+  /// SSE `approval_request` event: registers a pending approval and embeds
+  /// its card in the transcript.
   void onApprovalRequest(String id, String tool, Map<String, dynamic> input) {
     final approval = PendingApproval(id: id, tool: tool, input: input);
     pendingApproval = approval;
@@ -405,6 +419,8 @@ class ChatSession extends ChangeNotifier {
     }
   }
 
+  /// SSE `approval_resolved` event: confirms a card's answer and resumes the
+  /// working phase.
   void onApprovalResolved(String? id, {bool approved = false}) {
     if (id == null) return;
     _resolveApproval(id, approved);
@@ -430,14 +446,44 @@ class ChatSession extends ChangeNotifier {
       return;
     }
     if (messages.isNotEmpty) return;
-    messages.addAll([
-      for (final m in history)
-        ChatMessage(
-          role: m.role == 'user' ? ChatRole.user : ChatRole.assistant,
-          content: m.content,
-        ),
-    ]);
+    final hydrated = <ChatMessage>[];
+    for (var i = 0; i < history.length; i++) {
+      final message = messageFromHistoryRow(history[i], id: 'hist_$i');
+      if (message != null) hydrated.add(message);
+    }
+    if (hydrated.isEmpty) return;
+    messages.addAll(hydrated);
     notifyListeners();
+  }
+
+  /// Maps one official-history row to a transcript message: tool-call rows
+  /// become resolved permission cards at their original position (no
+  /// outcome is restored — the backend history carries no approval
+  /// records, so they render as neutral ended markers); text rows become
+  /// regular bubbles. Visible for testing.
+  @visibleForTesting
+  static ChatMessage? messageFromHistoryRow(
+    HistoryRow row, {
+    required String id,
+  }) {
+    if (row.role == 'tool_call' && row.tool != null) {
+      return ChatMessage(
+        role: ChatRole.approval,
+        content: '',
+        approval: PendingApproval(
+          id: id,
+          tool: row.tool!,
+          input: row.input ?? const {},
+        ),
+      )
+        ..approvalResolved = true
+        ..approvalOutcomeKnown = false;
+    }
+    if (row.content.trim().isEmpty) return null;
+    return ChatMessage(
+      role: row.role == 'user' ? ChatRole.user : ChatRole.assistant,
+      content: row.content,
+    );
   }
 
   /// Test-only: forgets the history-loaded guard.
@@ -454,7 +500,7 @@ class ChatSession extends ChangeNotifier {
 /// the chat and which model / reasoning effort to use) so every surface
 /// (welcome page, chat tabs, chips) shows the same choice.
 ///
-/// All conversations belong to the single 飞行助理 agent; the list mirrors
+/// All conversations belong to the single flight-assistant agent; the list mirrors
 /// Letta's official conversations API. The manager also owns ONE SSE
 /// subscription to the gateway and dispatches each event to the session
 /// matching its `conversationId` — sessions never subscribe individually.
@@ -463,7 +509,7 @@ class ChatSessionManager extends ChangeNotifier {
 
   static final ChatSessionManager instance = ChatSessionManager._();
 
-  /// Conversations of 飞行助理, newest activity first (official API).
+  /// Conversations of the flight assistant, newest activity first (official API).
   final List<GatewayConversation> conversations = [];
 
   /// Session owning the live turn (null while idle) — the fallback target
@@ -475,7 +521,7 @@ class ChatSessionManager extends ChangeNotifier {
 
   // ── Session lifecycle ─────────────────────────────────────────────────────
 
-  /// Creates a fresh draft session (新对话) and returns its key. The Letta
+  /// Creates a fresh draft session (titled "New chat") and returns its key. The Letta
   /// conversation is created lazily on the session's first send.
   String newChat() {
     final key = 'draft_${++_draftCounter}';
@@ -515,6 +561,7 @@ class ChatSessionManager extends ChangeNotifier {
   /// inferring from the list, which may not have loaded yet).
   final Set<String> _deletedConversations = {};
 
+  /// Whether the conversation was deleted locally (used to close its chat tab).
   bool isDeleted(String conversationId) =>
       _deletedConversations.contains(conversationId);
 
@@ -567,7 +614,19 @@ class ChatSessionManager extends ChangeNotifier {
             ),
       ];
     }
-    return GatewayClient.instance.fetchHistory(conversationId: conversationId);
+    final rows = await GatewayClient.instance.fetchHistory(
+      conversationId: conversationId,
+    );
+    if (rows == null) return null;
+    // Permission rows are UI-only; they never reach exports.
+    return [
+      for (final r in rows)
+        if (r.role != 'tool_call' && r.content.trim().isNotEmpty)
+          (
+            role: r.role == 'user' ? 'user' : 'assistant',
+            content: r.content,
+          ),
+    ];
   }
 
   /// Display title of a conversation, or null when not (yet) summarized.
@@ -617,6 +676,8 @@ class ChatSessionManager extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Selects the API key backing the chat and its model (first discovered
+  /// model when omitted).
   void selectKey(ApiKeyEntry? key, {String? modelId}) {
     selectedKey = key;
     // Default to the first discovered model when none given explicitly.

@@ -248,11 +248,11 @@ class GatewayClient {
   }
 
   /// Conversation history from the official Letta API (the app never
-  /// records chat itself). Returns `role`+`content` pairs, oldest first;
-  /// null when the gateway is unreachable. [conversationId] scopes the
-  /// query (the agent's default conversation when null).
-  Future<List<({String role, String content})>?> fetchHistory(
-      {String? conversationId}) async {
+  /// records chat itself). Rows are user/assistant text turns or restored
+  /// tool-call records (they render as permission cards); oldest first.
+  /// Returns null when the gateway is unreachable. [conversationId] scopes
+  /// the query (the agent's default conversation when null).
+  Future<List<HistoryRow>?> fetchHistory({String? conversationId}) async {
     try {
       final res = await _dio.get<Map<String, dynamic>>(
         '$baseUrl/agent/history',
@@ -263,23 +263,49 @@ class GatewayClient {
       );
       final raw = res.data?['messages'];
       if (raw is! List) return const [];
-      return raw
-          .whereType<Map<String, dynamic>>()
-          .map((m) =>
-      (
-      role: m['role'] as String? ?? 'assistant',
-      content: m['content'] as String? ?? '',
-      ))
-          .where((m) =>
-      m.content
-          .trim()
-          .isNotEmpty)
-          .toList();
+      final rows = <HistoryRow>[];
+      for (final m in raw.whereType<Map<String, dynamic>>()) {
+        final role = m['role'] as String? ?? 'assistant';
+        if (role == 'tool_call') {
+          final tool = m['tool'] as String?;
+          if (tool == null || tool.isEmpty) continue;
+          final rawInput = m['input'];
+          rows.add((
+            role: 'tool_call',
+            content: '',
+            tool: tool,
+            input: rawInput is Map
+                ? Map<String, dynamic>.from(rawInput)
+                : const {},
+          ));
+        } else {
+          final content = m['content'] as String? ?? '';
+          if (content.trim().isEmpty) continue;
+          rows.add((
+            role: role,
+            content: content,
+            tool: null,
+            input: null,
+          ));
+        }
+      }
+      return rows;
     } on Exception catch (_) {
       return null;
     }
   }
 }
+
+/// One row of the official conversation history: a user/assistant text
+/// turn ([tool] null), or a restored tool-call record. The approval
+/// outcome is deliberately not part of the wire format — restored cards
+/// render as neutral ended markers.
+typedef HistoryRow = ({
+  String role,
+  String content,
+  String? tool,
+  Map<String, dynamic>? input,
+});
 
 /// One conversation of the flight assistant, as the drawer lists it.
 class GatewayConversation {

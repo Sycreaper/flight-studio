@@ -10,7 +10,7 @@ import 'tab_registry.dart';
 /// Chat tabs additionally carry a [chatSessionKey] (the
 /// `ChatSessionManager` key of the conversation they mirror) and may have a
 /// [titleOverride] — the LLM-generated conversation title, which replaces
-/// the descriptor's localized "新对话" default once summarized.
+/// the descriptor's localized "New chat" default once summarized.
 class AppTab {
   AppTab({required this.id, required this.typeId, this.chatSessionKey});
 

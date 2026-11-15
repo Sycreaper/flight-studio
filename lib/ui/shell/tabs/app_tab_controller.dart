@@ -97,6 +97,7 @@ class AppTabController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Selects the tab with [id].
   void select(String id) {
     if (_selectedId != id) {
       _selectedId = id;

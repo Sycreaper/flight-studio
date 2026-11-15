@@ -10,12 +10,13 @@ import '../chat/chat_session.dart';
 import '../theme/app_colors.dart';
 import '../widgets/floating_window.dart';
 
-/// Left-drawer panel listing every conversation with the 飞行助理 agent
-/// (official Letta conversations API via [ChatSessionManager]).
+/// Left-drawer panel listing every conversation with the flight-assistant
+/// agent (official Letta conversations API via [ChatSessionManager]).
 ///
-/// Top: a 新建对话 button that opens a fresh chat tab. Below: the
+/// Top: a "New conversation" button that opens a fresh chat tab. Below: the
 /// conversation list — click opens (or focuses) the matching chat tab; the
-/// trailing ⋮ menu offers 导出对话 (Markdown file) and 删除对话 behind a
+/// trailing ⋮ menu offers "Export conversation" (Markdown file) and
+/// "Delete conversation" behind a
 /// confirmation floating window (deletion uses the official archive
 /// semantics; an actively streaming conversation is aborted first,
 /// gateway-side).
@@ -26,7 +27,7 @@ class ConversationDrawer extends StatefulWidget {
     required this.onOpenConversation,
   });
 
-  /// Opens a new chat tab (新对话).
+  /// Opens a new chat tab (a fresh draft conversation).
   final VoidCallback onCreateChat;
 
   /// Opens (or focuses) the chat tab of one conversation id.
@@ -120,8 +121,9 @@ class _ConversationDrawerState extends State<ConversationDrawer> {
     );
   }
 
-  /// 删除对话 confirm floating window — the same style the settings page
-  /// uses for destructive confirmations. Deletion cannot be undone.
+  /// "Delete conversation" confirm floating window — the same style the
+  /// settings page uses for destructive confirmations. Deletion cannot be
+  /// undone.
   void _confirmDelete(String id) {
     final l10n = AppLocalizations.of(context)!;
     late OverlayEntry confirmEntry;
@@ -196,8 +198,8 @@ class _ConversationDrawerState extends State<ConversationDrawer> {
     Overlay.of(context).insert(confirmEntry);
   }
 
-  /// 导出对话 — one Markdown file (title header + user/assistant turns)
-  /// written through the platform save dialog.
+  /// "Export conversation" — one Markdown file (title header +
+  /// user/assistant turns) written through the platform save dialog.
   Future<void> _exportMarkdown(String id) async {
     final l10n = AppLocalizations.of(context)!;
     final manager = ChatSessionManager.instance;
@@ -212,6 +214,7 @@ class _ConversationDrawerState extends State<ConversationDrawer> {
     }
 
     final now = DateTime.now();
+    /// Zero-pads to two digits.
     String two(int v) => v.toString().padLeft(2, '0');
     final buffer = StringBuffer()
       ..writeln('# ${title ?? l10n.chatNewConversation}')
@@ -256,8 +259,8 @@ class _ConversationDrawerState extends State<ConversationDrawer> {
   }
 }
 
-/// One conversation row: title (新对话 placeholder until summarized),
-/// relative activity time, trailing ⋮ menu with 导出对话 / 删除对话.
+/// One conversation row: title ("New chat" placeholder until summarized),
+/// relative activity time, trailing ⋮ menu with export / delete.
 class _ConversationRow extends StatefulWidget {
   const _ConversationRow({
     required this.conversation,
@@ -412,6 +415,7 @@ class _ConversationRowState extends State<_ConversationRow> {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     if (dt.isAfter(today)) {
+      /// Zero-pads to two digits.
       String two(int v) => v.toString().padLeft(2, '0');
       return '${two(dt.hour)}:${two(dt.minute)}';
     }

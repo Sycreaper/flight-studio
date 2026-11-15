@@ -11,6 +11,8 @@ import '../../../l10n/import_messages.dart';
 import 'airport_details.dart';
 import 'db_opener.dart';
 
+/// Progress reporting for long-running imports: current item index, total
+/// count, human-readable message.
 typedef ProgressCallback =
     void Function(int current, int total, String message);
 
@@ -548,6 +550,7 @@ class NavdataImporter {
     };
   }
 
+  /// Closes the underlying database (idempotent).
   void close() {
     _db?.close();
     _db = null;

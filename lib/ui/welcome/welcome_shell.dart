@@ -50,7 +50,8 @@ class _WelcomeShellState extends State<WelcomeShell> {
   }
 
   /// Sends land in a NEW conversation: push a workspace whose chat tab is
-  /// bound to the session the text went into (新对话 until summarized).
+  /// bound to the session the text went into (titled "New chat" until
+  /// summarized).
   void _openChatTab(String sessionKey) {
     Navigator.push(
       context,

@@ -10,6 +10,7 @@ import '../../../sim/simulator_connector.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/floating_window.dart';
 
+/// Opens the "Add simulator" dialog.
 void showAddSimulatorDialog(
   BuildContext context,
   SettingsController controller,

@@ -283,7 +283,7 @@ class _ApiKeyListTileState extends State<_ApiKeyListTile> {
                         ),
                       ),
                       // Provider chip — OpenAI-compatible entries carry the
-                      // named provider (GLM / Qwen / … / 自定义).
+                      // named provider (GLM / Qwen / … / custom).
                       if (widget.entry.type == ApiKeyType.openAiCompatible &&
                           widget.entry.provider != null &&
                           widget.entry.provider!.isNotEmpty) ...[

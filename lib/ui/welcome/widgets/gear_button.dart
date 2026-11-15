@@ -80,6 +80,8 @@ class GearButtonState extends State<GearButton> with TickerProviderStateMixin {
     _onTasksChanged();
   }
 
+  /// Refreshes the spinning state; spinning itself follows background-task
+  /// activity.
   void setSpinning(bool value) {
     _onTasksChanged();
   }

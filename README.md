@@ -62,7 +62,7 @@ from the roadmap.
 - **A long-term co-pilot brain, not a chatbot** — Flight Studio runs a local **TypeScript Agent Gateway**
   (`agent_gateway/`) on top of the official
   [Letta Agent SDK](https://docs.letta.com/agent-sdk). One local agent — the
-  flight assistant (飞行助理) — with persistent memory blocks (user profile,
+  flight assistant — with persistent memory blocks (user profile,
   aircraft preferences, learning history, safety preferences), so the copilot
   gets to know the pilot over time. Letta itself stores the conversation
   history — the app never re-implements it.
@@ -428,7 +428,7 @@ Simulator write actions stay behind explicit confirmation gates.
 - [x] **Sprint A — Agent foundation (AI-first pivot)**: TypeScript Agent
   Gateway (`agent_gateway/`) on the Letta Agent SDK (local backend, auto-start),
   one-click install/start (Settings → AI, Node.js detection), a single
-  飞行助理 agent owning every conversation — official-API conversation CRUD in
+  flight-assistant agent owning every conversation — official-API conversation CRUD in
   the conversations drawer (new/open/delete-with-confirm, Markdown export,
   LLM-summarized titles with self-healing against the backend's auto-summary),
   per-conversation chat tabs, welcome/chat SSE streaming, BYOK provider push,

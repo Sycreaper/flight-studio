@@ -646,7 +646,7 @@ class _FactRow extends StatelessWidget {
   }
 }
 
-/// One ATC frequency line: `塔台  119.50 MHz · TOWER`.
+/// One ATC frequency line: `Tower  119.50 MHz · TOWER`.
 class _FrequencyRow extends StatelessWidget {
   const _FrequencyRow({required this.frequency});
 

@@ -429,6 +429,7 @@ class _ProviderDropdownState extends State<_ProviderDropdown> {
     final colors = Theme.of(context).extension<AppColors>()!;
     final l10n = AppLocalizations.of(context)!;
 
+    /// Display label of a provider.
     String label(OpenAiProvider p) =>
         switch (p) {
           OpenAiProvider.glm => l10n.openAiProviderGlm,
@@ -441,6 +442,7 @@ class _ProviderDropdownState extends State<_ProviderDropdown> {
           OpenAiProvider.custom => l10n.openAiProviderCustom,
         };
 
+    /// Icon of a provider.
     IconData icon(OpenAiProvider p) =>
         switch (p) {
           OpenAiProvider.glm => Icons.auto_awesome_rounded,

@@ -23,6 +23,7 @@ class AppScope extends InheritedWidget {
 
   final SettingsController settings;
 
+  /// The settings controller of the nearest enclosing [AppScope].
   static AppScope of(BuildContext context) {
     final scope = context.dependOnInheritedWidgetOfExactType<AppScope>();
     assert(scope != null, 'No AppScope above this widget');

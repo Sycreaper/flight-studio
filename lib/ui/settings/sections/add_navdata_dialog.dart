@@ -8,6 +8,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/floating_window.dart';
 
+/// Opens the "Add navdata source" dialog.
 void showAddNavdataDialog(BuildContext context, SettingsController controller) {
   final l10n = AppLocalizations.of(context)!;
   final sims = controller.value.simulators;

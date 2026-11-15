@@ -244,6 +244,7 @@ class _LegendToggle extends StatelessWidget {
     NavPointCategory.marker => 'assets/icons/map/userpoint_Marker.svg',
   };
 
+  /// Theme color for one navdata category.
   Color navCategoryColor(NavPointCategory cat, AppColors colors) =>
       switch (cat) {
         NavPointCategory.airport => colors.accent,

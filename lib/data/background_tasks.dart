@@ -90,11 +90,13 @@ class BackgroundTaskManager extends ChangeNotifier {
     return task;
   }
 
+  /// Removes one task from the registry.
   void removeTask(String id) {
     _tasks.removeWhere((t) => t.id == id);
     notifyListeners();
   }
 
+  /// Drops all completed tasks from the registry.
   void clearCompleted() {
     _tasks.removeWhere((t) => t.isComplete || t.error != null);
     notifyListeners();

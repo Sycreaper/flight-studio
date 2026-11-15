@@ -1306,6 +1306,39 @@ class AppLocalizationsEn extends AppLocalizations {
   String get approvalDeny => 'Deny';
 
   @override
+  String get approvalRestored => 'Ended';
+
+  @override
+  String get mcpToolAirportData => 'Airport data';
+
+  @override
+  String get mcpToolChartsRead => 'Chart lookup';
+
+  @override
+  String get mcpToolWeatherRead => 'Weather report';
+
+  @override
+  String get mcpToolSearchNavdata => 'Navdata search';
+
+  @override
+  String get mcpToolSearchManual => 'Manual search';
+
+  @override
+  String get mcpToolSimState => 'Simulator state';
+
+  @override
+  String get mcpToolActionPlan => 'Action plan proposal';
+
+  @override
+  String get mcpToolRenderMap => 'Map rendering';
+
+  @override
+  String get mcpToolSetComFrequency => 'Set COM frequency';
+
+  @override
+  String get mcpToolSendSimCommand => 'Send simulator command';
+
+  @override
   String get aiDeleteLettaData => 'Delete Letta data';
 
   @override

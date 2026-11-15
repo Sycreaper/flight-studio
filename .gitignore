@@ -45,6 +45,7 @@ migrate_working_dir/
 # AI assistant / tooling local config
 .ai/
 .aiassistant/
+.screenshots/
 
 # Symbolication related
 app.*.symbols

@@ -1,4 +1,4 @@
-/// The single 飞行助理 agent — split from letta_runtime.ts. Ensures the
+/// The single flight-assistant agent — split from letta_runtime.ts. Ensures the
 /// agent exists (list-then-create through the official management API)
 /// and wraps actions with "not found" recovery.
 

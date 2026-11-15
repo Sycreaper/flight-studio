@@ -1,5 +1,5 @@
 /// Session + approval controllers. v1 runs a single default session
-/// ("default") — all conversations belong to the one 飞行助理 agent and are
+/// ("default") — all conversations belong to the one flight-assistant agent and are
 /// routed per-request via `conversationId`, so there is no session ↔ agent
 /// mapping anymore.
 //

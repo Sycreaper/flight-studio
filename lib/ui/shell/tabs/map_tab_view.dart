@@ -4,6 +4,8 @@ import 'package:latlong2/latlong.dart';
 import '../../../core/navdata/navdata_types.dart';
 import '../../map/map_canvas.dart';
 
+/// The Map tab: the map canvas wired to the nav-visibility set, zoom and
+/// fly-to notifiers.
 class MapTabView extends StatelessWidget {
   const MapTabView({
     super.key,

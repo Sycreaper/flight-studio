@@ -10,6 +10,7 @@ class FlightRepository {
 
   List<FlightRecord> _records;
 
+  /// Every stored flight record (read-only view).
   List<FlightRecord> all() => List.unmodifiable(_records);
 
   /// Filters records by a free-text query against route, aircraft and airline.
@@ -24,10 +25,12 @@ class FlightRepository {
     }).toList(growable: false);
   }
 
+  /// Stores one flight record.
   Future<void> add(FlightRecord record) async {
     _records = [..._records, record];
   }
 
+  /// Seeds the store with [records].
   Future<void> seed(List<FlightRecord> records) async {
     _records = List.unmodifiable(records);
   }

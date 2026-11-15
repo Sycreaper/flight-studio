@@ -49,15 +49,19 @@ class AppLog {
   /// it for FS_LOG_DIR.
   static String? get dirPath => _dirPath;
 
+  /// Logs at debug level (verbose diagnostics).
   static void d(String category, String message) =>
       _log(LogLevel.debug, category, message);
 
+  /// Logs at info level (normal operation milestones).
   static void i(String category, String message) =>
       _log(LogLevel.info, category, message);
 
+  /// Logs at warn level (recoverable oddities worth watching).
   static void w(String category, String message) =>
       _log(LogLevel.warn, category, message);
 
+  /// Logs at error level; appends [error]'s text to the message when given.
   static void e(String category, String message, [Object? error]) => _log(
     LogLevel.error,
     category,

@@ -10,7 +10,7 @@
 /// Layout:
 /// - letta_app_server.ts — local app-server subprocess + protocol socket
 ///   + SDK client construction (backends: local/cloud/remote).
-/// - agent_manager.ts — the single 飞行助理 agent (ensure + recovery).
+/// - agent_manager.ts — the single flight-assistant agent (ensure + recovery).
 /// - turn_runner.ts — live turn (resumeSession, strict approvals, MCP
 ///   mount) + abort.
 /// - turn_stream.ts — pure stream-message → event mapping.
@@ -26,7 +26,7 @@ import {type ChildProcess} from "node:child_process";
 
 import {ensureAgent, withAgentRecovery} from "./agent_manager.js";
 import {ApprovalBridge, type ApprovalPort} from "./approval_bridge.js";
-import {Conversations} from "./conversations.js";
+import {Conversations, type HistoryMessage} from "./conversations.js";
 import {
     AppServerSocket,
     createLettaClient,
@@ -326,12 +326,9 @@ export class LettaRuntime extends EventEmitter {
 
     /// Conversation history from the OFFICIAL Letta API. [conversationId]
     /// scopes the query to one conversation (default conversation when
-    /// null).
-    async listHistory(
-        conversationId?: string,
-    ): Promise<
-        Array<{ role: "user" | "assistant"; content: string }>
-    > {
+    /// null). Beside user/assistant text, restored tool-call records ride
+    /// along (see conversations.parseHistoryMessages).
+    async listHistory(conversationId?: string): Promise<HistoryMessage[]> {
         await this.initialize();
         if (this.lettaState !== "ok" || this.agentId == null) return [];
         return this.conversationsStore.history(conversationId);

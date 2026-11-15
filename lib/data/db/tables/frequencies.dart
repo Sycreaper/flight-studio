@@ -8,6 +8,7 @@ import 'package:drift/drift.dart';
 /// so there is no composite primary key — rows are keyed by rowid and
 /// indexed by airport for the inspector lookup.
 @TableIndex(name: 'idx_frequencies_airport', columns: {#airportIcao})
+/// ATC frequency rows of one airport, in kHz.
 class Frequencies extends Table {
   TextColumn get airportIcao => text()();
 

@@ -17,6 +17,8 @@ part 'database.g.dart';
 /// should never import this class directly.
 @DriftDatabase(
     tables: [Airports, Runways, Frequencies, Navaids, Fixes, Airways])
+/// The app's navdata database: airports, runways, frequencies, navaids,
+/// fixes and airways.
 class NavdataDatabase extends _$NavdataDatabase {
   NavdataDatabase(super.connection);
 

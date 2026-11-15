@@ -4,6 +4,7 @@ import 'package:gpt_markdown/gpt_markdown.dart';
 
 import '../../../data/settings/settings_controller.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../mcp/tool_display.dart';
 import '../../chat/chat_session.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/approval_card.dart';
@@ -11,7 +12,7 @@ import '../../widgets/center_card.dart';
 import '../../widgets/model_reasoning_chips.dart';
 import '../../widgets/prompt_box.dart';
 
-/// Chat tab: ONE conversation with the 飞行助理 agent — the message list
+/// Chat tab: ONE conversation with the flight-assistant agent — the message list
 /// (in-memory — Letta keeps the authoritative conversation) above a
 /// welcome-style prompt box. The model + reasoning chips
 /// ([ModelReasoningChips]) are the same widget as the welcome page — both
@@ -27,7 +28,7 @@ class ChatTabView extends StatefulWidget {
 
   /// [ChatSessionManager] key of the conversation this tab mirrors. A null
   /// session is impossible in practice (the shell always resolves a key);
-  /// late binding would show an untitled 新对话.
+  /// late binding would show an untitled draft chat.
   final String sessionKey;
 
   @override
@@ -85,7 +86,7 @@ class _ChatTabViewState extends State<ChatTabView> {
               // ── Message history ─────────────────────────────────────────
               Expanded(
                 child: session.messages.isEmpty
-                    ? const SizedBox.shrink() // 留空：Letta 循环接入后填充
+                    ? const SizedBox.shrink() // Left empty; filled once the Letta loop lands.
                     : ListView.builder(
                         controller: _historyController,
                         padding: const EdgeInsets.symmetric(
@@ -204,7 +205,7 @@ class _Bubble extends StatelessWidget {
   final ChatRole role;
   final String content;
 
-  /// Live phase of the running turn (思考中/搜索中/…) + the tool name
+  /// Live phase of the running turn (thinking/searching/…) + the tool name
   /// driving it; rendered in the status row while [thinking].
   final ChatPhase? sessionPhase;
   final String? phaseDetail;
@@ -398,7 +399,7 @@ class _ThinkBlockState extends State<_ThinkBlock> {
 }
 
 /// Status row inside the streaming bubble: mini spinner + the live phase
-/// label (思考中/搜索中/调用工具…), tool name appended when known.
+/// label (thinking/searching/using tool…), tool name appended when known.
 class _PhaseStatusRow extends StatelessWidget {
   const _PhaseStatusRow({this.phase, this.detail});
 
@@ -414,8 +415,9 @@ class _PhaseStatusRow extends StatelessWidget {
       ChatPhase.searching => l10n.phaseSearching,
       ChatPhase.reading => l10n.phaseReading,
       ChatPhase.writing => l10n.phaseWriting,
-      ChatPhase.toolCall =>
-      detail == null ? l10n.phaseTool : '${l10n.phaseTool} · $detail',
+      ChatPhase.toolCall => detail == null
+          ? l10n.phaseTool
+          : '${l10n.phaseTool} · ${toolDisplayName(detail!, l10n)}',
       ChatPhase.waitingApproval => l10n.phaseWaitingApproval,
       _ => l10n.phaseWorking,
     };
@@ -493,46 +495,39 @@ class _CopyButtonState extends State<_CopyButton> {
 
 /// One embedded tool-permission row in the transcript, spanning the full
 /// reply-text width. Unanswered: the full [ApprovalCard] (allow / deny).
-/// Answered: collapsed to a one-line summary (已批准/已拒绝/已自动允许 · tool)
-/// that can be tapped to review the request parameters again.
-class _ApprovalTile extends StatefulWidget {
+/// Answered: a static one-line summary (approved/denied/auto-allowed · readable
+/// tool name · key params) — no expansion affordance.
+class _ApprovalTile extends StatelessWidget {
   const _ApprovalTile({required this.message, required this.onAnswer});
 
   final ChatMessage message;
   final ValueChanged<bool> onAnswer;
 
   @override
-  State<_ApprovalTile> createState() => _ApprovalTileState();
-}
-
-class _ApprovalTileState extends State<_ApprovalTile> {
-  bool _expanded = false;
-
-  @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppColors>()!;
     final l10n = AppLocalizations.of(context)!;
-    final m = widget.message;
+    final m = message;
     final approval = m.approval!;
 
     if (!m.approvalResolved) {
       return ApprovalCard(
         approval: approval,
-        onAnswer: widget.onAnswer,
+        onAnswer: onAnswer,
       );
     }
 
     // Collapsed summary row — gray (default input-box colour) with a
-    // floating shadow, as wide as the reply text area. Tap to expand the
-    // reviewed parameters.
+    // floating shadow, as wide as the reply text area.
     final autoAllowed = approval.autoAllowed;
     final autoDenied = approval.autoDenied;
+    final outcomeKnown = m.approvalOutcomeKnown;
     final ok = m.approvalApproved;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final inputPreview = approval.input.entries
-        .take(4)
-        .map((e) => '${e.key}: ${e.value}')
-        .join('\n');
+    // Readable, localized tool name + value-only key-parameter marker
+    // (e.g. `ZSPD`), mirroring the live permission card.
+    final displayName = toolDisplayName(approval.tool, l10n);
+    final keyParams = toolKeyParams(approval.tool, approval.input);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
@@ -550,75 +545,49 @@ class _ApprovalTileState extends State<_ApprovalTile> {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          InkWell(
-            onTap: () => setState(() => _expanded = !_expanded),
-            borderRadius: BorderRadius.circular(6),
-            child: Row(
-              children: [
-                Icon(
-                  autoDenied
-                      ? Icons.cancel_rounded
+          Row(
+            children: [
+              Icon(
+                autoDenied
+                    ? Icons.cancel_rounded
+                    : autoAllowed
+                    ? Icons.done_all_rounded
+                    : !outcomeKnown
+                    ? Icons.history_rounded
+                    : ok
+                    ? Icons.check_circle_rounded
+                    : Icons.cancel_rounded,
+                size: 14,
+                color: outcomeKnown && !autoDenied
+                    ? (ok ? colors.success : colors.danger)
+                    : autoDenied
+                    ? colors.danger
+                    : colors.textSecondary,
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  '${autoDenied
+                      ? l10n.approvalAutoDenied
                       : autoAllowed
-                      ? Icons.done_all_rounded
+                      ? l10n.approvalAutoAllowed
+                      : !outcomeKnown
+                      ? l10n.approvalRestored
                       : ok
-                      ? Icons.check_circle_rounded
-                      : Icons.cancel_rounded,
-                  size: 14,
-                  color: ok ? colors.success : colors.danger,
-                ),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    '${autoDenied
-                        ? l10n.approvalAutoDenied
-                        : autoAllowed
-                        ? l10n.approvalAutoAllowed
-                        : ok
-                        ? l10n.approvalResolvedAllow
-                        : l10n.approvalResolvedDeny}'
-                    ' · ${approval.tool}',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 11.5,
-                      color: colors.textSecondary,
-                    ),
+                      ? l10n.approvalResolvedAllow
+                      : l10n.approvalResolvedDeny}'
+                  ' · $displayName'
+                  '${keyParams.isEmpty ? '' : ' ${keyParams.join(' · ')}'}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    color: colors.textSecondary,
                   ),
                 ),
-                AnimatedRotation(
-                  turns: _expanded ? 0.5 : 0,
-                  duration: const Duration(milliseconds: 120),
-                  child: Icon(
-                    Icons.keyboard_arrow_down_rounded,
-                    size: 15,
-                    color: colors.textDisabled,
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-          if (_expanded && inputPreview.isNotEmpty) ...[
-            const SizedBox(height: 6),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: colors.surfaceBase,
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: Text(
-                inputPreview,
-                maxLines: 8,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 10.5,
-                  fontFamily: 'monospace',
-                  color: colors.textSecondary,
-                  height: 1.4,
-                ),
-              ),
-            ),
-          ],
         ],
       ),
     );

@@ -203,6 +203,7 @@ class _OutputSink {
   final List<String> _tail = [];
   final List<String> _errors = [];
 
+  /// Appends one stdout line to the rolling tail and forwards it.
   void add(String line) {
     if (line.trim().isEmpty) return;
     _tail.add(line);
@@ -210,6 +211,7 @@ class _OutputSink {
     _onOutput?.call(line);
   }
 
+  /// Records one stderr line as an error (also tailed).
   void addError(String line) {
     if (line.trim().isEmpty) return;
     _errors.add(line);

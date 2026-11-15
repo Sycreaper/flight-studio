@@ -71,9 +71,11 @@ class SimulatorInstall {
             : null,
       );
 
+  /// Encodes a list for the settings store.
   static String encodeList(List<SimulatorInstall> list) =>
       jsonEncode(list.map((e) => e.toJson()).toList());
 
+  /// Decodes a list from the settings store (null-tolerant).
   static List<SimulatorInstall> decodeList(String? json) {
     if (json == null || json.isEmpty) return const [];
     try {
@@ -86,6 +88,7 @@ class SimulatorInstall {
     }
   }
 
+  /// Generates a unique random id.
   static String generateId() {
     final rng = math.Random.secure();
     return List.generate(8, (_) => rng.nextInt(36).toRadixString(36)).join();
@@ -133,9 +136,11 @@ class NavdataSource {
         : null,
   );
 
+  /// Encodes a list for the settings store.
   static String encodeList(List<NavdataSource> list) =>
       jsonEncode(list.map((e) => e.toJson()).toList());
 
+  /// Decodes a list from the settings store (null-tolerant).
   static List<NavdataSource> decodeList(String? json) {
     if (json == null || json.isEmpty) return const [];
     try {
@@ -148,6 +153,7 @@ class NavdataSource {
     }
   }
 
+  /// Generates a unique random id.
   static String generateId() {
     final rng = math.Random.secure();
     return List.generate(8, (_) => rng.nextInt(36).toRadixString(36)).join();

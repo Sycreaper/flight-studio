@@ -1,4 +1,4 @@
-// Chat tab tests: the "聊天 / Chat" kind is registered in the tab registry,
+// Chat tab tests: the "Chat" kind is registered in the tab registry,
 // appears in the tab-bar "+" menu, and its view shows an empty history area
 // with the welcome-style prompt box at the bottom.
 
@@ -51,7 +51,7 @@ void main() {
 
     // The chat tab is selected and shows the inert prompt box.
     expect(find.byType(PromptBox), findsOneWidget);
-    // The tab strip contains the Chat tab chip (titled 新对话/New chat).
+    // The tab strip contains the Chat tab chip (titled "New chat").
     expect(find.text('New chat'), findsOneWidget);
     // History area is empty (no message bubbles).
     expect(find.textContaining('user'), findsNothing);

@@ -2,8 +2,10 @@ import 'dart:math' as math;
 
 /// Sunrise/sunset calculation (NOAA solar computation approximation,
 /// atmosphere refraction 0.833°). Pure Dart — used by the inspector's
-/// airport overview tab ("日出和日落时间").
+/// airport overview tab (sunrise & sunset section).
 
+/// Sunrise/sunset pair for one day (null when the sun never rises or
+/// never sets).
 class SunTimes {
   const SunTimes({this.sunrise, this.sunset});
 

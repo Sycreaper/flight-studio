@@ -18,10 +18,19 @@ export interface ConversationRow {
     lastMessageAt: string | null;
 }
 
-export interface HistoryMessage {
-    role: "user" | "assistant";
-    content: string;
+/// A restored tool-call record from the official history — renders as a
+/// permission card at its original transcript position. The approval
+/// OUTCOME is deliberately not restored; every restored card renders as
+/// a neutral ended marker on the Flutter side.
+export interface ToolCallHistoryEntry {
+    role: "tool_call";
+    tool: string;
+    input: Record<string, unknown>;
 }
+
+export type HistoryMessage =
+    | {role: "user" | "assistant"; content: string}
+    | ToolCallHistoryEntry;
 
 /// State the conversation logic needs from its owner (LettaRuntime):
 /// the SDK client, the app-server socket factory, and the event sink.
@@ -30,6 +39,148 @@ export interface ConversationDeps {
     agentId(): string | null;
     providerSocket(): Promise<AppServerClient>;
     emit(event: Record<string, unknown>): void;
+}
+
+/// One tool call extracted from a raw history message, before the
+/// approval outcome is joined.
+interface RawToolCall {
+    id: string | null;
+    tool: string;
+    input: Record<string, unknown>;
+}
+
+/// Collects the tool calls one raw history message carries. The official
+/// history represents them in three shapes (see @letta-ai/letta-client
+/// Message types): OpenAI-style `tool_calls` on the assistant message, a
+/// dedicated `tool_call` record, or parsed `tool_call` content items.
+/// Duplicated representations of the same call collapse by id/name.
+function toolCallsOf(m: Record<string, unknown>): RawToolCall[] {
+    const calls: RawToolCall[] = [];
+    const seen = new Set<string>();
+    const push = (call: RawToolCall) => {
+        const key = call.id ?? call.tool;
+        if (seen.has(key)) return;
+        seen.add(key);
+        calls.push(call);
+    };
+    const parseArgs = (args: unknown): Record<string, unknown> => {
+        if (args != null && typeof args === "object" && !Array.isArray(args)) {
+            return args as Record<string, unknown>;
+        }
+        if (typeof args === "string" && args.trim().length > 0) {
+            try {
+                const parsed = JSON.parse(args);
+                if (parsed != null && typeof parsed === "object" &&
+                    !Array.isArray(parsed)) {
+                    return parsed as Record<string, unknown>;
+                }
+            } catch {
+                // Malformed arguments — fall through to the empty object.
+            }
+        }
+        return {};
+    };
+    const nameOf = (call: Record<string, unknown>): string | null => {
+        const fn = call.function;
+        const name = typeof fn === "object" && fn != null
+            ? (fn as Record<string, unknown>).name
+            : call.name;
+        return typeof name === "string" && name.length > 0 ? name : null;
+    };
+    const idOf = (call: Record<string, unknown>): string | null => {
+        const id = call.id ?? call.tool_call_id;
+        return typeof id === "string" && id.length > 0 ? id : null;
+    };
+
+    // Shape 1/2: `tool_calls` array (OpenAI-style on the assistant message,
+    // or ToolCall records on a dedicated tool_call message).
+    const group = m.tool_calls;
+    if (Array.isArray(group)) {
+        for (const raw of group) {
+            if (raw == null || typeof raw !== "object") continue;
+            const call = raw as Record<string, unknown>;
+            const name = nameOf(call);
+            if (name == null) continue;
+            push({
+                id: idOf(call),
+                tool: name,
+                input: parseArgs(
+                    call.function != null
+                        ? (call.function as Record<string, unknown>).arguments
+                        : call.arguments,
+                ),
+            });
+        }
+    }
+    // Shape 2: a dedicated `tool_call` record (ToolCallMessage).
+    const single = m.tool_call;
+    if (single != null && typeof single === "object") {
+        const call = single as Record<string, unknown>;
+        const name = nameOf(call);
+        if (name != null) {
+            push({id: idOf(call), tool: name, input: parseArgs(call.arguments)});
+        }
+    }
+    // Shape 3: parsed `tool_call` content items.
+    if (Array.isArray(m.content)) {
+        for (const item of m.content) {
+            if (item == null || typeof item !== "object") continue;
+            const c = item as Record<string, unknown>;
+            if (c.type !== "tool_call") continue;
+            const name = typeof c.name === "string" && c.name.length > 0
+                ? c.name
+                : null;
+            if (name == null) continue;
+            push({
+                id: typeof c.id === "string" ? c.id : null,
+                tool: name,
+                input: parseArgs(c.input),
+            });
+        }
+    }
+    return calls;
+}
+
+/** Parses raw `conversation_messages_list` rows into the wire history:
+ *  user/assistant text (harness wrappers stripped) plus restored
+ *  tool-call records. Pure — unit-tested without a backend. */
+export function parseHistoryMessages(
+    rawMessages: unknown[],
+): HistoryMessage[] {
+    const out: HistoryMessage[] = [];
+    for (const raw of rawMessages) {
+        const m = raw as Record<string, unknown>;
+        const role = m.role;
+        if (role === "user" || role === "assistant") {
+            let text = "";
+            const c = m.content;
+            if (typeof c === "string") {
+                text = c;
+            } else if (Array.isArray(c)) {
+                text = c
+                    .map((b) =>
+                        b != null && typeof b === "object" && "text" in b
+                            ? String((b as {text?: unknown}).text ?? "")
+                            : "")
+                    .join("");
+            }
+            // Remove harness-injected wrappers the user never typed.
+            text = stripInjectedWrappers(text);
+            if (text.trim().length > 0) {
+                out.push({role, content: text});
+            }
+            // The text precedes any tool calls carried by the same message.
+            for (const call of toolCallsOf(m)) {
+                out.push({role: "tool_call", tool: call.tool, input: call.input});
+            }
+        } else {
+            // Dedicated tool-call records (no user-visible text).
+            for (const call of toolCallsOf(m)) {
+                out.push({role: "tool_call", tool: call.tool, input: call.input});
+            }
+        }
+    }
+    return out;
 }
 
 export class Conversations {
@@ -120,9 +271,9 @@ export class Conversations {
     /// (`conversation_messages_list`) with an explicit `agent_id`: the
     /// bare-spawned app-server's store otherwise resolves the default
     /// conversation to its placeholder agent ("agent-local-default") and
-    /// 404s. Returns user/assistant turns only, oldest first.
-    /// [conversationId] scopes the query to one conversation (default
-    /// conversation when null).
+    /// 404s. Returns user/assistant turns plus restored tool-call records
+    /// (see [parseHistoryMessages]), oldest first. [conversationId] scopes
+    /// the query to one conversation (default conversation when null).
     async history(conversationId?: string): Promise<HistoryMessage[]> {
         const agentId = this.deps.agentId();
         if (agentId == null) return [];
@@ -153,29 +304,12 @@ export class Conversations {
                 );
                 return [];
             }
-            const out: HistoryMessage[] = [];
-            for (const raw of result.messages ?? []) {
-                const m = raw as Record<string, unknown>;
-                const role = m.role as string;
-                if (role !== "user" && role !== "assistant") continue;
-                let text = "";
-                const c = m.content;
-                if (typeof c === "string") {
-                    text = c;
-                } else if (Array.isArray(c)) {
-                    text = c
-                        .map((b) =>
-                            b != null && typeof b === "object" && "text" in b
-                                ? String((b as { text?: unknown }).text ?? "")
-                                : "")
-                        .join("");
-                }
-                // Remove harness-injected wrappers the user never typed.
-                text = stripInjectedWrappers(text);
-                if (text.trim().length === 0) continue;
-                out.push({role, content: text});
-            }
-            log.info("history", `loaded ${out.length} messages`);
+            const out = parseHistoryMessages(result.messages ?? []);
+            log.info(
+                "history",
+                `loaded ${out.length} entries ` +
+                    `(${out.filter((e) => e.role === "tool_call").length} tool calls)`,
+            );
             return out;
         } catch (err) {
             log.warn(
@@ -231,7 +365,10 @@ export class Conversations {
         if (client == null) return null;
         try {
             const history = await this.history(conversationId);
-            const first = history.find((m) => m.role === "user");
+            const first = history.find(
+                (m): m is HistoryMessage & {content: string} =>
+                    m.role === "user",
+            );
             if (first == null) return null;
             const title = clipText(first.content.replace(/\s+/g, " ").trim(), 24);
             if (title.length === 0) return null;

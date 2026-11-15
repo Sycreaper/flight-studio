@@ -13,13 +13,13 @@ import {log} from "./logger.js";
 ///   POST /agent/stop/{sessionId}          — abort the running turn
 ///   POST /agent/approval/{id} {approve}   — resolve an approval request
 ///   GET  /agent/approvals                 — pending approvals
-///   GET  /agent/conversations             — conversations of 飞行助理
+///   GET  /agent/conversations             — conversations of the flight assistant
 ///   POST /agent/conversations             — create a conversation
 ///   DELETE /agent/conversations/{id}      — delete (archive) a conversation
 ///   GET  /agent/history?conversationId=   — conversation history
 ///   POST /agent/memory/update {blockLabel, value}
 ///
-/// One Letta agent (飞行助理) backs every conversation; there is no agent
+/// One Letta agent (the flight assistant) backs every conversation; there is no agent
 /// CRUD surface anymore.
 export function registerFlutterApi(
     app: FastifyInstance,

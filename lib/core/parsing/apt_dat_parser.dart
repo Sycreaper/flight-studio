@@ -121,6 +121,8 @@ Future<int> importAptDat(
   final frequencies = <_FrequencyCandidate>[];
   (double, double)? helipadPos; // (lat, lon) fallback for heliports.
 
+  /// Writes the buffered airport (runways, frequencies, position fallback)
+  /// into the import batch.
   Future<void> flushAirport() async {
     if (!inAirport || hdrIcao.isEmpty) return;
 

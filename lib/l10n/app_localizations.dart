@@ -2546,6 +2546,72 @@ abstract class AppLocalizations {
   /// **'Deny'**
   String get approvalDeny;
 
+  /// No description provided for @approvalRestored.
+  ///
+  /// In en, this message translates to:
+  /// **'Ended'**
+  String get approvalRestored;
+
+  /// No description provided for @mcpToolAirportData.
+  ///
+  /// In en, this message translates to:
+  /// **'Airport data'**
+  String get mcpToolAirportData;
+
+  /// No description provided for @mcpToolChartsRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Chart lookup'**
+  String get mcpToolChartsRead;
+
+  /// No description provided for @mcpToolWeatherRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Weather report'**
+  String get mcpToolWeatherRead;
+
+  /// No description provided for @mcpToolSearchNavdata.
+  ///
+  /// In en, this message translates to:
+  /// **'Navdata search'**
+  String get mcpToolSearchNavdata;
+
+  /// No description provided for @mcpToolSearchManual.
+  ///
+  /// In en, this message translates to:
+  /// **'Manual search'**
+  String get mcpToolSearchManual;
+
+  /// No description provided for @mcpToolSimState.
+  ///
+  /// In en, this message translates to:
+  /// **'Simulator state'**
+  String get mcpToolSimState;
+
+  /// No description provided for @mcpToolActionPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Action plan proposal'**
+  String get mcpToolActionPlan;
+
+  /// No description provided for @mcpToolRenderMap.
+  ///
+  /// In en, this message translates to:
+  /// **'Map rendering'**
+  String get mcpToolRenderMap;
+
+  /// No description provided for @mcpToolSetComFrequency.
+  ///
+  /// In en, this message translates to:
+  /// **'Set COM frequency'**
+  String get mcpToolSetComFrequency;
+
+  /// No description provided for @mcpToolSendSimCommand.
+  ///
+  /// In en, this message translates to:
+  /// **'Send simulator command'**
+  String get mcpToolSendSimCommand;
+
   /// No description provided for @aiDeleteLettaData.
   ///
   /// In en, this message translates to:

@@ -1148,7 +1148,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get apiKeyTypeFlightAware => 'FlightAware 密钥';
 
   @override
-  String get apiKeyTypeAiCopilot => 'AI Copilot Key';
+  String get apiKeyTypeAiCopilot => 'AI 副驾驶密钥';
 
   @override
   String get apiKeyTypeOpenAiCompatible => 'OpenAI 兼容 API 密钥';
@@ -1265,6 +1265,39 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get approvalDeny => '拒绝';
+
+  @override
+  String get approvalRestored => '已结束';
+
+  @override
+  String get mcpToolAirportData => '机场数据';
+
+  @override
+  String get mcpToolChartsRead => '航图查询';
+
+  @override
+  String get mcpToolWeatherRead => '天气报告';
+
+  @override
+  String get mcpToolSearchNavdata => '导航数据搜索';
+
+  @override
+  String get mcpToolSearchManual => '手册搜索';
+
+  @override
+  String get mcpToolSimState => '模拟器状态';
+
+  @override
+  String get mcpToolActionPlan => '行动方案提案';
+
+  @override
+  String get mcpToolRenderMap => '地图渲染';
+
+  @override
+  String get mcpToolSetComFrequency => '设置 COM 频率';
+
+  @override
+  String get mcpToolSendSimCommand => '发送模拟器指令';
 
   @override
   String get aiDeleteLettaData => '删除 Letta 数据';

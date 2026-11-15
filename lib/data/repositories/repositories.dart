@@ -34,6 +34,7 @@ abstract class AirportRepository {
 
 /// Abstract navaid (VOR/NDB/DME) repository.
 abstract class NavaidRepository {
+  /// Looks up one point by its identifier; null when absent.
   Future<NavdataPoint?> getByIdent(String ident);
 
   Future<List<NavdataPoint>> search(String query, {int limit = 20});
@@ -41,6 +42,7 @@ abstract class NavaidRepository {
 
 /// Abstract waypoint / intersection repository.
 abstract class FixRepository {
+  /// Looks up one point by its identifier; null when absent.
   Future<NavdataPoint?> getByIdent(String ident);
 
   Future<List<NavdataPoint>> search(String query, {int limit = 20});

@@ -14,6 +14,8 @@ class SystemStatsSample {
   final double memoryTotalGb;
 }
 
+/// Sampler stub for platforms without native bindings — always samples
+/// null.
 class SystemStatsSampler {
   SystemStatsSample? sample() => null;
 

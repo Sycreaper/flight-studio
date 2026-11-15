@@ -28,6 +28,7 @@ class LlmMessage {
   final String role;
   final String content;
 
+  /// Serializes to the wire format the chat providers expect.
   Map<String, dynamic> toJson() => {'role': role, 'content': content};
 }
 
@@ -53,6 +54,7 @@ class ToolCall {
 
 // ── Concrete provider stubs (Phase 9 implementation) ────────────────────────
 
+/// Chat provider for OpenAI-compatible chat/completions endpoints.
 class OpenAiCompatibleProvider extends LlmProvider {
   const OpenAiCompatibleProvider(super.apiKey, {super.endpoint, super.model});
 
@@ -65,6 +67,7 @@ class OpenAiCompatibleProvider extends LlmProvider {
   }
 }
 
+/// Chat provider for the Anthropic Messages API.
 class AnthropicProvider extends LlmProvider {
   const AnthropicProvider(super.apiKey, {super.endpoint, super.model});
 
@@ -77,6 +80,7 @@ class AnthropicProvider extends LlmProvider {
   }
 }
 
+/// Chat provider for a local Ollama instance.
 class OllamaProvider extends LlmProvider {
   const OllamaProvider(super.apiKey, {super.endpoint, super.model});
 

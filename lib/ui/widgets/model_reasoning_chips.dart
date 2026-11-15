@@ -255,6 +255,7 @@ class _ReasoningMenu extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final session = ChatSessionManager.instance;
 
+    /// Short label of a reasoning-effort value.
     String levelLabel(String value) => switch (value) {
       'none' => l10n.reasoningNone,
       'minimal' => l10n.reasoningMinimal,
@@ -314,7 +315,7 @@ class _ReasoningMenu extends StatelessWidget {
   }
 }
 
-/// AI access-level chip (权限级别 L0–L3) — L0 makes every tool call wait
+/// AI access-level chip (access level L0–L3) — L0 makes every tool call wait
 /// for the manual approval card; L1+ auto-allows data reads (recorded as
 /// cards); write tools and other harness tools always wait for the manual
 /// card; bash commands are always denied; skills always run.
@@ -325,6 +326,7 @@ class _AiLevelMenu extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final manager = ChatSessionManager.instance;
 
+    /// Short label of an AI access level.
     String levelLabel(int level) => switch (level) {
       0 => l10n.aiLevel0,
       1 => l10n.aiLevel1,

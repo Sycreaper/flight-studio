@@ -18,7 +18,7 @@ and per-client tokens land with the remote-monitoring milestone).
 | `src/flutter_api.ts` | App-facing REST API (agent/provider/memory/conversations) |
 | `src/letta_runtime.ts` | Facade — the ONLY file the rest of the gateway imports; wires the modules below |
 | `src/letta_app_server.ts` | Local Letta Code app-server subprocess + protocol socket + SDK client |
-| `src/agent_manager.ts` | The single 飞行助理 agent (ensure + "not found" recovery) |
+| `src/agent_manager.ts` | The single flight-assistant agent (ensure + "not found" recovery) |
 | `src/turn_runner.ts` | Live turn: resumeSession (strict mode), abort |
 | `src/turn_stream.ts` | Pure stream-message → event mapping |
 | `src/approval_bridge.ts` | canUseTool semantics over the L0–L3 ladder |

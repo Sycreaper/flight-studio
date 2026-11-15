@@ -63,7 +63,7 @@ class CoreTool {
 }
 
 /// Owns the read-only navdata connection and builds the FlightStudio Core
-/// tool registry: everything the 飞行助理 agent may call to inspect
+/// tool registry: everything the flight-assistant agent may call to inspect
 /// FlightStudio's aeronautical data. L1 only in this first milestone.
 class CoreToolServer {
   CoreToolServer({required this.navdataDbPath, McpAuditLog? auditLog})

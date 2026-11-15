@@ -55,18 +55,21 @@ class WorkspaceController extends ChangeNotifier {
   static const double minBottom = 120;
   static const double maxBottom = 460;
 
+  /// Resizes the left drawer column by [delta], clamped to the persisted bounds.
   void resizeLeft(double delta) {
     leftWidth = (leftWidth + delta).clamp(minCol, maxCol);
     _persist();
     notifyListeners();
   }
 
+  /// Resizes the right drawer column by [delta], clamped to the persisted bounds.
   void resizeRight(double delta) {
     rightWidth = (rightWidth + delta).clamp(minCol, maxCol);
     _persist();
     notifyListeners();
   }
 
+  /// Resizes the bottom drawer band by [delta], clamped to the persisted bounds.
   void resizeBottom(double delta) {
     bottomHeight = (bottomHeight + delta).clamp(minBottom, maxBottom);
     _persist();
@@ -74,11 +77,14 @@ class WorkspaceController extends ChangeNotifier {
   }
 
   List<DrawerPanelData> get panels => List.unmodifiable(_panels);
+  /// All panels registered for [slot], visible or not.
   List<DrawerPanelData> forSlot(DrawerSlot slot) =>
       _panels.where((p) => p.slot == slot).toList(growable: false);
+  /// The panels currently visible in [slot].
   List<DrawerPanelData> visibleForSlot(DrawerSlot slot) =>
       _panels.where((p) => p.slot == slot && p.visible).toList(growable: false);
 
+  /// Registers a panel (no-op when its id already exists) and persists.
   void register(DrawerPanelData panel) {
     if (_panels.every((p) => p.id != panel.id)) {
       _panels.add(panel);
@@ -87,6 +93,7 @@ class WorkspaceController extends ChangeNotifier {
     }
   }
 
+  /// Toggles a panel's visibility and persists.
   void toggle(String id) {
     final p = _byId(id);
     if (p != null) {
@@ -96,6 +103,7 @@ class WorkspaceController extends ChangeNotifier {
     }
   }
 
+  /// Moves a panel to [slot], making it visible, and persists.
   void moveToSlot(String id, DrawerSlot slot) {
     final p = _byId(id);
     if (p != null && p.slot != slot) {
@@ -110,6 +118,7 @@ class WorkspaceController extends ChangeNotifier {
     }
   }
 
+  /// Hides a panel and persists.
   void hide(String id) {
     final p = _byId(id);
     if (p != null && p.visible) {

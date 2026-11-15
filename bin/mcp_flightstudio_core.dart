@@ -4,7 +4,7 @@ import 'package:flight_studio/mcp/core_tools.dart';
 import 'package:flight_studio/mcp/stdio_server.dart';
 
 /// FlightStudio Core — the app's stdio MCP server, spawned by the Agent
-/// Gateway and consumed by the 飞行助理 agent. Owns every tool that
+/// Gateway and consumed by the flight-assistant agent. Owns every tool that
 /// controls/inspects FlightStudio; this first milestone ships the L1
 /// read-only aeronautical set (airport dossier, charts, weather).
 ///

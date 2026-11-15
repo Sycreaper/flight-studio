@@ -51,6 +51,7 @@ class DecodedMetar {
 
   /// Table rows — EVERY standard row is present; unset fields render as
   /// "not reported" ([WeatherTexts.notReported]).
+  /// Builds the display facts of this report with the localized [t] texts.
   List<WeatherFact> facts(WeatherTexts t) => [
     WeatherFact(t.time, time ?? t.notReported),
     WeatherFact(t.flightRule, flightRule ?? t.notReported),
@@ -96,6 +97,7 @@ class DecodedTaf {
   /// Raw FM / BECMG / TEMPO / PROB lines following the base group.
   final List<String> changeGroups;
 
+  /// Builds the display facts of this report with the localized [t] texts.
   List<WeatherFact> facts(WeatherTexts t) => [
     WeatherFact(t.valid, valid ?? t.notReported),
     WeatherFact(t.flightRule, flightRule ?? t.notReported),

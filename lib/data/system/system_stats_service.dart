@@ -71,6 +71,7 @@ class SystemStatsService extends ChangeNotifier {
     _timer = Timer.periodic(const Duration(seconds: 2), (_) => _sample());
   }
 
+  /// Stops sampling and releases the sampler.
   void stop() {
     _timer?.cancel();
     _timer = null;

@@ -10,7 +10,7 @@ snapshot).
 
 ### Added
 - ChartFox chart browsing end-to-end: browser sign-in (clipboard-captured
-  Sanctum PAT) under Settings → API keys, a 航图/Charts tab in the
+  Sanctum PAT) under Settings → API keys, a charts tab in the
   airport inspector, and an authenticated `charts_read` FlightStudio
   Core MCP tool (token lent to the gateway per turn).
 - In-chat approval cards for every AI tool call (strict permission mode)

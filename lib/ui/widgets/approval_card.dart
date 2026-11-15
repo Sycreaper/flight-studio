@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../l10n/app_localizations.dart';
+import '../../mcp/tool_display.dart';
 import '../chat/chat_session.dart';
 import '../theme/app_colors.dart';
 
@@ -28,6 +29,15 @@ class ApprovalCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
+    // Readable, localized tool name + value-only key-parameter marker
+    // (e.g. `ZSPD`) — raw function names and `key: value` pairs never
+    // surface in the title row.
+    final displayName = toolDisplayName(approval.tool, l10n);
+    final keyParams = toolKeyParams(approval.tool, approval.input);
+    // The preview box stays only when the marker does not already show
+    // every parameter.
+    final previewRedundant =
+        keyParamsCoverInput(approval.tool, approval.input);
     final inputPreview = approval.input.entries
         .take(4)
         .map((e) => '${e.key}: ${e.value}')
@@ -65,11 +75,22 @@ class ApprovalCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 10),
-          Text(
-            l10n.approvalWantsToUse(approval.tool),
-            style: TextStyle(fontSize: 12.5, color: colors.textPrimary),
+          // Title row: readable tool name, key-parameter values as a
+          // marker chip to its right (value-only, e.g. `ZSPD`).
+          Wrap(
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Text(
+                l10n.approvalWantsToUse(displayName),
+                style: TextStyle(fontSize: 12.5, color: colors.textPrimary),
+              ),
+              if (keyParams.isNotEmpty) ...[
+                const SizedBox(width: 6),
+                _ParamChip(params: keyParams),
+              ],
+            ],
           ),
-          if (inputPreview.isNotEmpty) ...[
+          if (inputPreview.isNotEmpty && !previewRedundant) ...[
             const SizedBox(height: 8),
             Container(
               width: double.infinity,
@@ -119,6 +140,37 @@ class ApprovalCard extends StatelessWidget {
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Value-only marker of a tool call's key parameters (e.g. `ZSPD`), shown
+/// to the right of the readable tool name — parameter names are
+/// deliberately not displayed.
+class _ParamChip extends StatelessWidget {
+  const _ParamChip({required this.params});
+
+  final List<String> params;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<AppColors>()!;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+      decoration: BoxDecoration(
+        color: colors.surfaceBase,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        params.join(' · '),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(
+          fontSize: 10.5,
+          fontFamily: 'monospace',
+          color: colors.textSecondary,
+        ),
       ),
     );
   }

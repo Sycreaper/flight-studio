@@ -117,7 +117,7 @@ class AppShellState extends State<AppShell> {
     // so we have a BuildContext for localised titles.
 
     // Conversation titles summarized by the gateway rewrite their chat tabs'
-    // labels (新对话 → summarized title). Listening to BOTH the manager
+    // labels ("New chat" → summarized title). Listening to BOTH the manager
     // (title changes) and the tab controller (a conversation tab opened
     // from the drawer must pick up its real title immediately).
     ChatSessionManager.instance.addListener(_syncChatTabTitles);
@@ -138,7 +138,7 @@ class AppShellState extends State<AppShell> {
 
   /// Closes chat tabs whose conversation was deleted from the drawer and
   /// mirrors summarized titles onto open chat tabs (titleOverride wins over
-  /// the descriptor's localized 新对话 default).
+  /// the descriptor's localized "New chat" default).
   void _syncChatTabTitles() {
     if (!mounted) return;
     final manager = ChatSessionManager.instance;
@@ -240,8 +240,8 @@ class AppShellState extends State<AppShell> {
     }
   }
 
-  /// 新建对话 — opens a fresh chat tab (the Letta conversation is created
-  /// lazily on the tab's first send).
+  /// "New conversation" — opens a fresh chat tab (the Letta conversation is
+  /// created lazily on the tab's first send).
   void _newChatTab() => _tabController.add(TabIds.chat);
 
   /// Opens (or focuses) the chat tab mirroring one conversation id.
@@ -404,6 +404,7 @@ class AppShellState extends State<AppShell> {
   String _dataCycleText() {
     final counts = NavdataService.instance.rowCounts;
     if (counts.isEmpty || counts.values.every((c) => c == 0)) return '';
+    /// Compact count formatting (e.g. 1.2k).
     String k(int v) => v >= 1000 ? '${(v / 1000).toStringAsFixed(1)}k' : '$v';
     return 'Apt ${k(counts['airports'] ?? 0)}'
         ' · Nav ${k(counts['navaids'] ?? 0)}'
@@ -420,6 +421,7 @@ class AppShellState extends State<AppShell> {
 
   String _utcNow() {
     final now = DateTime.now().toUtc();
+    /// Zero-pads to two digits.
     String two(int v) => v.toString().padLeft(2, '0');
     return '${two(now.hour)}:${two(now.minute)}:${two(now.second)} UTC';
   }
