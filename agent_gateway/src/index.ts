@@ -7,11 +7,37 @@ import {log} from "./logger.js";
 
 const port = Number(process.env.GATEWAY_PORT ?? 8787);
 
+/// Shared-secret gate: when FLIGHTSTUDIO_GATEWAY_TOKEN is set (the Flutter
+/// app always sets it when spawning the gateway), EVERY route requires
+/// `Authorization: Bearer <token>` — a local process that guesses the port
+/// cannot drive the copilot, read conversations or answer approvals.
+/// Without the variable (manual `npm run start:dev`) the gateway serves
+/// unauthenticated with a loud warning — developer mode only.
+const authToken = process.env.FLIGHTSTUDIO_GATEWAY_TOKEN?.trim() || null;
+
 const runtime = new LettaRuntime();
 const session = new SessionController(runtime);
 const approvals = new ApprovalController(session);
 
 const app = Fastify({logger: {level: "warn"}});
+
+if (authToken) {
+    app.addHook("onRequest", async (request, reply) => {
+        // The llm-proxy routes are called by the Letta app-server subprocess,
+        // which does not know the gateway token — they are gated by their own
+        // unguessable per-target path tokens instead.
+        if (request.url.startsWith("/llm-proxy/")) return;
+        const header = request.headers.authorization;
+        if (header === `Bearer ${authToken}`) return;
+        return reply.code(401).send({error: "unauthorized"});
+    });
+} else {
+    log.warn(
+        "gateway",
+        "FLIGHTSTUDIO_GATEWAY_TOKEN not set — serving UNAUTHENTICATED. " +
+            "Fine for local development; the Flutter app always sets it.",
+    );
+}
 
 // Local reverse proxy for OpenAI-compatible providers whose real base URL
 // does not follow the /v1 convention (e.g. bigmodel /api/paas/v4).

@@ -416,6 +416,7 @@
   "apiKeyConfirmDelete": "Delete this API key?",
   "apiKeyConfirmDeleteDesc": "This action cannot be undone.",
   "simAddTitle": "Add Simulator",
+  "simExperimental": "Experimental",
   "simType": "Simulator Type",
   "simInstallPath": "Install Path",
   "simInstallPathHint": "Browse for the simulator root folder",

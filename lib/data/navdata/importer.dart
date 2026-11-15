@@ -238,11 +238,23 @@ class NavdataImporter {
     if (maxLat != null) {
       query.where((t) => t.latitude.isSmallerOrEqualValue(maxLat));
     }
-    if (minLon != null) {
-      query.where((t) => t.longitude.isBiggerOrEqualValue(minLon));
-    }
-    if (maxLon != null) {
-      query.where((t) => t.longitude.isSmallerOrEqualValue(maxLon));
+    // Antimeridian-crossing viewport (west > east, e.g. over the Pacific):
+    // match the wrap-around OR of both edges instead of an empty AND band.
+    if (minLon != null && maxLon != null && minLon > maxLon) {
+      final west = minLon;
+      final east = maxLon;
+      query.where(
+        (t) =>
+            t.longitude.isBiggerOrEqualValue(west) |
+            t.longitude.isSmallerOrEqualValue(east),
+      );
+    } else {
+      if (minLon != null) {
+        query.where((t) => t.longitude.isBiggerOrEqualValue(minLon));
+      }
+      if (maxLon != null) {
+        query.where((t) => t.longitude.isSmallerOrEqualValue(maxLon));
+      }
     }
     query.orderBy([(_) => _distanceOrder(centerLat, centerLon)]);
     query.limit(limit);
@@ -269,7 +281,10 @@ class NavdataImporter {
     if (db == null) return [];
     final q = query.trim();
     if (q.length < 2) return [];
-    final pattern = '%${q.replaceAll("'", "''")}%';
+    // LIKE patterns go through drift's bound parameters — no manual SQL
+    // escaping (doubling apostrophes here would corrupt legitimate
+    // searches like "O'Hare" with a literal doubled quote).
+    final pattern = '%$q%';
 
     final result = <MapPoint>[];
 
@@ -350,11 +365,23 @@ class NavdataImporter {
     if (maxLat != null) {
       query.where((t) => t.latitude.isSmallerOrEqualValue(maxLat));
     }
-    if (minLon != null) {
-      query.where((t) => t.longitude.isBiggerOrEqualValue(minLon));
-    }
-    if (maxLon != null) {
-      query.where((t) => t.longitude.isSmallerOrEqualValue(maxLon));
+    // Antimeridian-crossing viewport (west > east, e.g. over the Pacific):
+    // match the wrap-around OR of both edges instead of an empty AND band.
+    if (minLon != null && maxLon != null && minLon > maxLon) {
+      final west = minLon;
+      final east = maxLon;
+      query.where(
+        (t) =>
+            t.longitude.isBiggerOrEqualValue(west) |
+            t.longitude.isSmallerOrEqualValue(east),
+      );
+    } else {
+      if (minLon != null) {
+        query.where((t) => t.longitude.isBiggerOrEqualValue(minLon));
+      }
+      if (maxLon != null) {
+        query.where((t) => t.longitude.isSmallerOrEqualValue(maxLon));
+      }
     }
     if (types != null) {
       query.where((t) => t.type.isIn(types));
@@ -402,11 +429,23 @@ class NavdataImporter {
     if (maxLat != null) {
       query.where((t) => t.latitude.isSmallerOrEqualValue(maxLat));
     }
-    if (minLon != null) {
-      query.where((t) => t.longitude.isBiggerOrEqualValue(minLon));
-    }
-    if (maxLon != null) {
-      query.where((t) => t.longitude.isSmallerOrEqualValue(maxLon));
+    // Antimeridian-crossing viewport (west > east, e.g. over the Pacific):
+    // match the wrap-around OR of both edges instead of an empty AND band.
+    if (minLon != null && maxLon != null && minLon > maxLon) {
+      final west = minLon;
+      final east = maxLon;
+      query.where(
+        (t) =>
+            t.longitude.isBiggerOrEqualValue(west) |
+            t.longitude.isSmallerOrEqualValue(east),
+      );
+    } else {
+      if (minLon != null) {
+        query.where((t) => t.longitude.isBiggerOrEqualValue(minLon));
+      }
+      if (maxLon != null) {
+        query.where((t) => t.longitude.isSmallerOrEqualValue(maxLon));
+      }
     }
     query.orderBy([(_) => _distanceOrder(centerLat, centerLon)]);
     query.limit(limit);
@@ -521,7 +560,7 @@ class NavdataImporter {
         // Navigraph style: 'AIRAC cycle    : 2608'. Also tolerate
         // 'CYCLE 2609' one-liners from other vendors.
         final match = RegExp(
-          r'AIRAC\s+cycle\s*[:\s]*(\d{4})',
+          r'(?:AIRAC\s+cycle|CYCLE)\s*[:\s]*(\d{4})',
           caseSensitive: false,
         ).firstMatch(text);
         if (match != null) return match.group(1);

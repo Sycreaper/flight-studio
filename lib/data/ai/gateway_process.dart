@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -21,6 +22,13 @@ class GatewayProcess {
 
   Process? _process;
   Future<bool>? _starting;
+
+  /// Bearer token for THIS app's gateway session. Generated before each
+  /// spawn and handed to the gateway via `FLIGHTSTUDIO_GATEWAY_TOKEN`; the
+  /// gateway then refuses every unauthenticated caller. Null before the
+  /// first spawn (dev-run gateways without the env var serve unauthenticated
+  /// with a loud warning on their side).
+  String? currentToken;
 
   bool get isRunning => _process != null;
 
@@ -124,6 +132,10 @@ class GatewayProcess {
           '${day.year.toString().padLeft(4, '0')}-'
           '${day.month.toString().padLeft(2, '0')}-'
           '${day.day.toString().padLeft(2, '0')}';
+      // Fresh high-entropy token per spawn: the gateway enforces it as a
+      // Bearer secret on every route, so other local processes cannot drive
+      // the copilot even though the port is loopback-only.
+      final token = _generateToken();
       final process = await Process.start(
         node,
         [entry.path],
@@ -131,9 +143,11 @@ class GatewayProcess {
         environment: {
           ...Platform.environment,
           'FS_LOG_DIR': logDir,
+          'FLIGHTSTUDIO_GATEWAY_TOKEN': token,
           ...await _flightStudioEnv(),
         },
       );
+      currentToken = token;
       _process = process;
       final logSink = File(
         '$logDir${Platform.pathSeparator}gateway-stdout-$dayStr.log',
@@ -220,6 +234,14 @@ class GatewayProcess {
     }
     return !await dir.exists();
   }
+
+  /// Cryptographically random 256-bit hex token for gateway auth.
+  static String _generateToken() {
+    final bytes = List<int>.generate(32, (_) => _random.nextInt(256));
+    return bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+  }
+
+  static final math.Random _random = math.Random.secure();
 
   /// Finds the agent_gateway directory: from the current working directory
   /// (dev: repo root) walking up, then from the executable location

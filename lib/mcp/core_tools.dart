@@ -12,11 +12,15 @@ import 'audit_log.dart';
 ///
 /// The ladder has exactly four rungs (there are deliberately no L4/L5
 /// "auto-execute" rungs — every write requires explicit user approval):
-/// - L0 — nothing (no tools granted at all)
+/// - L0 — every tool call waits for the manual approval card (the most
+///   conservative interactive level; nothing runs unattended)
 /// - L1 — public read-only aeronautical data (airports, runways,
-///   frequencies, weather, charts)
+///   frequencies, weather, charts) auto-runs, everything else waits
 /// - L2 — app-state reads (flight plans, settings overview, telemetry)
 /// - L3 — writes behind explicit user confirmation
+///
+/// This mirrors the gateway's authoritative ladder in
+/// agent_gateway/src/safety_policy_guard.ts (policy v5).
 class SafetyLevel {
   static const int nothing = 0;
   static const int publicData = 1;
@@ -28,7 +32,7 @@ class SafetyLevel {
 
   /// Human-readable label for a level ([0, max]).
   static String label(int level) => switch (level) {
-        0 => 'L0 (no tools)',
+        0 => 'L0 (manual approval for every call)',
         1 => 'L1 (public aeronautical data)',
         2 => 'L2 (app-state reads)',
         3 => 'L3 (confirmed writes)',

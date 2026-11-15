@@ -41,6 +41,7 @@ migrate_working_dir/
 # Local environment / secrets
 .env
 .env.*
+android/app/key.properties
 
 # AI assistant / tooling local config
 .ai/

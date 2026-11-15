@@ -9,6 +9,8 @@
 // POST /agent/approval/{id}. MCP tool approvals can reuse the same
 // pipeline later (createApproval + waitForResolution).
 
+import {randomUUID} from "node:crypto";
+
 import {LettaRuntime} from "./letta_runtime.js";
 
 export interface ApprovalRequest {
@@ -21,7 +23,6 @@ export interface ApprovalRequest {
 
 export class SessionController {
     private pending: ApprovalRequest[] = [];
-    private nextId = 1;
     private readonly waiters = new Map<
         string,
         (approved: boolean) => void
@@ -40,7 +41,9 @@ export class SessionController {
 
     createApproval(tool: string, input: unknown): ApprovalRequest {
         const req: ApprovalRequest = {
-            id: `approval_${this.nextId++}`,
+            // Unguessable per-request id — approval endpoints must never be
+            // enumerable.
+            id: `approval_${randomUUID()}`,
             tool,
             input,
             resolved: false,

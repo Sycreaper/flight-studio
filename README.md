@@ -321,9 +321,7 @@ lib/
 │                log (mcp-audit.sqlite); entry point bin/mcp_flightstudio_core.dart
 ├── plugins/     Extension-point registries (tabs, exporters, sim connectors,
 │                navdata providers) — the seams third-party plugins will use
-├── server/      Embedded shelf HTTP/WebSocket server for remote clients
-├── ui/          Flutter widgets — JetBrains IDEA-style shell, map, panels, profile
-└── shared/      Common utilities and extensions
+└── ui/          Flutter widgets — JetBrains IDEA-style shell, map, panels, profile
 ```
 
 ### Design notes

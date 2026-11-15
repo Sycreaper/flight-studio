@@ -128,7 +128,8 @@ void main() {
     expect(ksea.latitude, closeTo(47.4386, 0.001));
     expect(ksea.longitude, closeTo(-122.3080, 0.001));
 
-    final heli = airports.firstWhere((a) => a.icao == 'XXHeli');
+    // ICAO identifiers are normalized to uppercase at the parser boundary.
+    final heli = airports.firstWhere((a) => a.icao == 'XXHELI');
     expect(heli.type, 'heliport');
     expect(heli.latitude, closeTo(51.5, 0.001));
 
@@ -152,6 +153,48 @@ void main() {
     expect(rw34.latitude, closeTo(47.4216, 0.001));
   });
 
+  test('replace mode drops the previous file\'s child rows for the icao', () async {
+    // Global-style import first (insertOrIgnore): KTEST with one runway
+    // pair and one frequency.
+    final global = writeDat('global_apt.dat', [
+      'A',
+      '1   50 1 0 KTEST Global Field',
+      '100 45 1 0 0 0 0 0 09 12.0 20.0 0 0 1 0 0 0 27 -12.0 -20.0 0 0 1 0 0 0',
+      '53 118300 TOWER',
+      '99',
+    ]);
+    await importAptDat(global, db);
+    var freqs = await db.select(db.frequencies).get();
+    expect(freqs, hasLength(1));
+    expect(freqs.single.frequencyKhz, 118300);
+    var rws = await db.select(db.runways).get();
+    expect(rws.map((r) => r.ident), containsAll(['09', '27']));
+
+    // Custom-scenery import (replace: true): same ICAO, different runway
+    // and frequency. The stale children from the global file must be gone —
+    // a bare insertOrReplace on the parent would resurrect them.
+    final custom = writeDat('custom_apt.dat', [
+      'A',
+      '1   60 1 0 ktest Custom Field',
+      '100 45 1 0 0 0 0 0 18 12.0 20.0 0 0 1 0 0 0 36 -12.0 -20.0 0 0 1 0 0 0',
+      '53 121900 TOWER',
+      '99',
+    ]);
+    await importAptDat(custom, db, replace: true);
+
+    freqs = await db.select(db.frequencies).get();
+    expect(freqs, hasLength(1));
+    expect(freqs.single.frequencyKhz, 121900);
+    rws = await db.select(db.runways).get();
+    expect(rws.map((r) => r.ident), containsAll(['18', '36']));
+    expect(rws.map((r) => r.ident), isNot(contains('09')));
+
+    final airport =
+        await (db.select(db.airports)..where((t) => t.icao.equals('KTEST')))
+            .getSingle();
+    expect(airport.name, 'Custom Field');
+  });
+
   test('importEarthAwy parses airway segments', () async {
     final file = writeDat('earth_awy.dat', [
       'I',
@@ -168,7 +211,9 @@ void main() {
     final seg = rows.firstWhere((r) => r.name == 'G869');
     expect(seg.startIdent, '07EBA');
     expect(seg.endIdent, 'GILEX');
-    expect(seg.direction, 'N');
+    // X-Plane's raw direction code 'N' is normalized to the model's
+    // contract ('both') at the parser boundary.
+    expect(seg.direction, 'both');
     expect(seg.baseFlightLevel, 95);
     expect(seg.topFlightLevel, 245);
   });

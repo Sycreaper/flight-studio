@@ -259,7 +259,14 @@ Future<int> importEarthAwy(
     final startType = parts[2];
     final endIdent = parts[3];
     final endType = parts[5];
-    final direction = parts[6];
+    // Normalize X-Plane's raw direction codes to the model's contract
+    // ('both' | 'forward' | 'backward') at the parser boundary.
+    final direction = switch (parts[6]) {
+      'N' => 'both',
+      'F' => 'forward',
+      'B' => 'backward',
+      _ => parts[6],
+    };
     final baseAlt = double.tryParse(parts[8]);
     final topAlt = double.tryParse(parts[9]);
     final airwayName = parts[10];

@@ -141,6 +141,16 @@ Future<int> importAptDat(
     }
     if (lat == null || lon == null) return; // Positionless — skip.
 
+    // Replace mode: drop the PREVIOUS file's child rows for this airport
+    // BEFORE any of this file's rows are inserted — a bare insertOrReplace
+    // on the parent row would resurrect stale runways/frequencies, while
+    // deferring the delete could wipe rows flushed in this same file.
+    if (replace) {
+      await db.batch((b) {
+        b.deleteWhere(db.runways, (t) => t.airportIcao.equals(hdrIcao));
+        b.deleteWhere(db.frequencies, (t) => t.airportIcao.equals(hdrIcao));
+      });
+    }
     airportBatch.add(
       AirportsCompanion.insert(
         icao: hdrIcao,
@@ -251,7 +261,9 @@ Future<int> importAptDat(
       case 17: // Heliport header.
         await flushAirport();
         inAirport = true;
-        hdrIcao = parts.length > 4 ? parts[4] : '';
+        // ICAO identifiers are case-insensitive in apt.dat but every query
+        // path assumes uppercase — normalize at the parser boundary.
+        hdrIcao = parts.length > 4 ? parts[4].toUpperCase() : '';
         hdrName = parts.length > 5 ? parts.sublist(5).join(' ') : '';
         hdrElev = parts.length > 1 ? (double.tryParse(parts[1]) ?? 0) : 0;
         // Field 3 is the (deprecated) magnetic declination — atools reads

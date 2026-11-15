@@ -416,6 +416,7 @@
   "apiKeyConfirmDelete": "删除此 API 密钥？",
   "apiKeyConfirmDeleteDesc": "此操作无法撤销。",
   "simAddTitle": "添加模拟器",
+  "simExperimental": "实验性",
   "simType": "模拟器类型",
   "simInstallPath": "安装路径",
   "simInstallPathHint": "浏览选择模拟器根目录",

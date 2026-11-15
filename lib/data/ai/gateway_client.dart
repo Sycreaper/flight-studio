@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 
 import '../../core/logging/app_log.dart';
+import 'gateway_process.dart';
 
 /// Gateway/letta API call failed — [message] carries the server's raw error
 /// text (already English; shown to the user verbatim for diagnostics).
@@ -30,7 +31,21 @@ class GatewayClient {
 
   final Dio _dio = Dio()
     ..options.connectTimeout = const Duration(seconds: 5)
-    ..options.receiveTimeout = const Duration(minutes: 5);
+    ..options.receiveTimeout = const Duration(minutes: 5)
+    ..interceptors.add(
+      InterceptorsWrapper(
+        // Bearer auth for the gateway this app spawned (token is generated
+        // per spawn and passed via FLIGHTSTUDIO_GATEWAY_TOKEN). Null before
+        // the first spawn — the dev-run gateway then serves unauthenticated.
+        onRequest: (options, handler) {
+          final token = GatewayProcess.instance.currentToken;
+          if (token != null) {
+            options.headers['Authorization'] = 'Bearer $token';
+          }
+          handler.next(options);
+        },
+      ),
+    );
 
   /// Extracts the gateway's `{error: …}` (or raw) body from a dio failure.
   String _serverMessage(Object error) {

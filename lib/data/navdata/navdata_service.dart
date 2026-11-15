@@ -70,17 +70,22 @@ class NavdataService extends ChangeNotifier {
 
       try {
         final db = await _importer.openAndClear();
-        await provider.importInto(
-          db,
-          _importer,
-          sim,
-          onProgress: (progress, message) =>
-              BackgroundTaskManager.instance.updateTask(
-                task,
-                progress.clamp(0.0, 0.99),
-                label: message,
-              ),
-        );
+        // ONE transaction around the whole import (clear included): a parse
+        // error, disk-full or crash mid-import rolls back to the PREVIOUS
+        // dataset instead of leaving half a database behind.
+        await db.transaction(() async {
+          await provider.importInto(
+            db,
+            _importer,
+            sim,
+            onProgress: (progress, message) =>
+                BackgroundTaskManager.instance.updateTask(
+                  task,
+                  progress.clamp(0.0, 0.99),
+                  label: message,
+                ),
+          );
+        });
         _lastRowCounts = await _importer.getRowCounts();
         // Enrich iata/city/country from OurAirports (cached, best-effort) —
         // apt.dat carries none of these fields.

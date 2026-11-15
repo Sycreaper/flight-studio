@@ -2366,6 +2366,12 @@ abstract class AppLocalizations {
   /// **'Add Simulator'**
   String get simAddTitle;
 
+  /// No description provided for @simExperimental.
+  ///
+  /// In en, this message translates to:
+  /// **'Experimental'**
+  String get simExperimental;
+
   /// No description provided for @simType.
   ///
   /// In en, this message translates to:

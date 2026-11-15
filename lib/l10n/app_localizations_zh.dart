@@ -1164,6 +1164,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get simAddTitle => '添加模拟器';
 
   @override
+  String get simExperimental => '实验性';
+
+  @override
   String get simType => '模拟器类型';
 
   @override

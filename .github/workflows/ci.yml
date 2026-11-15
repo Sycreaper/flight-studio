@@ -53,6 +53,13 @@ jobs:
 
       - run: npm ci
 
+      # Audit production deps against the official registry (npmmirror does
+      # not implement the audit endpoint). Gate on HIGH+ — the remaining
+      # moderates are glob/minimatch nested inside @letta-ai/letta-code with
+      # no upstream fix; they clear when Letta bumps them.
+      - name: Audit production dependencies (high+)
+        run: npm audit --omit=dev --audit-level=high --registry=https://registry.npmjs.org
+
       - run: npm run build
 
       - run: npm test

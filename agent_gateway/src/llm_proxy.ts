@@ -11,24 +11,49 @@
 /// URL with the path after `/v1` preserved and the Authorization header
 /// injected from the registry — so the credential never depends on the
 /// harness's header handling either.
+///
+/// Hardening: registry tokens are unguessable random UUIDs (the proxy path
+/// is exempt from gateway Bearer auth because the Letta app-server
+/// subprocess calls it without knowing the gateway token); only http(s)
+/// upstreams may be registered; upstream redirects are refused (a
+/// redirected request would carry the Authorization header to an
+/// unregistered host); streamed responses are size-capped so a runaway
+/// upstream cannot fill the disk.
+import {randomUUID} from "node:crypto";
 import type {FastifyInstance} from "fastify";
+
+import {log} from "./logger.js";
 
 export interface ProxyTarget {
     baseUrl: string;
     apiKey: string;
 }
 
+/// Responses larger than this are cut off with a 502.
+const MAX_RESPONSE_BYTES = 64 * 1024 * 1024;
+
 export class LlmProxy {
     private targets = new Map<string, ProxyTarget>();
-    private nextId = 1;
 
     constructor(private readonly port: number) {
     }
 
-    /** Registers (or refreshes) a provider mapping; returns the proxy URL
-     *  to store as the provider's base URL. */
+    /** Validates the upstream URL scheme and registers (or refreshes) a
+     *  provider mapping; returns the proxy URL to store as the provider's
+     *  base URL. Throws on non-http(s) upstreams. */
     register(target: ProxyTarget): string {
-        const token = String(this.nextId++);
+        let parsed: URL;
+        try {
+            parsed = new URL(target.baseUrl);
+        } catch {
+            throw new Error(`invalid upstream base URL: ${target.baseUrl}`);
+        }
+        if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+            throw new Error(
+                `refusing non-http(s) upstream: ${parsed.protocol}`,
+            );
+        }
+        const token = randomUUID();
         this.targets.set(token, target);
         // Keep the registry tiny: only the latest handful matter.
         if (this.targets.size > 8) {
@@ -50,9 +75,14 @@ export class LlmProxy {
             // segment so the upstream path is the provider's real one.
             if (wildcard === "v1") wildcard = "";
             else if (wildcard.startsWith("v1/")) wildcard = wildcard.slice(3);
-            const upstream = new URL(
-                `${target.baseUrl.replace(/\/+$/, "")}/${wildcard}`,
-            );
+            let upstream: URL;
+            try {
+                upstream = new URL(
+                    `${target.baseUrl.replace(/\/+$/, "")}/${wildcard}`,
+                );
+            } catch {
+                return reply.code(502).send({error: "invalid upstream URL"});
+            }
             if (request.url.includes("?")) {
                 upstream.search = request.url.slice(request.url.indexOf("?"));
             }
@@ -70,6 +100,9 @@ export class LlmProxy {
                 const res = await fetch(upstream, {
                     method: request.method,
                     headers,
+                    // Never follow redirects — the Authorization header must
+                    // not leak to a host the user did not register.
+                    redirect: "error",
                     ...(body != null ? {body} : {}),
                 });
                 const contentType =
@@ -79,16 +112,41 @@ export class LlmProxy {
                 if (res.body == null) {
                     return reply.send();
                 }
-                // Stream through (SSE chat streams must not be buffered).
+                // Stream through (SSE chat streams must not be buffered) with
+                // a size cap: a runaway upstream gets cut off at the limit.
                 const {Readable} = await import("node:stream");
                 const web = res.body as unknown as AsyncIterable<Uint8Array>;
-                return reply.send(Readable.fromWeb(web as never));
+                const capped = new Readable({read() {}});
+                let seen = 0;
+                (async () => {
+                    try {
+                        for await (const chunk of web) {
+                            seen += (chunk as Uint8Array).byteLength;
+                            if (seen > MAX_RESPONSE_BYTES) {
+                                capped.destroy(
+                                    new Error("upstream response exceeded size limit"),
+                                );
+                                return;
+                            }
+                            if (!capped.push(chunk as Buffer)) return;
+                        }
+                        capped.push(null);
+                    } catch (err) {
+                        log.warn(
+                            "llm-proxy",
+                            "response aborted:",
+                            err instanceof Error ? err.message : String(err),
+                        );
+                        capped.destroy(err instanceof Error
+                            ? err
+                            : new Error(String(err)));
+                    }
+                })();
+                return reply.send(capped);
             } catch (err) {
                 return reply.code(502).send({
                     error:
-                        err instanceof Error
-                            ? err.message
-                            : "proxy upstream failed",
+                        err instanceof Error ? err.message : "proxy upstream failed",
                 });
             }
         });

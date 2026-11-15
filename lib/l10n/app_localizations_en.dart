@@ -1177,6 +1177,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get simAddTitle => 'Add Simulator';
 
   @override
+  String get simExperimental => 'Experimental';
+
+  @override
   String get simType => 'Simulator Type';
 
   @override

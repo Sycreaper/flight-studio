@@ -61,7 +61,19 @@ CI runs `npm run build` + `npm test` on Node 22.
 
 ## Security notes
 
-- Tool approvals **fail closed** (unwired approval controller ⇒ deny).
+- **Bearer auth**: when `FLIGHTSTUDIO_GATEWAY_TOKEN` is set (the Flutter
+  app generates a fresh 256-bit token per spawn), every route requires
+  `Authorization: Bearer <token>` — other local processes cannot drive the
+  copilot even though the port is loopback-only. Without the variable
+  (`npm run start:dev`) the gateway serves unauthenticated with a loud
+  warning — developer mode only. The `/llm-proxy/*` routes are exempt
+  (the Letta app-server subprocess calls them without the gateway token);
+  they are gated by unguessable per-target path tokens instead.
+- Approval ids are random UUIDs and deny after 300 s unanswered; tool
+  approvals **fail closed** (unwired approval controller ⇒ deny).
+- The LLM proxy only accepts http(s) upstreams, refuses upstream redirects
+  (so the Authorization header never leaks to an unregistered host) and
+  caps streamed responses at 64 MB.
 - `FLIGHTSTUDIO_AI_LEVEL` env (0–3) caps the safety ladder; anything
   above 3 or non-numeric falls back to the default L1.
 - Memory updates are allow-listed, length-capped and secret-rejecting.

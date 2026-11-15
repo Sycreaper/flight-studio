@@ -47,12 +47,14 @@ test("proxy forwards with auth, strips /v1 and passes the query through", async 
     proxy.registerFastify(app);
     const proxyUrl = proxy.register({baseUrl: upstreamBase, apiKey: "sk-test"});
 
-    // Registered URLs end in /v1 (the harness convention).
-    assert.match(proxyUrl, /\/llm-proxy\/\d+\/v1$/);
+    // Registered URLs end in /v1 (the harness convention) and carry an
+    // unguessable random path token (extracted below from the URL).
+    assert.match(proxyUrl, /\/llm-proxy\/[0-9a-f-]{36}\/v1$/);
+    const token = proxyUrl.split("/").at(-2)!;
 
     const res = await app.inject({
         method: "POST",
-        url: "/llm-proxy/1/v1/chat/completions?stream=true",
+        url: `/llm-proxy/${token}/v1/chat/completions?stream=true`,
         payload: {model: "glm-4.7"},
         headers: {"content-type": "application/json"},
     });
@@ -65,6 +67,38 @@ test("proxy forwards with auth, strips /v1 and passes the query through", async 
     assert.equal(hit.url, "/chat/completions?stream=true");
     assert.equal(JSON.parse(hit.body).model, "glm-4.7");
     await app.close();
+});
+
+test("register rejects non-http(s) upstreams", async () => {
+    const proxy = new LlmProxy(8787);
+    assert.throws(() => proxy.register({baseUrl: "file:///etc/passwd", apiKey: "x"}));
+    assert.throws(() => proxy.register({baseUrl: "not a url", apiKey: "x"}));
+});
+
+test("upstream redirects are refused instead of followed", async () => {
+    // A 302 upstream: the proxy must surface it as an error (fetch
+    // redirect:"error") rather than follow it and leak the Authorization
+    // header to the redirect target.
+    const redirector = createServer((req, res) => {
+        res.writeHead(302, {location: "http://127.0.0.1:1/evil"});
+        res.end();
+    });
+    await new Promise<void>((resolve) => redirector.listen(0, "127.0.0.1", resolve));
+    const addr = redirector.address();
+    if (addr == null || typeof addr === "string") throw new Error("no port");
+
+    const app = Fastify();
+    const proxy = new LlmProxy(8787);
+    proxy.registerFastify(app);
+    const proxyUrl = proxy.register({
+        baseUrl: `http://127.0.0.1:${addr.port}`,
+        apiKey: "sk-test",
+    });
+    const token = proxyUrl.split("/").at(-2)!;
+    const res = await app.inject({method: "GET", url: `/llm-proxy/${token}/v1/models`});
+    assert.equal(res.statusCode, 502);
+    await app.close();
+    await new Promise<void>((resolve) => redirector.close(() => resolve()));
 });
 
 test("unknown proxy tokens are rejected with 503", async () => {

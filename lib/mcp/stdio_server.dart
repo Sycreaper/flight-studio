@@ -29,14 +29,24 @@ class McpStdioServer {
   static const _defaultProtocolVersion = '2025-06-18';
   static const _supportedVersions = {'2024-11-05', '2025-03-26', '2025-06-18'};
 
+  /// Lines longer than this are dropped without a response — a client (or a
+  /// wedged pipe) streaming garbage must not balloon host memory.
+  static const _maxLineLength = 1024 * 1024;
+
   /// Runs until the input stream closes. Each line is one JSON-RPC message;
-  /// responses are written as single lines to the output sink.
+  /// responses are written as single lines to the output sink. Requests are
+  /// handled strictly sequentially (one tools/call at a time), so a slow
+  /// tool cannot pile up concurrent executions.
   Future<void> run() async {
     final Stream<String> input = _injectedInput ??
         stdin
             .transform(utf8.decoder)
             .transform(const LineSplitter());
     await for (final line in input) {
+      if (line.length > _maxLineLength) {
+        _log('dropping oversized line (${line.length} bytes)');
+        continue;
+      }
       final trimmed = line.trim();
       if (trimmed.isEmpty) continue;
       final Object? message;
@@ -47,7 +57,17 @@ class McpStdioServer {
         continue;
       }
       if (message is! Map<String, dynamic>) continue;
-      await _handle(message);
+      try {
+        await _handle(message);
+      } on Object catch (e) {
+        // A malformed request must kill neither the server process nor the
+        // stream — report it as a protocol error and keep serving.
+        _respondError(
+          message['id'],
+          -32603,
+          'internal error: $e',
+        );
+      }
     }
   }
 
@@ -112,8 +132,9 @@ class McpStdioServer {
         ],
         'isError': false,
       });
-    } on Exception catch (e) {
-      // Tool failures are RESULTS (isError), not protocol errors.
+    } on Object catch (e) {
+      // Tool failures are RESULTS (isError), not protocol errors — and
+      // Errors (not just Exceptions) must not kill the stdio process.
       _respond(id, {
         'content': [
           {'type': 'text', 'text': 'error: $e'},
@@ -126,7 +147,7 @@ class McpStdioServer {
   void _respond(Object id, Map<String, dynamic> result) =>
       _write({'jsonrpc': '2.0', 'id': id, 'result': result});
 
-  void _respondError(Object id, int code, String message) =>
+  void _respondError(Object? id, int code, String message) =>
       _write({
         'jsonrpc': '2.0',
         'id': id,

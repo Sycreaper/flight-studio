@@ -9,6 +9,7 @@ import '../../../sim/simulator_connector.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/floating_window.dart';
 import '../settings_page.dart';
+import '../widgets/settings_tile.dart';
 import 'add_simulator_dialog.dart';
 
 /// Simulator management section — a dynamic list of installed simulators with
@@ -225,6 +226,12 @@ class _SimListTileState extends State<_SimListTile> {
                         Text('· ${sim.name}',
                             style: TextStyle(
                                 fontSize: 12, color: colors.textSecondary)),
+                      ],
+                      // The X-Plane connector is a skeleton — telemetry and
+                      // commands are not implemented yet; say so in the UI.
+                      if (sim.type == SimulatorType.xplane12) ...[
+                        const SizedBox(width: 8),
+                        SettingsBadge.planned(label: l10n.simExperimental),
                       ],
                     ],
                   ),

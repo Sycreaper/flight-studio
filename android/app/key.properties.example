@@ -1,0 +1,9 @@
+# Release signing configuration — copy to `key.properties` (same folder,
+# git-ignored) and fill in your own keystore. See README "Releasing".
+#
+#   keytool -genkey -v -keystore ~/flight-studio-release.jks \
+#           -keyalg RSA -keysize 2048 -validity 10000 -alias flight-studio
+storeFile=../flight-studio-release.jks
+storePassword=CHANGE_ME
+keyAlias=flight-studio
+keyPassword=CHANGE_ME
