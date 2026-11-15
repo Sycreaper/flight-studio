@@ -1,32 +1,23 @@
 {
   "@@locale": "en",
   "appName": "Flight Studio",
-  "@appName": { "description": "Application display name" },
-
+  "@appName": {
+    "description": "Application display name"
+  },
   "navRecentFlights": "Start",
   "navPluginCenter": "Plugin Center",
   "navSettings": "Settings",
-
   "createFirstFlight": "Create your first flight",
   "createFlight": "Create Flight",
   "worldMap": "World Map",
   "flightAcademy": "Flight Academy",
-
-  "createFlightHint": "Plan a new route from scratch",
-  "worldMapHint": "Explore the global map and airports",
-  "flightAcademyHint": "Learn flight planning and procedures",
-
   "searchFlights": "Search flights…",
   "noResults": "No flights match your search",
-
   "pluginCenterTitle": "Plugin Center",
   "pluginCenterDesc": "Manage simulator bridges and extensions",
-
   "settingsTitle": "Settings",
-  "settingsDesc": "Application preferences",
   "comingSoon": "Coming soon",
   "openSettings": "Open settings",
-
   "tabMap": "Map",
   "tabFlightPlan": "Flight Plan",
   "tabChat": "Chat",
@@ -58,12 +49,10 @@
   "closeTab": "Close tab",
   "noOpenTabs": "No open tabs",
   "clickPlusToOpen": "Click the + on the right to open a new tab",
-
   "sectionFlightInfo": "Flight Information",
   "sectionRoute": "Route",
   "sectionPerformance": "Fuel & Performance",
   "sectionProcedures": "Procedures",
-
   "fieldAircraft": "Aircraft",
   "fieldAirframe": "Airframe / Registration",
   "fieldAirline": "Airline",
@@ -84,16 +73,12 @@
   "fieldStar": "STAR",
   "fieldApproach": "Approach",
   "fieldPlanDetail": "Plan detail",
-
   "unitsKg": "Kilograms",
   "unitsLb": "Pounds",
   "detailFull": "Detailed",
   "detailRouteOnly": "Route Only",
-
   "calculatePlan": "Calculate Plan",
   "resetForm": "Reset",
-
-  "settingsSearchHint": "Search settings…",
   "settingsResetDefaults": "Reset to defaults",
   "settingsResetDefaultsConfirm": "Reset all settings to their defaults? This cannot be undone.",
   "settingsReset": "Reset",
@@ -103,11 +88,9 @@
   "settingsEdit": "Edit",
   "settingsBrowse": "Browse…",
   "settingsNotSet": "Not set",
-  "settingsRestartHint": "Restart Flight Studio for this change to take full effect.",
   "settingsPlannedBadge": "Planned",
   "settingsConnectedBadge": "Connected",
   "settingsDisconnectedBadge": "Disconnected",
-
   "gearMenuTooltip": "Open menu",
   "gearMenuSettings": "Settings…",
   "gearMenuAbout": "About Flight Studio",
@@ -115,97 +98,65 @@
   "gearMenuCheckUpdatesNone": "You are running the latest version.",
   "gearMenuHelp": "Help",
   "gearMenuExit": "Exit",
-
   "toolbarHome": "Back to welcome",
-
   "aboutDialogTitle": "About Flight Studio",
-
   "settingsCategoryGeneral": "General",
-  "settingsCategoryGeneralDesc": "Appearance, language and startup behaviour.",
+  "settingsCategoryData": "Data",
   "settingsCategorySimulator": "Simulator",
-  "settingsCategorySimulatorDesc": "X-Plane, MSFS and Prepar3D bridges.",
   "settingsCategoryNavdata": "Navigation Data",
-  "settingsCategoryNavdataDesc": "Airports, airways, procedures and AIRAC sources.",
   "settingsCategoryAi": "AI Copilot",
-  "settingsCategoryAiDesc": "Bring your own LLM key and configure tool access.",
-  "settingsCategoryRemote": "Remote Access",
-  "settingsCategoryRemoteDesc": "Embedded server for phone and web clients.",
   "settingsCategoryAbout": "About",
-  "settingsCategoryAboutDesc": "Version, license and credits.",
-
   "settingsAppearanceTitle": "Appearance",
   "settingsTheme": "Theme",
   "languageSystem": "Follow system",
   "settingsFontFamily": "Interface font",
-  "settingsFontFamilyHint": "Applies to the whole application. Takes effect immediately.",
   "settingsFontDefault": "Default",
   "settingsThemeDark": "Dark",
   "settingsThemeLight": "Light",
   "settingsThemeSystem": "Follow system",
-  "settingsThemeHint": "Dark is recommended for cockpit use at night.",
-
   "settingsLanguage": "Language",
-  "settingsLanguageHint": "Application interface language.",
   "settingsLanguageEn": "English",
   "settingsLanguageZh": "中文（简体）",
-
   "settingsStartupTitle": "Startup",
   "settingsReopenLastWorkspace": "Reopen last workspace on launch",
-  "settingsReopenLastWorkspaceHint": "Skip the welcome screen and jump straight into your last session.",
   "settingsCheckUpdatesOnLaunch": "Check for updates on launch",
-  "settingsCheckUpdatesOnLaunchHint": "Notify when a new Flight Studio build is available.",
-
   "settingsUnitsTitle": "Default units",
   "settingsUnitsMetric": "Metric (kg, km)",
   "settingsUnitsImperial": "Imperial (lb, nm)",
-  "settingsUnitsHint": "Used by new flight plans and the fuel planner.",
-
   "settingsSimulatorTitle": "Simulator connections",
-  "settingsSimulatorDesc": "Flight Studio reads telemetry and sends commands through per-simulator bridges. Only one simulator needs to be connected at a time.",
-
   "settingsXplaneTitle": "X-Plane 12",
   "settingsXplaneStatusConnected": "Bridge detected on port {port}",
   "@settingsXplaneStatusConnected": {
     "placeholders": {
-      "port": { "type": "int" }
+      "port": {
+        "type": "int"
+      }
     }
   },
   "settingsXplaneStatusDisconnected": "Not connected",
   "settingsXplaneInstallPath": "X-Plane install folder",
-  "settingsXplaneInstallHint": "Location of the X-Plane 12 root (contains ‘Resources’ and ‘Aircraft’).",
   "settingsXplaneInstallPick": "Choose folder…",
   "settingsXplaneInstallClear": "Clear",
   "settingsXplaneUdpPort": "Telemetry UDP port",
-  "settingsXplaneUdpPortHint": "Port X-Plane sends Data Output to (default 49000).",
   "settingsXplaneBridgePort": "Bridge command port",
-  "settingsXplaneBridgePortHint": "Port the bundled FlyWithLua script listens on (default 49001).",
   "settingsXplaneInstallBridge": "Install FlyWithLua bridge…",
-  "settingsXplaneInstallBridgeHint": "Copies FlightStudioBridge.lua into the FlyWithLua Scripts folder.",
   "settingsXplaneTestConnection": "Test connection",
-
   "settingsMsfsTitle": "MSFS 2020 / 2024 & Prepar3D",
   "settingsMsfsPlanned": "The C++ SimConnect bridge daemon is planned for a later phase. Telemetry and command support for MSFS and Prepar3D will share this adapter.",
   "settingsMsfsBridgePath": "SimConnect bridge daemon",
-  "settingsMsfsBridgePathHint": "Auto-discovered when the daemon ships.",
-
   "settingsNavdataTitle": "Navigation data sources",
-  "settingsNavdataDesc": "Mix and match sources. The trust layer shows where each plan’s data came from and validates AIRAC consistency on import/export.",
-
   "settingsNavdataBundledTitle": "Bundled (free & open)",
   "settingsNavdataOurAirports": "OurAirports",
-  "settingsNavdataOurAirportsHint": "Airports, runways, frequencies and navaids (Public Domain).",
   "settingsNavdataFaaCifp": "FAA CIFP / NASR",
-  "settingsNavdataFaaCifpHint": "U.S. instrument procedures (Public Domain).",
   "settingsNavdataXplaneNative": "Parse X-Plane native files",
-  "settingsNavdataXplaneNativeHint": "Reads apt.dat, earth_nav.dat, earth_fix.dat and awy.dat directly from the install folder.",
   "settingsNavdataRefreshBundled": "Refresh bundled data",
-
   "settingsNavdataNavigraphTitle": "Navigraph (user subscription)",
-  "settingsNavdataNavigraphHint": "Sign in with your own Navigraph account. Charts and AIRAC are never bundled or redistributed by Flight Studio.",
   "settingsNavdataNavigraphSignedIn": "Signed in as {user}",
   "@settingsNavdataNavigraphSignedIn": {
     "placeholders": {
-      "user": { "type": "String" }
+      "user": {
+        "type": "String"
+      }
     }
   },
   "settingsNavdataNavigraphSignedOut": "Not signed in",
@@ -213,50 +164,46 @@
   "settingsNavdataNavigraphSignOut": "Sign out",
   "settingsNavdataNavigraphAirac": "Active AIRAC cycle",
   "settingsNavdataNavigraphAiracNone": "Not available",
-
   "settingsNavdataSimBriefTitle": "SimBrief (free account)",
-  "settingsNavdataSimBriefHint": "Link your SimBrief account to import OFPs and route strings. Nothing is redistributed.",
   "settingsNavdataSimBriefLinked": "Linked to {username}",
   "@settingsNavdataSimBriefLinked": {
     "placeholders": {
-      "username": { "type": "String" }
+      "username": {
+        "type": "String"
+      }
     }
   },
   "settingsNavdataSimBriefNotLinked": "Not linked",
   "settingsNavdataSimBriefLink": "Link SimBrief account…",
   "settingsNavdataSimBriefUnlink": "Unlink",
-
   "settingsAiTitle": "AI Copilot",
-  "settingsAiDesc": "Letta is the local, stateful runtime behind the Flight Studio AI copilot — it carries your long-term memory across sessions. Install it with one click, create pilot accounts, and chat with your copilot from the welcome screen.",
   "settingsAiProvider": "Provider",
-  "settingsAiProviderHint": "Which LLM provider to use for the AI copilot.",
   "settingsAiProviderOpenAi": "OpenAI-compatible",
   "settingsAiProviderAnthropic": "Anthropic",
   "settingsAiProviderOllama": "Local (Ollama)",
   "settingsAiApiKey": "API key",
-  "settingsAiApiKeyHint": "Stored locally on this device and only ever sent to the provider you pick.",
   "settingsAiApiKeyHidden": "Key set (hidden)",
   "settingsAiEndpoint": "Endpoint URL",
-  "settingsAiEndpointHint": "Override the provider’s default base URL (e.g. http://localhost:11434 for Ollama).",
   "settingsAiEndpointPlaceholder": "https://api.openai.com/v1",
   "settingsAiModel": "Model",
-  "settingsAiModelHint": "Example: gpt-4o-mini, claude-3-5-sonnet, llama3.1.",
   "settingsAiModelPlaceholder": "model-id",
   "settingsReasoningEffort": "Reasoning effort",
-  "settingsReasoningEffortHint": "How much thinking the model should do before answering.",
   "settingsAiModelService": "Model service",
-
   "aiLettaRuntimeTitle": "Letta CLI (local agent runtime)",
   "aiLettaChecking": "Checking environment…",
   "aiLettaNotInstalledTitle": "Letta CLI is not installed",
   "aiLettaInstalledTitle": "Letta CLI is installed",
-  "aiLettaIntro": "Letta is the local, stateful agent runtime behind the Flight Studio AI copilot — it carries your long-term memory across sessions. Once installed, create a pilot account and chat with your copilot right from the welcome screen. Model providers (OpenAI-compatible, Anthropic, Ollama/LM Studio) are connected inside Letta via /connect.",
   "aiLettaNodeMissingTitle": "Node.js not found",
   "aiLettaNodeTooOldTitle": "Node.js version too old",
   "aiLettaNodeDetected": "Detected Node.js {version}",
-  "@aiLettaNodeDetected": { "placeholders": { "version": { "type": "String" } } },
+  "@aiLettaNodeDetected": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
   "aiLettaNodeRequiredHint": "The Letta CLI requires Node.js 22.19 or newer (distributed via npm).",
-  "aiLettaNodeManualHint": "Install Node.js from the official website (LTS recommended), then press Re-check. Flight Studio will not install Node.js for you.",
   "aiLettaNodeDownload": "Open Node.js download page",
   "aiLettaRecheck": "Re-check",
   "aiLettaInstall": "Install",
@@ -269,28 +216,6 @@
   "aiLettaUninstallConfirmTitle": "Uninstall Letta CLI?",
   "aiLettaUninstallConfirmDesc": "This only removes the Letta CLI program. Your local accounts and long-term memory data (~/.letta) are not deleted.",
   "settingsAiClearApiKey": "Clear",
-
-  "settingsRemoteTitle": "Remote access",
-  "settingsRemoteDesc": "Host an embedded HTTP/WebSocket server in-process so the companion phone and web clients can watch the moving map, pause the sim and operate the MCDU over LAN.",
-
-  "settingsRemoteEnable": "Enable embedded server",
-  "settingsRemotePort": "Listen port",
-  "settingsRemotePortHint": "TCP port the desktop app listens on (default 48080).",
-  "settingsRemoteToken": "Access token",
-  "settingsRemoteTokenHint": "Shared secret every phone/web client must present.",
-  "settingsRemoteRegenerateToken": "Regenerate token",
-  "settingsRemoteStatusTitle": "Server status",
-  "settingsRemoteNotRunning": "Not running",
-  "settingsRemoteRunningOn": "Listening on http://{host}:{port}",
-  "@settingsRemoteRunningOn": {
-    "placeholders": {
-      "host": { "type": "String" },
-      "port": { "type": "int" }
-    }
-  },
-  "settingsRemoteMdns": "Advertise on local network (mDNS)",
-  "settingsRemoteMdnsHint": "Lets the companion apps discover this machine automatically.",
-
   "settingsAboutTitle": "About Flight Studio",
   "settingsAboutVersion": "Version",
   "settingsAboutLicense": "License",
@@ -302,10 +227,8 @@
   "settingsAboutHomepage": "Homepage",
   "settingsAboutOpenSource": "Open source on GitHub",
   "settingsAboutInspiredBy": "Inspired by Little Navmap (no GPL source reused).",
-
   "tabSettings": "Settings",
   "welcomeSubtitle": "AI flight agent workbench",
-
   "ttNewFlightPlan": "New flight plan",
   "ttOpenFlightPlan": "Open flight plan",
   "ttExport": "Export",
@@ -319,7 +242,6 @@
   "ttExportPlan": "Export plan",
   "ttFetchSimBrief": "Fetch from SimBrief",
   "ttSavePlan": "Save plan",
-
   "mapPlaceholder": "Map",
   "mapApiKeyCta": "Bind your map API key to enable live tiles",
   "mapLoadError": "Map failed to load",
@@ -328,26 +250,25 @@
   "mapErrorGeneric": "Error {code}",
   "@mapErrorGeneric": {
     "placeholders": {
-      "code": { "type": "String" }
+      "code": {
+        "type": "String"
+      }
     }
   },
   "mapRetry": "Retry",
   "mapZoomIn": "Zoom in",
   "mapZoomOut": "Zoom out",
-
   "statusConnected": "Connected",
   "statusDisconnected": "Disconnected",
   "statusNoNavdata": "No navdata loaded",
   "statusCpu": "CPU",
   "statusGpu": "GPU",
   "statusMem": "MEM",
-
   "panelFlightPlans": "Flight Plans",
   "panelInspector": "Inspector",
   "panelProfile": "Profile",
   "hidePanel": "Hide",
-
-    "inspectorHint": "Double-click a map icon or a search result to see its details here.",
+  "inspectorHint": "Double-click a map icon or a search result to see its details here.",
   "inspectorType": "Type",
   "inspectorCoordinates": "Coordinates",
   "inspectorElevation": "Elevation",
@@ -356,10 +277,10 @@
   "inspectorIata": "IATA",
   "inspectorCity": "City",
   "inspectorFlyTo": "Fly to this point",
-    "inspectorClear": "Clear inspector",
+  "inspectorClear": "Clear inspector",
   "inspectorFrequencies": "ATC Frequencies",
   "inspectorWeather": "Weather",
-    "inspectorWeatherUnavailable": "No weather available for this station.",
+  "inspectorWeatherUnavailable": "No weather available for this station.",
   "inspectorTabOverview": "Overview",
   "inspectorTabComms": "Comms",
   "inspectorIcao": "ICAO",
@@ -374,9 +295,7 @@
   "splashScanning": "Scanning navigation data…",
   "splashNoNavdata": "No navigation data found",
   "settingsSplash": "Splash screen",
-  "settingsSplashHint": "Show the startup screen while navigation data is scanned",
   "settingsSplashScan": "Auto-scan navigation data on startup",
-  "settingsSplashScanHint": "How often the full navdata import runs at launch",
   "splashScanAlways": "Always",
   "splashScanAfter14": "Last scan over 14 days ago",
   "splashScanAfter28": "Last scan over 28 days ago",
@@ -402,28 +321,21 @@
   "profileTabSpeed": "Speed",
   "profileTabWeather": "Weather",
   "profileHint": "Altitude/fuel profile will render here",
-
   "settingsCategoryApiKeys": "API Keys",
-  "settingsCategoryApiKeysDesc": "Credentials for map tiles, AI copilot and flight tracking.",
   "apiKeysSecurityNote": "Keys are stored locally on this device and never displayed in full after saving.",
   "apiTileProvider": "Map tile provider",
-  "apiTileProviderHint": "Choose where raster map tiles come from. OSM is free and needs no key.",
   "apiTileProviderOsm": "OSM",
   "apiTileProviderMapboxStreets": "Mapbox Streets",
   "apiTileProviderMapboxSatellite": "Mapbox Satellite",
   "apiTileProviderCustom": "Custom",
   "apiMapboxToken": "Mapbox access token",
-  "apiMapboxTokenHint": "Get a free token at mapbox.com. Required for Mapbox tile providers.",
   "apiCustomTileUrl": "Custom tile URL",
-  "apiCustomTileUrlHint": "URL template with z/x/y coordinate segments for self-hosted tiles. Use curly braces around z, x, y for dynamic values.",
   "apiCustomTileUrlPlaceholder": "https://tiles.example.com/14/8560/12745.png",
   "apiFlightAwareKey": "FlightAware API key",
-  "apiFlightAwareKeyHint": "For querying real-world flights and route inspiration.",
   "apiKeySet": "Key set",
   "apiKeyAdd": "Add API Key",
   "apiKeyAddTitle": "Add API Key",
   "apiKeyType": "Type",
-  "apiKeyTypeHint": "Select the type of API credential",
   "apiKeyValue": "API Key",
   "apiKeyValueHint": "Paste your key here. It will be masked after saving.",
   "apiKeyLabel": "Label (optional)",
@@ -437,7 +349,7 @@
   "startSend": "Send",
   "apiKeyTypeFlightAware": "FlightAware Key",
   "apiKeyTypeAiCopilot": "AI Copilot Key",
-  "apiKeyTypeOpenAiCompatible": "OpenAI-compatible",
+  "apiKeyTypeOpenAiCompatible": "OpenAI-compatible API Key",
   "openAiProvider": "Provider",
   "openAiProviderGlm": "GLM (non-coding plan)",
   "openAiProviderQwen": "Qwen (Tongyi)",
@@ -487,7 +399,6 @@
   "mcpToolSetComFrequency": "Set COM frequency",
   "mcpToolSendSimCommand": "Send simulator command",
   "aiDeleteLettaData": "Delete Letta data",
-  "aiDeleteLettaDataHint": "Permanently removes all Letta agents, conversations, memory and stored provider credentials (~/.letta). The copilot starts fresh on the next message.",
   "aiDeleteLettaDataDesc": "This permanently deletes ALL Letta data — agents, conversations, long-term memory and stored provider keys (C:\\Users\\<you>\\.letta). This cannot be undone. The copilot re-initializes on the next message.",
   "aiDeleteLettaDataFailed": "Failed to delete Letta data — the gateway may still be running; try again.",
   "chatCopy": "Copy",
@@ -496,8 +407,6 @@
   "chatErrGateway": "The AI gateway could not start. Install Node.js ≥ 22.19 (Settings → AI can help) and try again.",
   "chatErrProvider": "Letta rejected the model connection — check the API key, base URL and model name in Settings → API Keys.",
   "openAiModel": "Model",
-  "openAiModelHint": "e.g. glm-4-flash, deepseek-chat, qwen-turbo",
-  "apiKeyTypeOpenAiCompatible": "OpenAI-compatible API Key",
   "apiKeyTypeCustomTileUrl": "Custom Tile URL",
   "mapTheme": "Map Theme",
   "mapProjectionFlat": "Flat (2D)",
@@ -505,10 +414,8 @@
   "mapNetworkRepair": "Network Repair",
   "apiKeyConfirmDelete": "Delete this API key?",
   "apiKeyConfirmDeleteDesc": "This action cannot be undone.",
-
   "simAddTitle": "Add Simulator",
   "simType": "Simulator Type",
-  "simTypeHint": "Select the type of simulator",
   "simInstallPath": "Install Path",
   "simInstallPathHint": "Browse for the simulator root folder",
   "simBrowse": "Browse",
@@ -527,7 +434,6 @@
   "simComingSoon": "Coming soon — supported in a future phase",
   "simEmpty": "No simulators added",
   "simEmptyHint": "Click + to add one",
-
   "navAddTitle": "Add Navigation Data Source",
   "navSelectSimulator": "Select Simulator",
   "navNoSimulator": "No simulator found. Please add a simulator first.",
@@ -540,7 +446,13 @@
   "navEmpty": "No navigation data sources",
   "navEmptyHint": "Click + to add one",
   "simInvalidNotFound": "{exe} not found in this folder",
-  "@simInvalidNotFound": { "placeholders": { "exe": { "type": "String" } } },
+  "@simInvalidNotFound": {
+    "placeholders": {
+      "exe": {
+        "type": "String"
+      }
+    }
+  },
   "simConfirmDelete": "Remove this simulator?",
   "simConfirmDeleteDesc": "Associated navdata sources will also be removed.",
   "navConfirmDelete": "Remove this navdata source?",
@@ -562,5 +474,3 @@
   "searchStart": "Start typing to search",
   "searchNoResults": "No results"
 }
-
-

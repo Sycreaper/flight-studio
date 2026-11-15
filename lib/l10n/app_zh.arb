@@ -1,32 +1,23 @@
 {
   "@@locale": "zh",
   "appName": "Flight Studio",
-  "@appName": { "description": "Application display name" },
-
+  "@appName": {
+    "description": "Application display name"
+  },
   "navRecentFlights": "开始",
   "navPluginCenter": "插件中心",
   "navSettings": "设置",
-
   "createFirstFlight": "创建你的第一个航班",
   "createFlight": "新建航班",
   "worldMap": "世界地图",
   "flightAcademy": "飞行学院",
-
-  "createFlightHint": "从零开始规划一条新航线",
-  "worldMapHint": "浏览全球地图与机场",
-  "flightAcademyHint": "学习航路规划与飞行程序",
-
   "searchFlights": "搜索航班…",
   "noResults": "未找到匹配的航班",
-
   "pluginCenterTitle": "插件中心",
   "pluginCenterDesc": "管理模拟器桥接与扩展",
-
   "settingsTitle": "设置",
-  "settingsDesc": "应用首选项",
   "comingSoon": "敬请期待",
   "openSettings": "打开设置",
-
   "tabMap": "地图",
   "tabFlightPlan": "飞行计划",
   "tabChat": "聊天",
@@ -58,12 +49,10 @@
   "closeTab": "关闭标签页",
   "noOpenTabs": "没有打开的标签页",
   "clickPlusToOpen": "点击右侧的 + 打开新标签页",
-
   "sectionFlightInfo": "航班信息",
   "sectionRoute": "航路",
   "sectionPerformance": "燃油与性能",
   "sectionProcedures": "飞行程序",
-
   "fieldAircraft": "机型",
   "fieldAirframe": "机身 / 注册号",
   "fieldAirline": "航空公司",
@@ -84,16 +73,12 @@
   "fieldStar": "STAR 进场",
   "fieldApproach": "进近",
   "fieldPlanDetail": "计划详细程度",
-
   "unitsKg": "千克",
   "unitsLb": "磅",
   "detailFull": "完整",
   "detailRouteOnly": "仅航路",
-
   "calculatePlan": "计算计划",
   "resetForm": "重置",
-
-  "settingsSearchHint": "搜索设置…",
   "settingsResetDefaults": "恢复默认",
   "settingsResetDefaultsConfirm": "将所有设置恢复为默认值？此操作无法撤销。",
   "settingsReset": "重置",
@@ -103,11 +88,9 @@
   "settingsEdit": "编辑",
   "settingsBrowse": "浏览…",
   "settingsNotSet": "未设置",
-  "settingsRestartHint": "需要重启 Flight Studio 才能完全生效。",
   "settingsPlannedBadge": "计划中",
   "settingsConnectedBadge": "已连接",
   "settingsDisconnectedBadge": "未连接",
-
   "gearMenuTooltip": "打开菜单",
   "gearMenuSettings": "设置…",
   "gearMenuAbout": "关于 Flight Studio",
@@ -115,97 +98,65 @@
   "gearMenuCheckUpdatesNone": "已是最新版本。",
   "gearMenuHelp": "帮助",
   "gearMenuExit": "退出",
-
   "toolbarHome": "返回欢迎页",
-
   "aboutDialogTitle": "关于 Flight Studio",
-
   "settingsCategoryGeneral": "常规",
-  "settingsCategoryGeneralDesc": "外观、语言与启动行为。",
+  "settingsCategoryData": "数据",
   "settingsCategorySimulator": "模拟器",
-  "settingsCategorySimulatorDesc": "X-Plane、MSFS 与 Prepar3D 桥接。",
   "settingsCategoryNavdata": "导航数据",
-  "settingsCategoryNavdataDesc": "机场、航路、程序与 AIRAC 数据源。",
   "settingsCategoryAi": "AI 副驾驶",
-  "settingsCategoryAiDesc": "使用你自己的 LLM 密钥并配置工具权限。",
-  "settingsCategoryRemote": "远程访问",
-  "settingsCategoryRemoteDesc": "为手机和网页客户端托管内嵌服务器。",
   "settingsCategoryAbout": "关于",
-  "settingsCategoryAboutDesc": "版本、许可证与致谢。",
-
   "settingsAppearanceTitle": "外观",
   "settingsTheme": "主题",
   "languageSystem": "跟随系统",
   "settingsFontFamily": "界面字体",
-  "settingsFontFamilyHint": "应用于整个应用程序，立即生效。",
   "settingsFontDefault": "默认",
   "settingsThemeDark": "深色",
   "settingsThemeLight": "浅色",
   "settingsThemeSystem": "跟随系统",
-  "settingsThemeHint": "夜间在驾驶舱中推荐使用深色主题。",
-
   "settingsLanguage": "语言",
-  "settingsLanguageHint": "应用界面语言。",
   "settingsLanguageEn": "English",
   "settingsLanguageZh": "中文（简体）",
-
   "settingsStartupTitle": "启动",
   "settingsReopenLastWorkspace": "启动时重新打开上次的工作区",
-  "settingsReopenLastWorkspaceHint": "跳过欢迎页，直接进入上次会话。",
   "settingsCheckUpdatesOnLaunch": "启动时检查更新",
-  "settingsCheckUpdatesOnLaunchHint": "当有新的 Flight Studio 构建可用时通知我。",
-
   "settingsUnitsTitle": "默认单位",
   "settingsUnitsMetric": "公制（千克、千米）",
   "settingsUnitsImperial": "英制（磅、海里）",
-  "settingsUnitsHint": "用于新建的飞行计划和燃油规划。",
-
   "settingsSimulatorTitle": "模拟器连接",
-  "settingsSimulatorDesc": "Flight Studio 通过每个模拟器对应的桥接读取遥测并下发指令。同一时间只需要连接一个模拟器。",
-
   "settingsXplaneTitle": "X-Plane 12",
   "settingsXplaneStatusConnected": "已在端口 {port} 检测到桥接",
   "@settingsXplaneStatusConnected": {
     "placeholders": {
-      "port": { "type": "int" }
+      "port": {
+        "type": "int"
+      }
     }
   },
   "settingsXplaneStatusDisconnected": "未连接",
   "settingsXplaneInstallPath": "X-Plane 安装目录",
-  "settingsXplaneInstallHint": "X-Plane 12 根目录位置（应包含 ‘Resources’ 与 ‘Aircraft’）。",
   "settingsXplaneInstallPick": "选择目录…",
   "settingsXplaneInstallClear": "清除",
   "settingsXplaneUdpPort": "遥测 UDP 端口",
-  "settingsXplaneUdpPortHint": "X-Plane 数据输出所发送到的端口（默认 49000）。",
   "settingsXplaneBridgePort": "桥接命令端口",
-  "settingsXplaneBridgePortHint": "内置 FlyWithLua 脚本监听的端口（默认 49001）。",
   "settingsXplaneInstallBridge": "安装 FlyWithLua 桥接…",
-  "settingsXplaneInstallBridgeHint": "将 FlightStudioBridge.lua 复制到 FlyWithLua 的 Scripts 目录。",
   "settingsXplaneTestConnection": "测试连接",
-
   "settingsMsfsTitle": "MSFS 2020 / 2024 与 Prepar3D",
   "settingsMsfsPlanned": "C++ SimConnect 桥接守护进程计划于后续阶段提供。MSFS 与 Prepar3D 的遥测和指令支持将共用同一适配器。",
   "settingsMsfsBridgePath": "SimConnect 桥接守护进程",
-  "settingsMsfsBridgePathHint": "守护进程发布后将自动发现。",
-
   "settingsNavdataTitle": "导航数据源",
-  "settingsNavdataDesc": "可组合使用多种数据源。信任层会显示每条计划的数据来源，并在导入/导出时校验 AIRAC 一致性。",
-
   "settingsNavdataBundledTitle": "内置数据（免费开源）",
   "settingsNavdataOurAirports": "OurAirports",
-  "settingsNavdataOurAirportsHint": "机场、跑道、频率与导航台（公共领域）。",
   "settingsNavdataFaaCifp": "FAA CIFP / NASR",
-  "settingsNavdataFaaCifpHint": "美国仪表飞行程序（公共领域）。",
   "settingsNavdataXplaneNative": "解析 X-Plane 原生文件",
-  "settingsNavdataXplaneNativeHint": "直接从安装目录读取 apt.dat、earth_nav.dat、earth_fix.dat 与 awy.dat。",
   "settingsNavdataRefreshBundled": "刷新内置数据",
-
   "settingsNavdataNavigraphTitle": "Navigraph（用户订阅）",
-  "settingsNavdataNavigraphHint": "使用你自己的 Navigraph 账户登录。航图与 AIRAC 数据不会被 Flight Studio 打包或再分发。",
   "settingsNavdataNavigraphSignedIn": "已登录为 {user}",
   "@settingsNavdataNavigraphSignedIn": {
     "placeholders": {
-      "user": { "type": "String" }
+      "user": {
+        "type": "String"
+      }
     }
   },
   "settingsNavdataNavigraphSignedOut": "未登录",
@@ -213,67 +164,46 @@
   "settingsNavdataNavigraphSignOut": "退出登录",
   "settingsNavdataNavigraphAirac": "当前 AIRAC 周期",
   "settingsNavdataNavigraphAiracNone": "不可用",
-
   "settingsNavdataSimBriefTitle": "SimBrief（免费账户）",
-  "settingsNavdataSimBriefHint": "关联你的 SimBrief 账户以导入 OFP 与航路字符串。不会被再分发。",
   "settingsNavdataSimBriefLinked": "已关联到 {username}",
   "@settingsNavdataSimBriefLinked": {
     "placeholders": {
-      "username": { "type": "String" }
+      "username": {
+        "type": "String"
+      }
     }
   },
   "settingsNavdataSimBriefNotLinked": "未关联",
   "settingsNavdataSimBriefLink": "关联 SimBrief 账户…",
   "settingsNavdataSimBriefUnlink": "解除关联",
-
   "settingsAiTitle": "AI 副驾驶",
-  "settingsAiProvider": "\u63d0\u4f9b\u5546",
-  "settingsAiProviderHint": "AI \u526f\u9a7e\u9a76\u4f7f\u7528\u7684 LLM \u63d0\u4f9b\u5546\u3002",
-  "settingsAiProviderOpenAi": "OpenAI \u517c\u5bb9",
-  "settingsAiProviderAnthropic": "Anthropic",
-  "settingsAiProviderOllama": "\u672c\u5730\uff08Ollama\uff09",
-  "settingsAiApiKey": "API \u5bc6\u94a5",
-  "settingsAiApiKeyHint": "\u4ec5\u5b58\u50a8\u5728\u672c\u8bbe\u5907\uff0c\u4e14\u53ea\u53d1\u9001\u7ed9\u4f60\u9009\u62e9\u7684\u63d0\u4f9b\u5546\u3002",
-  "settingsAiApiKeyHidden": "\u5df2\u8bbe\u7f6e\u5bc6\u94a5\uff08\u9690\u85cf\uff09",
-  "settingsAiEndpoint": "\u7aef\u70b9 URL",
-  "settingsAiEndpointHint": "\u8986\u76d6\u63d0\u4f9b\u5546\u7684\u9ed8\u8ba4\u57fa\u7840 URL\uff08\u4f8b\u5982 Ollama \u4e3a http://localhost:11434\uff09\u3002",
-  "settingsAiEndpointPlaceholder": "https://api.openai.com/v1",
-  "settingsAiModel": "\u6a21\u578b",
-  "settingsAiModelHint": "\u793a\u4f8b\uff1agpt-4o-mini\u3001claude-3-5-sonnet\u3001llama3.1\u3002",
-  "settingsAiModelPlaceholder": "\u6a21\u578b ID",
-  "settingsReasoningEffort": "\u601d\u8003\u5f3a\u5ea6",
-  "settingsReasoningEffortHint": "\u6a21\u578b\u5728\u56de\u7b54\u524d\u7684\u601d\u8003\u6df1\u5ea6\u3002",
-  "settingsAiModelService": "\u6a21\u578b\u670d\u52a1",
-  "settingsAiDesc": "Letta 是 Flight Studio AI 副驾驶的本地有状态运行时，跨会话保存你的长期记忆。一键安装后即可创建飞行员账户，并在欢迎页直接与副驾驶对话。",
   "settingsAiProvider": "提供商",
-  "settingsAiProviderHint": "AI 副驾驶使用的 LLM 提供商。",
   "settingsAiProviderOpenAi": "OpenAI 兼容",
   "settingsAiProviderAnthropic": "Anthropic",
   "settingsAiProviderOllama": "本地（Ollama）",
   "settingsAiApiKey": "API 密钥",
-  "settingsAiApiKeyHint": "仅存储在本设备，且只会发送给你选择的提供商。",
   "settingsAiApiKeyHidden": "已设置密钥（隐藏）",
   "settingsAiEndpoint": "端点 URL",
-  "settingsAiEndpointHint": "覆盖提供商的默认基础 URL（例如 Ollama 为 http://localhost:11434）。",
   "settingsAiEndpointPlaceholder": "https://api.openai.com/v1",
   "settingsAiModel": "模型",
-  "settingsAiModelHint": "示例：gpt-4o-mini、claude-3-5-sonnet、llama3.1。",
   "settingsAiModelPlaceholder": "模型 ID",
   "settingsReasoningEffort": "思考强度",
-  "settingsReasoningEffortHint": "模型在回答前的思考深度。",
   "settingsAiModelService": "模型服务",
-
   "aiLettaRuntimeTitle": "Letta CLI（本地 Agent 运行时）",
   "aiLettaChecking": "正在检测环境…",
   "aiLettaNotInstalledTitle": "Letta CLI 未安装",
   "aiLettaInstalledTitle": "Letta CLI 已安装",
-  "aiLettaIntro": "Letta 是 Flight Studio AI 副驾驶的本地有状态运行时——跨会话保存你的长期记忆。安装后即可创建飞行员账户，并在欢迎页直接与副驾驶对话。模型提供商（OpenAI 兼容、Anthropic、Ollama/LM Studio）在 Letta 内通过 /connect 绑定。",
   "aiLettaNodeMissingTitle": "未检测到 Node.js",
   "aiLettaNodeTooOldTitle": "Node.js 版本过低",
   "aiLettaNodeDetected": "检测到 Node.js {version}",
-  "@aiLettaNodeDetected": { "placeholders": { "version": { "type": "String" } } },
+  "@aiLettaNodeDetected": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
   "aiLettaNodeRequiredHint": "Letta CLI 需要 Node.js 22.19 或更高版本（通过 npm 分发）。",
-  "aiLettaNodeManualHint": "请从 Node.js 官网安装（推荐 LTS 版本），然后点击「重新检测」。Flight Studio 不会替你安装 Node.js。",
   "aiLettaNodeDownload": "打开 Node.js 下载页",
   "aiLettaRecheck": "重新检测",
   "aiLettaInstall": "一键安装",
@@ -286,28 +216,6 @@
   "aiLettaUninstallConfirmTitle": "卸载 Letta CLI？",
   "aiLettaUninstallConfirmDesc": "仅移除 Letta CLI 程序本身。你的本地账户与长期记忆数据（~/.letta）不会被删除。",
   "settingsAiClearApiKey": "清除",
-
-  "settingsRemoteTitle": "远程访问",
-  "settingsRemoteDesc": "在桌面端进程内托管内嵌的 HTTP/WebSocket 服务器，让配套的手机与网页客户端可以通过局域网查看移动地图、暂停模拟器并远程操作 MCDU。",
-
-  "settingsRemoteEnable": "启用内嵌服务器",
-  "settingsRemotePort": "监听端口",
-  "settingsRemotePortHint": "桌面端监听的 TCP 端口（默认 48080）。",
-  "settingsRemoteToken": "访问令牌",
-  "settingsRemoteTokenHint": "每个手机/网页客户端都必须出示的共享密钥。",
-  "settingsRemoteRegenerateToken": "重新生成令牌",
-  "settingsRemoteStatusTitle": "服务器状态",
-  "settingsRemoteNotRunning": "未运行",
-  "settingsRemoteRunningOn": "正在监听 http://{host}:{port}",
-  "@settingsRemoteRunningOn": {
-    "placeholders": {
-      "host": { "type": "String" },
-      "port": { "type": "int" }
-    }
-  },
-  "settingsRemoteMdns": "在局域网广播（mDNS）",
-  "settingsRemoteMdnsHint": "让配套应用可以自动发现本机。",
-
   "settingsAboutTitle": "关于 Flight Studio",
   "settingsAboutVersion": "版本",
   "settingsAboutLicense": "许可证",
@@ -319,10 +227,8 @@
   "settingsAboutHomepage": "主页",
   "settingsAboutOpenSource": "在 GitHub 上开源",
   "settingsAboutInspiredBy": "灵感来自 Little Navmap（未复用任何 GPL 源码）。",
-
   "tabSettings": "设置",
   "welcomeSubtitle": "AI 飞行智能体工作台",
-
   "ttNewFlightPlan": "新建飞行计划",
   "ttOpenFlightPlan": "打开飞行计划",
   "ttExport": "导出",
@@ -336,7 +242,6 @@
   "ttExportPlan": "导出计划",
   "ttFetchSimBrief": "从 SimBrief 获取",
   "ttSavePlan": "保存计划",
-
   "mapPlaceholder": "地图",
   "mapApiKeyCta": "绑定你的地图 API 密钥以启用实时瓦片",
   "mapLoadError": "地图加载失败",
@@ -345,26 +250,25 @@
   "mapErrorGeneric": "错误 {code}",
   "@mapErrorGeneric": {
     "placeholders": {
-      "code": { "type": "String" }
+      "code": {
+        "type": "String"
+      }
     }
   },
   "mapRetry": "重试",
   "mapZoomIn": "放大",
   "mapZoomOut": "缩小",
-
   "statusConnected": "已连接",
   "statusDisconnected": "未连接",
   "statusNoNavdata": "未加载导航数据",
   "statusCpu": "CPU",
   "statusGpu": "GPU",
   "statusMem": "内存",
-
   "panelFlightPlans": "飞行计划",
   "panelInspector": "检查器",
   "panelProfile": "剖面",
   "hidePanel": "隐藏",
-
-    "inspectorHint": "双击地图图标或搜索结果，在此查看详细信息。",
+  "inspectorHint": "双击地图图标或搜索结果，在此查看详细信息。",
   "inspectorType": "类型",
   "inspectorCoordinates": "坐标",
   "inspectorElevation": "标高",
@@ -373,10 +277,10 @@
   "inspectorIata": "IATA",
   "inspectorCity": "城市",
   "inspectorFlyTo": "定位到该点",
-    "inspectorClear": "清除检查器",
+  "inspectorClear": "清除检查器",
   "inspectorFrequencies": "ATC 频率",
   "inspectorWeather": "天气",
-    "inspectorWeatherUnavailable": "该机场暂无天气信息。",
+  "inspectorWeatherUnavailable": "该机场暂无天气信息。",
   "inspectorTabOverview": "概述",
   "inspectorTabComms": "通信",
   "inspectorIcao": "ICAO",
@@ -391,9 +295,7 @@
   "splashScanning": "正在扫描导航数据…",
   "splashNoNavdata": "未找到导航数据",
   "settingsSplash": "启动画面",
-  "settingsSplashHint": "启动时显示扫描导航数据的画面",
   "settingsSplashScan": "启动时自动扫描导航数据",
-  "settingsSplashScanHint": "每次启动执行完整导航数据导入的频率",
   "splashScanAlways": "始终",
   "splashScanAfter14": "上次扫描超过 14 天",
   "splashScanAfter28": "上次扫描超过 28 天",
@@ -419,28 +321,21 @@
   "profileTabSpeed": "速度",
   "profileTabWeather": "天气",
   "profileHint": "高度/燃油剖面将在此处显示",
-
   "settingsCategoryApiKeys": "API 密钥",
-  "settingsCategoryApiKeysDesc": "地图瓦片、AI 副驾驶和航班追踪的凭证。",
   "apiKeysSecurityNote": "密钥仅存储于本设备，保存后不再完整显示。",
   "apiTileProvider": "地图瓦片提供商",
-  "apiTileProviderHint": "选择光栅地图瓦片来源。OSM 免费且无需密钥。",
   "apiTileProviderOsm": "OSM",
   "apiTileProviderMapboxStreets": "Mapbox 街道",
   "apiTileProviderMapboxSatellite": "Mapbox 卫星",
   "apiTileProviderCustom": "自定义",
   "apiMapboxToken": "Mapbox 访问令牌",
-  "apiMapboxTokenHint": "在 mapbox.com 获取免费令牌。使用 Mapbox 瓦片时必需。",
   "apiCustomTileUrl": "自定义瓦片 URL",
-  "apiCustomTileUrlHint": "包含 z/x/y 坐标段的 URL 模板，用于自建瓦片服务器。使用花括号包裹 z、x、y 以表示动态值。",
   "apiCustomTileUrlPlaceholder": "https://tiles.example.com/14/8560/12745.png",
   "apiFlightAwareKey": "FlightAware API 密钥",
-  "apiFlightAwareKeyHint": "用于查询真实世界航班和航线灵感。",
   "apiKeySet": "密钥已设置",
   "apiKeyAdd": "添加 API 密钥",
   "apiKeyAddTitle": "添加 API 密钥",
   "apiKeyType": "类型",
-  "apiKeyTypeHint": "选择 API 凭证类型",
   "apiKeyValue": "API 密钥",
   "apiKeyValueHint": "在此粘贴你的密钥。保存后将自动掩码。",
   "apiKeyLabel": "标签（可选）",
@@ -448,7 +343,7 @@
   "apiKeyEmpty": "未存储 API 密钥",
   "apiKeyEmptyHint": "点击 + 添加",
   "apiKeyTypeMapboxToken": "Mapbox 令牌",
-  "apiKeyTypeOpenAiCompatible": "OpenAI 兼容",
+  "apiKeyTypeOpenAiCompatible": "OpenAI 兼容 API 密钥",
   "openAiProvider": "提供商",
   "openAiProviderGlm": "非编码套餐 GLM",
   "openAiProviderQwen": "千问",
@@ -498,7 +393,6 @@
   "mcpToolSetComFrequency": "设置 COM 频率",
   "mcpToolSendSimCommand": "发送模拟器指令",
   "aiDeleteLettaData": "删除 Letta 数据",
-  "aiDeleteLettaDataHint": "永久删除全部 Letta 智能体、会话、记忆与已存储的提供商凭据（~/.letta）。下一条消息将重新初始化副驾驶。",
   "aiDeleteLettaDataDesc": "将永久删除全部 Letta 数据——智能体、会话、长期记忆与已存储的提供商密钥（C:\\Users\\<你>\\.letta）。此操作不可撤销。下一条消息将重新初始化副驾驶。",
   "aiDeleteLettaDataFailed": "删除 Letta 数据失败——网关可能仍在运行，请重试。",
   "chatCopy": "复制",
@@ -507,14 +401,12 @@
   "chatErrGateway": "AI 网关启动失败。请安装 Node.js ≥ 22.19（可在 设置 → AI 中安装）后重试。",
   "chatErrProvider": "Letta 拒绝了模型连接——请检查 设置 → API 密钥 中的密钥、基 URL 与模型名。",
   "openAiModel": "模型",
-  "openAiModelHint": "如 glm-4-flash、deepseek-chat、qwen-turbo",
   "apiKeyTypeOsmToken": "OSM 瓦片令牌",
   "startHeroTitle": "准备好了，随时开始",
   "startPromptHint": "有问题，随便问",
   "startSend": "发送",
   "apiKeyTypeFlightAware": "FlightAware 密钥",
   "apiKeyTypeAiCopilot": "AI 副驾驶密钥",
-  "apiKeyTypeOpenAiCompatible": "OpenAI 兼容 API 密钥",
   "apiKeyTypeCustomTileUrl": "自定义瓦片 URL",
   "mapTheme": "地图主题",
   "mapProjectionFlat": "平面（2D）",
@@ -522,10 +414,8 @@
   "mapNetworkRepair": "网络修复",
   "apiKeyConfirmDelete": "删除此 API 密钥？",
   "apiKeyConfirmDeleteDesc": "此操作无法撤销。",
-
   "simAddTitle": "添加模拟器",
   "simType": "模拟器类型",
-  "simTypeHint": "选择模拟器类型",
   "simInstallPath": "安装路径",
   "simInstallPathHint": "浏览选择模拟器根目录",
   "simBrowse": "浏览",
@@ -544,7 +434,6 @@
   "simComingSoon": "敬请期待 —— 将在后续阶段支持",
   "simEmpty": "未添加模拟器",
   "simEmptyHint": "点击 + 添加",
-
   "navAddTitle": "添加导航数据源",
   "navSelectSimulator": "选择模拟器",
   "navNoSimulator": "未找到模拟器，请先添加一个模拟器。",
@@ -557,7 +446,13 @@
   "navEmpty": "无导航数据源",
   "navEmptyHint": "点击 + 添加",
   "simInvalidNotFound": "此目录中未找到 {exe}",
-  "@simInvalidNotFound": { "placeholders": { "exe": { "type": "String" } } },
+  "@simInvalidNotFound": {
+    "placeholders": {
+      "exe": {
+        "type": "String"
+      }
+    }
+  },
   "simConfirmDelete": "移除此模拟器？",
   "simConfirmDeleteDesc": "关联的导航数据源也会被移除。",
   "navConfirmDelete": "移除此导航数据源？",
@@ -579,5 +474,3 @@
   "searchStart": "输入以开始搜索",
   "searchNoResults": "无结果"
 }
-
-

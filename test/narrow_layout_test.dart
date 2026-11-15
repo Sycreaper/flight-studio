@@ -147,17 +147,18 @@ void main() {
     expect(find.text('General'), findsOneWidget);
     expect(find.text('About'), findsOneWidget);
 
-    // Tap the Simulator section → full-screen detail page.
-    await tester.tap(find.text('Simulator'));
+    // Tap the Data section → full-screen detail page (tabbed).
+    await tester.tap(find.text('Data'));
     await tester.pumpAndSettle();
-    expect(find.text('SIMULATOR'), findsOneWidget);
     expect(find.byIcon(Icons.arrow_back_rounded), findsOneWidget);
+    // The Data section hosts its tabs; the API Keys tab is the first.
+    expect(find.text('API Keys'), findsWidgets);
 
     // Back returns to the menu.
     await tester.tap(find.byIcon(Icons.arrow_back_rounded));
     await tester.pumpAndSettle();
     expect(find.text('General'), findsOneWidget);
-    expect(find.text('SIMULATOR'), findsNothing);
+    expect(find.text('API Keys'), findsNothing);
   });
 
   testWidgets('wide settings: master-detail unchanged (rail + body '

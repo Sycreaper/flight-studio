@@ -29,7 +29,6 @@ class SimulatorSection extends StatelessWidget {
         final sims = controller.value.simulators;
         return SettingsSectionBody(
           title: l10n.settingsSimulatorTitle,
-          description: l10n.settingsSimulatorDesc,
           children: [
             Row(
               children: [

@@ -6,25 +6,22 @@ import '../adaptive/breakpoints.dart';
 import '../theme/app_colors.dart';
 import 'sections/about_section.dart';
 import 'sections/ai_copilot_section.dart';
-import 'sections/api_keys_section.dart';
+import 'sections/data_section.dart';
 import 'sections/general_section.dart';
-import 'sections/navdata_section.dart';
-import 'sections/remote_access_section.dart';
-import 'sections/simulator_section.dart';
 
 /// The categories shown in the settings nav rail. Public so the gear-menu can
 /// request a landing section without re-implementing the list.
-enum SettingsSection { general, apiKeys, simulator, navdata, ai, remote, about }
+enum SettingsSection { general, data, ai, about }
+
+/// The tab inside the Data section, for landing precision.
+enum SettingsDataTab { apiKeys, simulators, navdata }
 
 /// Per-section icon, shared by the nav rail and the narrow-screen detail page.
 IconData settingsSectionIcon(SettingsSection section) =>
     switch (section) {
       SettingsSection.general => Icons.tune_rounded,
-      SettingsSection.apiKeys => Icons.vpn_key_rounded,
-      SettingsSection.simulator => Icons.flight_takeoff_rounded,
-      SettingsSection.navdata => Icons.map_rounded,
+      SettingsSection.data => Icons.storage_rounded,
       SettingsSection.ai => Icons.auto_awesome_rounded,
-      SettingsSection.remote => Icons.devices_rounded,
       SettingsSection.about => Icons.info_outline_rounded,
     };
 
@@ -33,43 +30,26 @@ IconData settingsSectionIcon(SettingsSection section) =>
 String settingsSectionTitle(AppLocalizations l10n, SettingsSection section) =>
     switch (section) {
       SettingsSection.general => l10n.settingsCategoryGeneral,
-      SettingsSection.apiKeys => l10n.settingsCategoryApiKeys,
-      SettingsSection.simulator => l10n.settingsCategorySimulator,
-      SettingsSection.navdata => l10n.settingsCategoryNavdata,
+      SettingsSection.data => l10n.settingsCategoryData,
       SettingsSection.ai => l10n.settingsCategoryAi,
-      SettingsSection.remote => l10n.settingsCategoryRemote,
       SettingsSection.about => l10n.settingsCategoryAbout,
     };
 
-/// Per-section localized one-line description (nav rail subtitle).
-String settingsSectionDesc(AppLocalizations l10n, SettingsSection section) =>
-    switch (section) {
-      SettingsSection.general => l10n.settingsCategoryGeneralDesc,
-      SettingsSection.apiKeys => l10n.settingsCategoryApiKeysDesc,
-      SettingsSection.simulator => l10n.settingsCategorySimulatorDesc,
-      SettingsSection.navdata => l10n.settingsCategoryNavdataDesc,
-      SettingsSection.ai => l10n.settingsCategoryAiDesc,
-      SettingsSection.remote => l10n.settingsCategoryRemoteDesc,
-      SettingsSection.about => l10n.settingsCategoryAboutDesc,
-    };
-
 /// Builds the section's content widget. Shared by the wide master-detail
-/// layout and the narrow full-screen detail page.
-Widget buildSettingsSection(SettingsController controller,
-    SettingsSection section) {
+/// layout and the narrow full-screen detail page. [dataTab] selects the
+/// initial tab when [section] is [SettingsSection.data].
+Widget buildSettingsSection(
+  SettingsController controller,
+  SettingsSection section, {
+  SettingsDataTab? dataTab,
+}) {
   switch (section) {
     case SettingsSection.general:
       return GeneralSection(controller: controller);
-    case SettingsSection.apiKeys:
-      return ApiKeysSection(controller: controller);
-    case SettingsSection.simulator:
-      return SimulatorSection(controller: controller);
-    case SettingsSection.navdata:
-      return NavDataSection(controller: controller);
+    case SettingsSection.data:
+      return DataSection(controller: controller, initialTab: dataTab);
     case SettingsSection.ai:
       return const AiCopilotSection();
-    case SettingsSection.remote:
-      return RemoteAccessSection(controller: controller);
     case SettingsSection.about:
       return AboutSection(controller: controller);
   }
@@ -88,6 +68,7 @@ class SettingsPage extends StatelessWidget {
     required this.controller,
     required this.section,
     required this.onChangeSection,
+    this.dataTab,
   });
 
   /// The single source of truth for user settings.
@@ -98,6 +79,9 @@ class SettingsPage extends StatelessWidget {
 
   /// Invoked when the user picks a different section in the nav rail.
   final ValueChanged<SettingsSection> onChangeSection;
+
+  /// Initial tab when [section] is [SettingsSection.data].
+  final SettingsDataTab? dataTab;
 
   @override
   Widget build(BuildContext context) {
@@ -112,7 +96,7 @@ class SettingsPage extends StatelessWidget {
         // No big horizontal divider — the header sits directly above the body
         // and the visual separation comes from typography + spacing alone,
         // matching the welcome screen's left-card look.
-        _SettingsHeader(title: l10n.settingsTitle, subtitle: l10n.settingsDesc),
+        _SettingsHeader(title: l10n.settingsTitle),
         Expanded(
           child: narrow
               ? _SettingsNavList(
@@ -133,7 +117,13 @@ class SettingsPage extends StatelessWidget {
                   onSelect: onChangeSection,
                 ),
               ),
-              Expanded(child: buildSettingsSection(controller, section)),
+              Expanded(
+                child: buildSettingsSection(
+                  controller,
+                  section,
+                  dataTab: dataTab,
+                ),
+              ),
             ],
           ),
         ),
@@ -147,7 +137,11 @@ class SettingsPage extends StatelessWidget {
     onChangeSection(s);
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => _NarrowSectionPage(controller: controller, section: s),
+        builder: (_) => _NarrowSectionPage(
+          controller: controller,
+          section: s,
+          dataTab: dataTab,
+        ),
       ),
     );
   }
@@ -156,10 +150,18 @@ class SettingsPage extends StatelessWidget {
 /// Full-screen page hosting one settings section on narrow screens: a header
 /// with a back arrow over the section body.
 class _NarrowSectionPage extends StatelessWidget {
-  const _NarrowSectionPage({required this.controller, required this.section});
+  const _NarrowSectionPage({
+    required this.controller,
+    required this.section,
+    this.dataTab,
+  });
 
   final SettingsController controller;
   final SettingsSection section;
+
+  /// Initial tab when [section] is [SettingsSection.data] (landing
+  /// precision, mirroring the wide layout).
+  final SettingsDataTab? dataTab;
 
   @override
   Widget build(BuildContext context) {
@@ -204,7 +206,13 @@ class _NarrowSectionPage extends StatelessWidget {
                 ],
               ),
             ),
-            Expanded(child: buildSettingsSection(controller, section)),
+            Expanded(
+              child: buildSettingsSection(
+                controller,
+                section,
+                dataTab: dataTab,
+              ),
+            ),
           ],
         ),
       ),
@@ -213,10 +221,9 @@ class _NarrowSectionPage extends StatelessWidget {
 }
 
 class _SettingsHeader extends StatelessWidget {
-  const _SettingsHeader({required this.title, required this.subtitle});
+  const _SettingsHeader({required this.title});
 
   final String title;
-  final String subtitle;
 
   @override
   Widget build(BuildContext context) {
@@ -227,24 +234,13 @@ class _SettingsHeader extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: colors.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  subtitle,
-                  style: TextStyle(fontSize: 12, color: colors.textSecondary),
-                ),
-              ],
+            child: Text(
+              title,
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: colors.textPrimary,
+              ),
             ),
           ),
         ],
@@ -312,7 +308,6 @@ List<_NavItem> _buildNavItems(AppLocalizations l10n) =>
         _NavItem(
           icon: settingsSectionIcon(section),
           label: settingsSectionTitle(l10n, section),
-          description: settingsSectionDesc(l10n, section),
           section: section,
         ),
     ];
@@ -321,13 +316,11 @@ class _NavItem {
   const _NavItem({
     required this.icon,
     required this.label,
-    required this.description,
     required this.section,
   });
 
   final IconData icon;
   final String label;
-  final String description;
   final SettingsSection section;
 }
 
@@ -377,32 +370,15 @@ class _NavButtonState extends State<_NavButton> {
               Icon(widget.item.icon, size: 17, color: fg),
               const SizedBox(width: 10),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      widget.item.label,
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: widget.selected
-                            ? FontWeight.w600
-                            : FontWeight.w500,
-                        color: fg,
-                      ),
-                    ),
-                    const SizedBox(height: 1),
-                    Text(
-                      widget.item.description,
-                      style: TextStyle(
-                        fontSize: 11,
-                        height: 1.35,
-                        color: colors.textSecondary,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
+                child: Text(
+                  widget.item.label,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: widget.selected
+                        ? FontWeight.w600
+                        : FontWeight.w500,
+                    color: fg,
+                  ),
                 ),
               ),
             ],
@@ -418,12 +394,10 @@ class SettingsSectionBody extends StatelessWidget {
   const SettingsSectionBody({
     super.key,
     required this.title,
-    required this.description,
     required this.children,
   });
 
   final String title;
-  final String description;
   final List<Widget> children;
 
   @override
@@ -444,15 +418,6 @@ class SettingsSectionBody extends StatelessWidget {
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
                     color: colors.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  description,
-                  style: TextStyle(
-                    fontSize: 12.5,
-                    height: 1.5,
-                    color: colors.textSecondary,
                   ),
                 ),
                 const SizedBox(height: 20),

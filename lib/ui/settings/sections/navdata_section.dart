@@ -66,7 +66,6 @@ class _NavDataSectionState extends State<NavDataSection> {
         _loadAiracCycles();
         return SettingsSectionBody(
           title: l10n.settingsNavdataTitle,
-          description: l10n.settingsNavdataDesc,
           children: [
             Row(
               children: [

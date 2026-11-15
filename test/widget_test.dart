@@ -92,10 +92,8 @@ void main() {
         // The settings page renders inside the workspace centre card.
         expect(find.byType(SettingsPage), findsOneWidget);
         expect(find.text('General'), findsWidgets);
-        expect(find.text('Simulator'), findsOneWidget);
-        expect(find.text('Navigation Data'), findsOneWidget);
+        expect(find.text('Data'), findsOneWidget);
         expect(find.text('AI Copilot'), findsOneWidget);
-        expect(find.text('Remote Access'), findsOneWidget);
         expect(find.text('About'), findsWidgets);
       });
 
@@ -150,10 +148,8 @@ void main() {
     await _tapAndSettle(tester, find.text('设置…'));
 
     expect(find.text('常规'), findsWidgets);
-    expect(find.text('模拟器'), findsOneWidget);
-    expect(find.text('导航数据'), findsOneWidget);
+    expect(find.text('数据'), findsOneWidget);
     expect(find.text('AI 副驾驶'), findsOneWidget);
-    expect(find.text('远程访问'), findsOneWidget);
     expect(find.text('关于'), findsWidgets);
   });
 

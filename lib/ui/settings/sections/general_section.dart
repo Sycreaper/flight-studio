@@ -26,14 +26,12 @@ class GeneralSection extends StatelessWidget {
         final s = controller.value;
         return SettingsSectionBody(
           title: l10n.settingsCategoryGeneral,
-          description: l10n.settingsCategoryGeneralDesc,
           children: [
             SettingsSectionTitle(l10n.settingsAppearanceTitle),
             SettingsCard(
               children: [
                 SettingsTile(
                   title: l10n.settingsTheme,
-                  subtitle: l10n.settingsThemeHint,
                   leading: const Icon(Icons.dark_mode_outlined),
                   trailing: SettingsSegmentedControl<ThemeMode>(
                     value: s.themeMode,
@@ -56,7 +54,6 @@ class GeneralSection extends StatelessWidget {
                 ),
                 SettingsTile(
                   title: l10n.settingsLanguage,
-                  subtitle: l10n.settingsLanguageHint,
                   leading: const Icon(Icons.translate_rounded),
                   crossAxisAlignment: CrossAxisAlignment.center,
                   trailing: SettingsDropdown<AppLocaleCode>(
@@ -87,14 +84,12 @@ class GeneralSection extends StatelessWidget {
               children: [
                 SettingsSwitchTile(
                   title: l10n.settingsSplash,
-                  subtitle: l10n.settingsSplashHint,
                   leading: const Icon(Icons.wb_sunny_outlined),
                   value: s.splashEnabled,
                   onChanged: controller.setSplashEnabled,
                 ),
                 SettingsTile(
                   title: l10n.settingsSplashScan,
-                  subtitle: l10n.settingsSplashScanHint,
                   leading: const Icon(Icons.radar_rounded),
                   crossAxisAlignment: CrossAxisAlignment.center,
                   trailing: SettingsDropdown<SplashScanMode>(
@@ -122,14 +117,12 @@ class GeneralSection extends StatelessWidget {
                 ),
                 SettingsSwitchTile(
                   title: l10n.settingsReopenLastWorkspace,
-                  subtitle: l10n.settingsReopenLastWorkspaceHint,
                   leading: const Icon(Icons.history_rounded),
                   value: s.reopenLastWorkspace,
                   onChanged: controller.setReopenLastWorkspace,
                 ),
                 SettingsSwitchTile(
                   title: l10n.settingsCheckUpdatesOnLaunch,
-                  subtitle: l10n.settingsCheckUpdatesOnLaunchHint,
                   leading: const Icon(Icons.system_update_alt_rounded),
                   value: s.checkUpdatesOnLaunch,
                   onChanged: controller.setCheckUpdatesOnLaunch,
@@ -142,7 +135,6 @@ class GeneralSection extends StatelessWidget {
               children: [
                 SettingsTile(
                   title: l10n.settingsUnitsTitle,
-                  subtitle: l10n.settingsUnitsHint,
                   leading: const Icon(Icons.straighten_rounded),
                   trailing: SettingsSegmentedControl<bool>(
                     value: s.preferMetric,
@@ -193,7 +185,6 @@ class _FontTileState extends State<_FontTile> {
     final fonts = _fonts;
     return SettingsTile(
       title: l10n.settingsFontFamily,
-      subtitle: l10n.settingsFontFamilyHint,
       leading: const Icon(Icons.font_download_outlined),
       crossAxisAlignment: CrossAxisAlignment.center,
       trailing: fonts == null

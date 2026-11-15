@@ -14,6 +14,7 @@ class SettingsTabView extends StatefulWidget {
     super.key,
     required this.controller,
     this.initialSection = SettingsSection.general,
+    this.initialDataTab,
   });
 
   final SettingsController controller;
@@ -21,6 +22,9 @@ class SettingsTabView extends StatefulWidget {
   /// Which section to show when the tab first opens. Only read once on
   /// [initState]; subsequent section changes come from the user's own nav.
   final SettingsSection initialSection;
+
+  /// Initial tab when [initialSection] is [SettingsSection.data].
+  final SettingsDataTab? initialDataTab;
 
   @override
   State<SettingsTabView> createState() => SettingsTabViewState();
@@ -31,17 +35,23 @@ class SettingsTabView extends StatefulWidget {
 /// rebuild via key.
 class SettingsTabViewState extends State<SettingsTabView> {
   late SettingsSection _section;
+  SettingsDataTab? _dataTab;
 
   @override
   void initState() {
     super.initState();
     _section = widget.initialSection;
+    _dataTab = widget.initialDataTab;
   }
 
   /// Jump to a specific section. Called when the gear menu's "About" entry is
-  /// picked and the settings tab is already open.
-  void goToSection(SettingsSection section) {
-    setState(() => _section = section);
+  /// picked and the settings tab is already open. [dataTab] selects the tab
+  /// when jumping into the Data section.
+  void goToSection(SettingsSection section, {SettingsDataTab? dataTab}) {
+    setState(() {
+      _section = section;
+      if (dataTab != null) _dataTab = dataTab;
+    });
   }
 
   @override
@@ -51,6 +61,7 @@ class SettingsTabViewState extends State<SettingsTabView> {
         controller: widget.controller,
         section: _section,
         onChangeSection: (s) => setState(() => _section = s),
+        dataTab: _dataTab,
       ),
     );
   }

@@ -146,24 +146,6 @@ abstract class AppLocalizations {
   /// **'Flight Academy'**
   String get flightAcademy;
 
-  /// No description provided for @createFlightHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Plan a new route from scratch'**
-  String get createFlightHint;
-
-  /// No description provided for @worldMapHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Explore the global map and airports'**
-  String get worldMapHint;
-
-  /// No description provided for @flightAcademyHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Learn flight planning and procedures'**
-  String get flightAcademyHint;
-
   /// No description provided for @searchFlights.
   ///
   /// In en, this message translates to:
@@ -193,12 +175,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Settings'**
   String get settingsTitle;
-
-  /// No description provided for @settingsDesc.
-  ///
-  /// In en, this message translates to:
-  /// **'Application preferences'**
-  String get settingsDesc;
 
   /// No description provided for @comingSoon.
   ///
@@ -578,12 +554,6 @@ abstract class AppLocalizations {
   /// **'Reset'**
   String get resetForm;
 
-  /// No description provided for @settingsSearchHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Search settings…'**
-  String get settingsSearchHint;
-
   /// No description provided for @settingsResetDefaults.
   ///
   /// In en, this message translates to:
@@ -637,12 +607,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Not set'**
   String get settingsNotSet;
-
-  /// No description provided for @settingsRestartHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Restart Flight Studio for this change to take full effect.'**
-  String get settingsRestartHint;
 
   /// No description provided for @settingsPlannedBadge.
   ///
@@ -722,11 +686,11 @@ abstract class AppLocalizations {
   /// **'General'**
   String get settingsCategoryGeneral;
 
-  /// No description provided for @settingsCategoryGeneralDesc.
+  /// No description provided for @settingsCategoryData.
   ///
   /// In en, this message translates to:
-  /// **'Appearance, language and startup behaviour.'**
-  String get settingsCategoryGeneralDesc;
+  /// **'Data'**
+  String get settingsCategoryData;
 
   /// No description provided for @settingsCategorySimulator.
   ///
@@ -734,23 +698,11 @@ abstract class AppLocalizations {
   /// **'Simulator'**
   String get settingsCategorySimulator;
 
-  /// No description provided for @settingsCategorySimulatorDesc.
-  ///
-  /// In en, this message translates to:
-  /// **'X-Plane, MSFS and Prepar3D bridges.'**
-  String get settingsCategorySimulatorDesc;
-
   /// No description provided for @settingsCategoryNavdata.
   ///
   /// In en, this message translates to:
   /// **'Navigation Data'**
   String get settingsCategoryNavdata;
-
-  /// No description provided for @settingsCategoryNavdataDesc.
-  ///
-  /// In en, this message translates to:
-  /// **'Airports, airways, procedures and AIRAC sources.'**
-  String get settingsCategoryNavdataDesc;
 
   /// No description provided for @settingsCategoryAi.
   ///
@@ -758,35 +710,11 @@ abstract class AppLocalizations {
   /// **'AI Copilot'**
   String get settingsCategoryAi;
 
-  /// No description provided for @settingsCategoryAiDesc.
-  ///
-  /// In en, this message translates to:
-  /// **'Bring your own LLM key and configure tool access.'**
-  String get settingsCategoryAiDesc;
-
-  /// No description provided for @settingsCategoryRemote.
-  ///
-  /// In en, this message translates to:
-  /// **'Remote Access'**
-  String get settingsCategoryRemote;
-
-  /// No description provided for @settingsCategoryRemoteDesc.
-  ///
-  /// In en, this message translates to:
-  /// **'Embedded server for phone and web clients.'**
-  String get settingsCategoryRemoteDesc;
-
   /// No description provided for @settingsCategoryAbout.
   ///
   /// In en, this message translates to:
   /// **'About'**
   String get settingsCategoryAbout;
-
-  /// No description provided for @settingsCategoryAboutDesc.
-  ///
-  /// In en, this message translates to:
-  /// **'Version, license and credits.'**
-  String get settingsCategoryAboutDesc;
 
   /// No description provided for @settingsAppearanceTitle.
   ///
@@ -812,12 +740,6 @@ abstract class AppLocalizations {
   /// **'Interface font'**
   String get settingsFontFamily;
 
-  /// No description provided for @settingsFontFamilyHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Applies to the whole application. Takes effect immediately.'**
-  String get settingsFontFamilyHint;
-
   /// No description provided for @settingsFontDefault.
   ///
   /// In en, this message translates to:
@@ -842,23 +764,11 @@ abstract class AppLocalizations {
   /// **'Follow system'**
   String get settingsThemeSystem;
 
-  /// No description provided for @settingsThemeHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Dark is recommended for cockpit use at night.'**
-  String get settingsThemeHint;
-
   /// No description provided for @settingsLanguage.
   ///
   /// In en, this message translates to:
   /// **'Language'**
   String get settingsLanguage;
-
-  /// No description provided for @settingsLanguageHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Application interface language.'**
-  String get settingsLanguageHint;
 
   /// No description provided for @settingsLanguageEn.
   ///
@@ -884,23 +794,11 @@ abstract class AppLocalizations {
   /// **'Reopen last workspace on launch'**
   String get settingsReopenLastWorkspace;
 
-  /// No description provided for @settingsReopenLastWorkspaceHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Skip the welcome screen and jump straight into your last session.'**
-  String get settingsReopenLastWorkspaceHint;
-
   /// No description provided for @settingsCheckUpdatesOnLaunch.
   ///
   /// In en, this message translates to:
   /// **'Check for updates on launch'**
   String get settingsCheckUpdatesOnLaunch;
-
-  /// No description provided for @settingsCheckUpdatesOnLaunchHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Notify when a new Flight Studio build is available.'**
-  String get settingsCheckUpdatesOnLaunchHint;
 
   /// No description provided for @settingsUnitsTitle.
   ///
@@ -920,23 +818,11 @@ abstract class AppLocalizations {
   /// **'Imperial (lb, nm)'**
   String get settingsUnitsImperial;
 
-  /// No description provided for @settingsUnitsHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Used by new flight plans and the fuel planner.'**
-  String get settingsUnitsHint;
-
   /// No description provided for @settingsSimulatorTitle.
   ///
   /// In en, this message translates to:
   /// **'Simulator connections'**
   String get settingsSimulatorTitle;
-
-  /// No description provided for @settingsSimulatorDesc.
-  ///
-  /// In en, this message translates to:
-  /// **'Flight Studio reads telemetry and sends commands through per-simulator bridges. Only one simulator needs to be connected at a time.'**
-  String get settingsSimulatorDesc;
 
   /// No description provided for @settingsXplaneTitle.
   ///
@@ -962,12 +848,6 @@ abstract class AppLocalizations {
   /// **'X-Plane install folder'**
   String get settingsXplaneInstallPath;
 
-  /// No description provided for @settingsXplaneInstallHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Location of the X-Plane 12 root (contains ‘Resources’ and ‘Aircraft’).'**
-  String get settingsXplaneInstallHint;
-
   /// No description provided for @settingsXplaneInstallPick.
   ///
   /// In en, this message translates to:
@@ -986,35 +866,17 @@ abstract class AppLocalizations {
   /// **'Telemetry UDP port'**
   String get settingsXplaneUdpPort;
 
-  /// No description provided for @settingsXplaneUdpPortHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Port X-Plane sends Data Output to (default 49000).'**
-  String get settingsXplaneUdpPortHint;
-
   /// No description provided for @settingsXplaneBridgePort.
   ///
   /// In en, this message translates to:
   /// **'Bridge command port'**
   String get settingsXplaneBridgePort;
 
-  /// No description provided for @settingsXplaneBridgePortHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Port the bundled FlyWithLua script listens on (default 49001).'**
-  String get settingsXplaneBridgePortHint;
-
   /// No description provided for @settingsXplaneInstallBridge.
   ///
   /// In en, this message translates to:
   /// **'Install FlyWithLua bridge…'**
   String get settingsXplaneInstallBridge;
-
-  /// No description provided for @settingsXplaneInstallBridgeHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Copies FlightStudioBridge.lua into the FlyWithLua Scripts folder.'**
-  String get settingsXplaneInstallBridgeHint;
 
   /// No description provided for @settingsXplaneTestConnection.
   ///
@@ -1040,23 +902,11 @@ abstract class AppLocalizations {
   /// **'SimConnect bridge daemon'**
   String get settingsMsfsBridgePath;
 
-  /// No description provided for @settingsMsfsBridgePathHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Auto-discovered when the daemon ships.'**
-  String get settingsMsfsBridgePathHint;
-
   /// No description provided for @settingsNavdataTitle.
   ///
   /// In en, this message translates to:
   /// **'Navigation data sources'**
   String get settingsNavdataTitle;
-
-  /// No description provided for @settingsNavdataDesc.
-  ///
-  /// In en, this message translates to:
-  /// **'Mix and match sources. The trust layer shows where each plan’s data came from and validates AIRAC consistency on import/export.'**
-  String get settingsNavdataDesc;
 
   /// No description provided for @settingsNavdataBundledTitle.
   ///
@@ -1070,35 +920,17 @@ abstract class AppLocalizations {
   /// **'OurAirports'**
   String get settingsNavdataOurAirports;
 
-  /// No description provided for @settingsNavdataOurAirportsHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Airports, runways, frequencies and navaids (Public Domain).'**
-  String get settingsNavdataOurAirportsHint;
-
   /// No description provided for @settingsNavdataFaaCifp.
   ///
   /// In en, this message translates to:
   /// **'FAA CIFP / NASR'**
   String get settingsNavdataFaaCifp;
 
-  /// No description provided for @settingsNavdataFaaCifpHint.
-  ///
-  /// In en, this message translates to:
-  /// **'U.S. instrument procedures (Public Domain).'**
-  String get settingsNavdataFaaCifpHint;
-
   /// No description provided for @settingsNavdataXplaneNative.
   ///
   /// In en, this message translates to:
   /// **'Parse X-Plane native files'**
   String get settingsNavdataXplaneNative;
-
-  /// No description provided for @settingsNavdataXplaneNativeHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Reads apt.dat, earth_nav.dat, earth_fix.dat and awy.dat directly from the install folder.'**
-  String get settingsNavdataXplaneNativeHint;
 
   /// No description provided for @settingsNavdataRefreshBundled.
   ///
@@ -1111,12 +943,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Navigraph (user subscription)'**
   String get settingsNavdataNavigraphTitle;
-
-  /// No description provided for @settingsNavdataNavigraphHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Sign in with your own Navigraph account. Charts and AIRAC are never bundled or redistributed by Flight Studio.'**
-  String get settingsNavdataNavigraphHint;
 
   /// No description provided for @settingsNavdataNavigraphSignedIn.
   ///
@@ -1160,12 +986,6 @@ abstract class AppLocalizations {
   /// **'SimBrief (free account)'**
   String get settingsNavdataSimBriefTitle;
 
-  /// No description provided for @settingsNavdataSimBriefHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Link your SimBrief account to import OFPs and route strings. Nothing is redistributed.'**
-  String get settingsNavdataSimBriefHint;
-
   /// No description provided for @settingsNavdataSimBriefLinked.
   ///
   /// In en, this message translates to:
@@ -1196,23 +1016,11 @@ abstract class AppLocalizations {
   /// **'AI Copilot'**
   String get settingsAiTitle;
 
-  /// No description provided for @settingsAiDesc.
-  ///
-  /// In en, this message translates to:
-  /// **'Letta is the local, stateful runtime behind the Flight Studio AI copilot — it carries your long-term memory across sessions. Install it with one click, create pilot accounts, and chat with your copilot from the welcome screen.'**
-  String get settingsAiDesc;
-
   /// No description provided for @settingsAiProvider.
   ///
   /// In en, this message translates to:
   /// **'Provider'**
   String get settingsAiProvider;
-
-  /// No description provided for @settingsAiProviderHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Which LLM provider to use for the AI copilot.'**
-  String get settingsAiProviderHint;
 
   /// No description provided for @settingsAiProviderOpenAi.
   ///
@@ -1238,12 +1046,6 @@ abstract class AppLocalizations {
   /// **'API key'**
   String get settingsAiApiKey;
 
-  /// No description provided for @settingsAiApiKeyHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Stored locally on this device and only ever sent to the provider you pick.'**
-  String get settingsAiApiKeyHint;
-
   /// No description provided for @settingsAiApiKeyHidden.
   ///
   /// In en, this message translates to:
@@ -1255,12 +1057,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Endpoint URL'**
   String get settingsAiEndpoint;
-
-  /// No description provided for @settingsAiEndpointHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Override the provider’s default base URL (e.g. http://localhost:11434 for Ollama).'**
-  String get settingsAiEndpointHint;
 
   /// No description provided for @settingsAiEndpointPlaceholder.
   ///
@@ -1274,12 +1070,6 @@ abstract class AppLocalizations {
   /// **'Model'**
   String get settingsAiModel;
 
-  /// No description provided for @settingsAiModelHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Example: gpt-4o-mini, claude-3-5-sonnet, llama3.1.'**
-  String get settingsAiModelHint;
-
   /// No description provided for @settingsAiModelPlaceholder.
   ///
   /// In en, this message translates to:
@@ -1291,12 +1081,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Reasoning effort'**
   String get settingsReasoningEffort;
-
-  /// No description provided for @settingsReasoningEffortHint.
-  ///
-  /// In en, this message translates to:
-  /// **'How much thinking the model should do before answering.'**
-  String get settingsReasoningEffortHint;
 
   /// No description provided for @settingsAiModelService.
   ///
@@ -1328,12 +1112,6 @@ abstract class AppLocalizations {
   /// **'Letta CLI is installed'**
   String get aiLettaInstalledTitle;
 
-  /// No description provided for @aiLettaIntro.
-  ///
-  /// In en, this message translates to:
-  /// **'Letta is the local, stateful agent runtime behind the Flight Studio AI copilot — it carries your long-term memory across sessions. Once installed, create a pilot account and chat with your copilot right from the welcome screen. Model providers (OpenAI-compatible, Anthropic, Ollama/LM Studio) are connected inside Letta via /connect.'**
-  String get aiLettaIntro;
-
   /// No description provided for @aiLettaNodeMissingTitle.
   ///
   /// In en, this message translates to:
@@ -1357,12 +1135,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The Letta CLI requires Node.js 22.19 or newer (distributed via npm).'**
   String get aiLettaNodeRequiredHint;
-
-  /// No description provided for @aiLettaNodeManualHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Install Node.js from the official website (LTS recommended), then press Re-check. Flight Studio will not install Node.js for you.'**
-  String get aiLettaNodeManualHint;
 
   /// No description provided for @aiLettaNodeDownload.
   ///
@@ -1435,84 +1207,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Clear'**
   String get settingsAiClearApiKey;
-
-  /// No description provided for @settingsRemoteTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Remote access'**
-  String get settingsRemoteTitle;
-
-  /// No description provided for @settingsRemoteDesc.
-  ///
-  /// In en, this message translates to:
-  /// **'Host an embedded HTTP/WebSocket server in-process so the companion phone and web clients can watch the moving map, pause the sim and operate the MCDU over LAN.'**
-  String get settingsRemoteDesc;
-
-  /// No description provided for @settingsRemoteEnable.
-  ///
-  /// In en, this message translates to:
-  /// **'Enable embedded server'**
-  String get settingsRemoteEnable;
-
-  /// No description provided for @settingsRemotePort.
-  ///
-  /// In en, this message translates to:
-  /// **'Listen port'**
-  String get settingsRemotePort;
-
-  /// No description provided for @settingsRemotePortHint.
-  ///
-  /// In en, this message translates to:
-  /// **'TCP port the desktop app listens on (default 48080).'**
-  String get settingsRemotePortHint;
-
-  /// No description provided for @settingsRemoteToken.
-  ///
-  /// In en, this message translates to:
-  /// **'Access token'**
-  String get settingsRemoteToken;
-
-  /// No description provided for @settingsRemoteTokenHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Shared secret every phone/web client must present.'**
-  String get settingsRemoteTokenHint;
-
-  /// No description provided for @settingsRemoteRegenerateToken.
-  ///
-  /// In en, this message translates to:
-  /// **'Regenerate token'**
-  String get settingsRemoteRegenerateToken;
-
-  /// No description provided for @settingsRemoteStatusTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Server status'**
-  String get settingsRemoteStatusTitle;
-
-  /// No description provided for @settingsRemoteNotRunning.
-  ///
-  /// In en, this message translates to:
-  /// **'Not running'**
-  String get settingsRemoteNotRunning;
-
-  /// No description provided for @settingsRemoteRunningOn.
-  ///
-  /// In en, this message translates to:
-  /// **'Listening on http://{host}:{port}'**
-  String settingsRemoteRunningOn(String host, int port);
-
-  /// No description provided for @settingsRemoteMdns.
-  ///
-  /// In en, this message translates to:
-  /// **'Advertise on local network (mDNS)'**
-  String get settingsRemoteMdns;
-
-  /// No description provided for @settingsRemoteMdnsHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Lets the companion apps discover this machine automatically.'**
-  String get settingsRemoteMdnsHint;
 
   /// No description provided for @settingsAboutTitle.
   ///
@@ -1946,23 +1640,11 @@ abstract class AppLocalizations {
   /// **'Splash screen'**
   String get settingsSplash;
 
-  /// No description provided for @settingsSplashHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Show the startup screen while navigation data is scanned'**
-  String get settingsSplashHint;
-
   /// No description provided for @settingsSplashScan.
   ///
   /// In en, this message translates to:
   /// **'Auto-scan navigation data on startup'**
   String get settingsSplashScan;
-
-  /// No description provided for @settingsSplashScanHint.
-  ///
-  /// In en, this message translates to:
-  /// **'How often the full navdata import runs at launch'**
-  String get settingsSplashScanHint;
 
   /// No description provided for @splashScanAlways.
   ///
@@ -2120,12 +1802,6 @@ abstract class AppLocalizations {
   /// **'API Keys'**
   String get settingsCategoryApiKeys;
 
-  /// No description provided for @settingsCategoryApiKeysDesc.
-  ///
-  /// In en, this message translates to:
-  /// **'Credentials for map tiles, AI copilot and flight tracking.'**
-  String get settingsCategoryApiKeysDesc;
-
   /// No description provided for @apiKeysSecurityNote.
   ///
   /// In en, this message translates to:
@@ -2137,12 +1813,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Map tile provider'**
   String get apiTileProvider;
-
-  /// No description provided for @apiTileProviderHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Choose where raster map tiles come from. OSM is free and needs no key.'**
-  String get apiTileProviderHint;
 
   /// No description provided for @apiTileProviderOsm.
   ///
@@ -2174,23 +1844,11 @@ abstract class AppLocalizations {
   /// **'Mapbox access token'**
   String get apiMapboxToken;
 
-  /// No description provided for @apiMapboxTokenHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Get a free token at mapbox.com. Required for Mapbox tile providers.'**
-  String get apiMapboxTokenHint;
-
   /// No description provided for @apiCustomTileUrl.
   ///
   /// In en, this message translates to:
   /// **'Custom tile URL'**
   String get apiCustomTileUrl;
-
-  /// No description provided for @apiCustomTileUrlHint.
-  ///
-  /// In en, this message translates to:
-  /// **'URL template with z/x/y coordinate segments for self-hosted tiles. Use curly braces around z, x, y for dynamic values.'**
-  String get apiCustomTileUrlHint;
 
   /// No description provided for @apiCustomTileUrlPlaceholder.
   ///
@@ -2203,12 +1861,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'FlightAware API key'**
   String get apiFlightAwareKey;
-
-  /// No description provided for @apiFlightAwareKeyHint.
-  ///
-  /// In en, this message translates to:
-  /// **'For querying real-world flights and route inspiration.'**
-  String get apiFlightAwareKeyHint;
 
   /// No description provided for @apiKeySet.
   ///
@@ -2233,12 +1885,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Type'**
   String get apiKeyType;
-
-  /// No description provided for @apiKeyTypeHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Select the type of API credential'**
-  String get apiKeyTypeHint;
 
   /// No description provided for @apiKeyValue.
   ///
@@ -2618,12 +2264,6 @@ abstract class AppLocalizations {
   /// **'Delete Letta data'**
   String get aiDeleteLettaData;
 
-  /// No description provided for @aiDeleteLettaDataHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Permanently removes all Letta agents, conversations, memory and stored provider credentials (~/.letta). The copilot starts fresh on the next message.'**
-  String get aiDeleteLettaDataHint;
-
   /// No description provided for @aiDeleteLettaDataDesc.
   ///
   /// In en, this message translates to:
@@ -2671,12 +2311,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Model'**
   String get openAiModel;
-
-  /// No description provided for @openAiModelHint.
-  ///
-  /// In en, this message translates to:
-  /// **'e.g. glm-4-flash, deepseek-chat, qwen-turbo'**
-  String get openAiModelHint;
 
   /// No description provided for @apiKeyTypeCustomTileUrl.
   ///
@@ -2731,12 +2365,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Simulator Type'**
   String get simType;
-
-  /// No description provided for @simTypeHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Select the type of simulator'**
-  String get simTypeHint;
 
   /// No description provided for @simInstallPath.
   ///

@@ -34,7 +34,6 @@ class ApiKeysSection extends StatelessWidget {
         final keys = controller.value.apiKeys;
         return SettingsSectionBody(
           title: l10n.settingsCategoryApiKeys,
-          description: l10n.settingsCategoryApiKeysDesc,
           children: [
             // Security note banner.
             _SecurityBanner(colors: colors, l10n: l10n),

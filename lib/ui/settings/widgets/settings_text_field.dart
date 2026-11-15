@@ -113,7 +113,7 @@ class _SettingsTextFieldState extends State<SettingsTextField> {
         hintText: widget.placeholder,
         hintStyle: TextStyle(fontSize: 13, color: colors.textDisabled),
         filled: true,
-        fillColor: colors.surfaceLowered,
+        fillColor: colors.surfaceRaised,
         contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
         prefixIcon: widget.prefixIcon,
         suffixIcon: widget.suffix,

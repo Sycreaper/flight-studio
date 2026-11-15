@@ -38,10 +38,6 @@ class AppSettings {
     this.aiModel,
     this.aiConfirmWrites = true,
     this.aiAutoRead = true,
-    this.remoteEnabled = false,
-    this.remotePort = 48080,
-    this.remoteToken = '',
-    this.remoteMdns = true,
     this.mapTileProvider = MapTileProvider.osm,
     this.mapTheme = MapTheme.system,
     this.selectedMapApiKeyId,
@@ -95,12 +91,6 @@ class AppSettings {
   final String? aiModel;
   final bool aiConfirmWrites;
   final bool aiAutoRead;
-
-  // --- Remote access ---------------------------------------------------------
-  final bool remoteEnabled;
-  final int remotePort;
-  final String remoteToken;
-  final bool remoteMdns;
 
   // --- Map tiles + API keys --------------------------------------------------
   final MapTileProvider mapTileProvider;
@@ -195,10 +185,6 @@ class AppSettings {
     AiProvider? aiProvider,
     bool? aiConfirmWrites,
     bool? aiAutoRead,
-    bool? remoteEnabled,
-    int? remotePort,
-    String? remoteToken,
-    bool? remoteMdns,
     MapTileProvider? mapTileProvider,
     MapTheme? mapTheme,
     Object? selectedMapApiKeyId = _sentinel,
@@ -242,10 +228,6 @@ class AppSettings {
       aiModel: _unwrapNullable<String>(aiModel, this.aiModel),
       aiConfirmWrites: aiConfirmWrites ?? this.aiConfirmWrites,
       aiAutoRead: aiAutoRead ?? this.aiAutoRead,
-      remoteEnabled: remoteEnabled ?? this.remoteEnabled,
-      remotePort: remotePort ?? this.remotePort,
-      remoteToken: remoteToken ?? this.remoteToken,
-      remoteMdns: remoteMdns ?? this.remoteMdns,
       mapTileProvider: mapTileProvider ?? this.mapTileProvider,
       mapTheme: mapTheme ?? this.mapTheme,
       selectedMapApiKeyId: _unwrapNullable<String>(

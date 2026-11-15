@@ -246,7 +246,7 @@ class _AddSimulatorBodyState extends State<_AddSimulatorBody> {
       hintText: hint,
       hintStyle: TextStyle(fontSize: 12, color: colors.textDisabled),
       filled: true,
-      fillColor: colors.surfaceLowered,
+      fillColor: colors.surfaceRaised,
       isDense: true,
       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       suffixIcon: suffix,

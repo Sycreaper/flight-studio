@@ -24,12 +24,11 @@ are implemented, but the project has not undergone an external audit.
   audit trail (mcp-audit.sqlite) cannot be opened, tools at L2 or
   above refuse to run.
 - **Credentials are stored locally, in plain text.** API keys
-  (OpenAI-compatible providers, ChartFox PAT) and the gateway
-  remote-token are kept in the app's local configuration store
-  (SharedPreferences JSON) — **not** an OS credential vault or
-  encrypted storage. This is a known pre-alpha limitation, disclosed
-  in the README and on the roadmap (secure-storage migration). Treat
-  the machine profile accordingly.
+  (OpenAI-compatible providers, ChartFox PAT) are kept in the app's
+  local configuration store (SharedPreferences JSON) — **not** an OS
+  credential vault or encrypted storage. This is a known pre-alpha
+  limitation, disclosed in the README and on the roadmap
+  (secure-storage migration). Treat the machine profile accordingly.
 - **Data boundaries.** Conversations, memories and agent state stay
   in the local Letta store (`~/.letta`) unless a cloud backend is
   configured. Model traffic goes from your machine directly to the

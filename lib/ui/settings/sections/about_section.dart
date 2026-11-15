@@ -39,7 +39,6 @@ class AboutSection extends StatelessWidget {
     final colors = Theme.of(context).extension<AppColors>()!;
     return SettingsSectionBody(
       title: l10n.settingsAboutTitle,
-      description: l10n.settingsCategoryAboutDesc,
       children: [
         // Flight Studio branded hero — the app logo (same SVG as the
         // welcome drawer, the launcher icons and the About page).
@@ -105,7 +104,6 @@ class AboutSection extends StatelessWidget {
           children: [
             SettingsTile(
               title: l10n.settingsAboutThirdParty,
-              subtitle: l10n.settingsAboutThirdPartyDesc,
               leading: const Icon(Icons.copyright_rounded),
               crossAxisAlignment: CrossAxisAlignment.start,
               trailing: OutlinedButton(

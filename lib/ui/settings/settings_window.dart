@@ -14,7 +14,7 @@ import 'settings_page.dart';
 ///
 /// Lets the gear-menu map "About" / "Settings" entries to specific landing
 /// spots without exposing the page's section enum.
-enum SettingsLanding { general, apiKeys, simulator, navdata, ai, remote, about }
+enum SettingsLanding { general, apiKeys, simulator, navdata, ai, about }
 
 /// Carries the user [SettingsController] (theme/locale/BYOK/…) down to any
 /// widget below [FlightStudioApp]. Looked up via [AppScope.of].
@@ -283,7 +283,10 @@ void _openSettingsTab(BuildContext context, SettingsLanding landing) {
 
   if (shellState != null) {
     // Workspace is already open — switch to (or create) the singleton tab.
-    shellState.openSettingsTab(section: _mapSection(landing));
+    shellState.openSettingsTab(
+      section: _mapSection(landing),
+      dataTab: _mapDataTab(landing),
+    );
     return;
   }
 
@@ -294,6 +297,7 @@ void _openSettingsTab(BuildContext context, SettingsLanding landing) {
         settings: settings,
         initialTab: TabIds.settings,
         initialSettingsSection: _mapSection(landing),
+        initialSettingsDataTab: _mapDataTab(landing),
       ),
     ),
   );
@@ -304,17 +308,27 @@ SettingsSection _mapSection(SettingsLanding landing) {
     case SettingsLanding.general:
       return SettingsSection.general;
     case SettingsLanding.apiKeys:
-      return SettingsSection.apiKeys;
     case SettingsLanding.simulator:
-      return SettingsSection.simulator;
     case SettingsLanding.navdata:
-      return SettingsSection.navdata;
+      return SettingsSection.data;
     case SettingsLanding.ai:
       return SettingsSection.ai;
-    case SettingsLanding.remote:
-      return SettingsSection.remote;
     case SettingsLanding.about:
       return SettingsSection.about;
+  }
+}
+
+/// The Data-section tab a landing resolves to (null for non-data landings).
+SettingsDataTab? _mapDataTab(SettingsLanding landing) {
+  switch (landing) {
+    case SettingsLanding.apiKeys:
+      return SettingsDataTab.apiKeys;
+    case SettingsLanding.simulator:
+      return SettingsDataTab.simulators;
+    case SettingsLanding.navdata:
+      return SettingsDataTab.navdata;
+    default:
+      return null;
   }
 }
 

@@ -33,15 +33,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get flightAcademy => '飞行学院';
 
   @override
-  String get createFlightHint => '从零开始规划一条新航线';
-
-  @override
-  String get worldMapHint => '浏览全球地图与机场';
-
-  @override
-  String get flightAcademyHint => '学习航路规划与飞行程序';
-
-  @override
   String get searchFlights => '搜索航班…';
 
   @override
@@ -55,9 +46,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settingsTitle => '设置';
-
-  @override
-  String get settingsDesc => '应用首选项';
 
   @override
   String get comingSoon => '敬请期待';
@@ -250,9 +238,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get resetForm => '重置';
 
   @override
-  String get settingsSearchHint => '搜索设置…';
-
-  @override
   String get settingsResetDefaults => '恢复默认';
 
   @override
@@ -278,9 +263,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settingsNotSet => '未设置';
-
-  @override
-  String get settingsRestartHint => '需要重启 Flight Studio 才能完全生效。';
 
   @override
   String get settingsPlannedBadge => '计划中';
@@ -322,37 +304,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsCategoryGeneral => '常规';
 
   @override
-  String get settingsCategoryGeneralDesc => '外观、语言与启动行为。';
+  String get settingsCategoryData => '数据';
 
   @override
   String get settingsCategorySimulator => '模拟器';
 
   @override
-  String get settingsCategorySimulatorDesc => 'X-Plane、MSFS 与 Prepar3D 桥接。';
-
-  @override
   String get settingsCategoryNavdata => '导航数据';
-
-  @override
-  String get settingsCategoryNavdataDesc => '机场、航路、程序与 AIRAC 数据源。';
 
   @override
   String get settingsCategoryAi => 'AI 副驾驶';
 
   @override
-  String get settingsCategoryAiDesc => '使用你自己的 LLM 密钥并配置工具权限。';
-
-  @override
-  String get settingsCategoryRemote => '远程访问';
-
-  @override
-  String get settingsCategoryRemoteDesc => '为手机和网页客户端托管内嵌服务器。';
-
-  @override
   String get settingsCategoryAbout => '关于';
-
-  @override
-  String get settingsCategoryAboutDesc => '版本、许可证与致谢。';
 
   @override
   String get settingsAppearanceTitle => '外观';
@@ -367,9 +331,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsFontFamily => '界面字体';
 
   @override
-  String get settingsFontFamilyHint => '应用于整个应用程序，立即生效。';
-
-  @override
   String get settingsFontDefault => '默认';
 
   @override
@@ -382,13 +343,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsThemeSystem => '跟随系统';
 
   @override
-  String get settingsThemeHint => '夜间在驾驶舱中推荐使用深色主题。';
-
-  @override
   String get settingsLanguage => '语言';
-
-  @override
-  String get settingsLanguageHint => '应用界面语言。';
 
   @override
   String get settingsLanguageEn => 'English';
@@ -403,13 +358,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsReopenLastWorkspace => '启动时重新打开上次的工作区';
 
   @override
-  String get settingsReopenLastWorkspaceHint => '跳过欢迎页，直接进入上次会话。';
-
-  @override
   String get settingsCheckUpdatesOnLaunch => '启动时检查更新';
-
-  @override
-  String get settingsCheckUpdatesOnLaunchHint => '当有新的 Flight Studio 构建可用时通知我。';
 
   @override
   String get settingsUnitsTitle => '默认单位';
@@ -421,14 +370,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsUnitsImperial => '英制（磅、海里）';
 
   @override
-  String get settingsUnitsHint => '用于新建的飞行计划和燃油规划。';
-
-  @override
   String get settingsSimulatorTitle => '模拟器连接';
-
-  @override
-  String get settingsSimulatorDesc =>
-      'Flight Studio 通过每个模拟器对应的桥接读取遥测并下发指令。同一时间只需要连接一个模拟器。';
 
   @override
   String get settingsXplaneTitle => 'X-Plane 12';
@@ -445,10 +387,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsXplaneInstallPath => 'X-Plane 安装目录';
 
   @override
-  String get settingsXplaneInstallHint =>
-      'X-Plane 12 根目录位置（应包含 ‘Resources’ 与 ‘Aircraft’）。';
-
-  @override
   String get settingsXplaneInstallPick => '选择目录…';
 
   @override
@@ -458,20 +396,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsXplaneUdpPort => '遥测 UDP 端口';
 
   @override
-  String get settingsXplaneUdpPortHint => 'X-Plane 数据输出所发送到的端口（默认 49000）。';
-
-  @override
   String get settingsXplaneBridgePort => '桥接命令端口';
 
   @override
-  String get settingsXplaneBridgePortHint => '内置 FlyWithLua 脚本监听的端口（默认 49001）。';
-
-  @override
   String get settingsXplaneInstallBridge => '安装 FlyWithLua 桥接…';
-
-  @override
-  String get settingsXplaneInstallBridgeHint =>
-      '将 FlightStudioBridge.lua 复制到 FlyWithLua 的 Scripts 目录。';
 
   @override
   String get settingsXplaneTestConnection => '测试连接';
@@ -487,14 +415,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsMsfsBridgePath => 'SimConnect 桥接守护进程';
 
   @override
-  String get settingsMsfsBridgePathHint => '守护进程发布后将自动发现。';
-
-  @override
   String get settingsNavdataTitle => '导航数据源';
-
-  @override
-  String get settingsNavdataDesc =>
-      '可组合使用多种数据源。信任层会显示每条计划的数据来源，并在导入/导出时校验 AIRAC 一致性。';
 
   @override
   String get settingsNavdataBundledTitle => '内置数据（免费开源）';
@@ -503,30 +424,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsNavdataOurAirports => 'OurAirports';
 
   @override
-  String get settingsNavdataOurAirportsHint => '机场、跑道、频率与导航台（公共领域）。';
-
-  @override
   String get settingsNavdataFaaCifp => 'FAA CIFP / NASR';
 
   @override
-  String get settingsNavdataFaaCifpHint => '美国仪表飞行程序（公共领域）。';
-
-  @override
   String get settingsNavdataXplaneNative => '解析 X-Plane 原生文件';
-
-  @override
-  String get settingsNavdataXplaneNativeHint =>
-      '直接从安装目录读取 apt.dat、earth_nav.dat、earth_fix.dat 与 awy.dat。';
 
   @override
   String get settingsNavdataRefreshBundled => '刷新内置数据';
 
   @override
   String get settingsNavdataNavigraphTitle => 'Navigraph（用户订阅）';
-
-  @override
-  String get settingsNavdataNavigraphHint =>
-      '使用你自己的 Navigraph 账户登录。航图与 AIRAC 数据不会被 Flight Studio 打包或再分发。';
 
   @override
   String settingsNavdataNavigraphSignedIn(String user) {
@@ -552,10 +459,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsNavdataSimBriefTitle => 'SimBrief（免费账户）';
 
   @override
-  String get settingsNavdataSimBriefHint =>
-      '关联你的 SimBrief 账户以导入 OFP 与航路字符串。不会被再分发。';
-
-  @override
   String settingsNavdataSimBriefLinked(String username) {
     return '已关联到 $username';
   }
@@ -573,14 +476,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsAiTitle => 'AI 副驾驶';
 
   @override
-  String get settingsAiDesc =>
-      'Letta 是 Flight Studio AI 副驾驶的本地有状态运行时，跨会话保存你的长期记忆。一键安装后即可创建飞行员账户，并在欢迎页直接与副驾驶对话。';
-
-  @override
   String get settingsAiProvider => '提供商';
-
-  @override
-  String get settingsAiProviderHint => 'AI 副驾驶使用的 LLM 提供商。';
 
   @override
   String get settingsAiProviderOpenAi => 'OpenAI 兼容';
@@ -595,17 +491,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsAiApiKey => 'API 密钥';
 
   @override
-  String get settingsAiApiKeyHint => '仅存储在本设备，且只会发送给你选择的提供商。';
-
-  @override
   String get settingsAiApiKeyHidden => '已设置密钥（隐藏）';
 
   @override
   String get settingsAiEndpoint => '端点 URL';
-
-  @override
-  String get settingsAiEndpointHint =>
-      '覆盖提供商的默认基础 URL（例如 Ollama 为 http://localhost:11434）。';
 
   @override
   String get settingsAiEndpointPlaceholder => 'https://api.openai.com/v1';
@@ -614,17 +503,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsAiModel => '模型';
 
   @override
-  String get settingsAiModelHint =>
-      '示例：gpt-4o-mini、claude-3-5-sonnet、llama3.1。';
-
-  @override
   String get settingsAiModelPlaceholder => '模型 ID';
 
   @override
   String get settingsReasoningEffort => '思考强度';
-
-  @override
-  String get settingsReasoningEffortHint => '模型在回答前的思考深度。';
 
   @override
   String get settingsAiModelService => '模型服务';
@@ -642,10 +524,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get aiLettaInstalledTitle => 'Letta CLI 已安装';
 
   @override
-  String get aiLettaIntro =>
-      'Letta 是 Flight Studio AI 副驾驶的本地有状态运行时——跨会话保存你的长期记忆。安装后即可创建飞行员账户，并在欢迎页直接与副驾驶对话。模型提供商（OpenAI 兼容、Anthropic、Ollama/LM Studio）在 Letta 内通过 /connect 绑定。';
-
-  @override
   String get aiLettaNodeMissingTitle => '未检测到 Node.js';
 
   @override
@@ -659,10 +537,6 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get aiLettaNodeRequiredHint =>
       'Letta CLI 需要 Node.js 22.19 或更高版本（通过 npm 分发）。';
-
-  @override
-  String get aiLettaNodeManualHint =>
-      '请从 Node.js 官网安装（推荐 LTS 版本），然后点击「重新检测」。Flight Studio 不会替你安装 Node.js。';
 
   @override
   String get aiLettaNodeDownload => '打开 Node.js 下载页';
@@ -700,48 +574,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settingsAiClearApiKey => '清除';
-
-  @override
-  String get settingsRemoteTitle => '远程访问';
-
-  @override
-  String get settingsRemoteDesc =>
-      '在桌面端进程内托管内嵌的 HTTP/WebSocket 服务器，让配套的手机与网页客户端可以通过局域网查看移动地图、暂停模拟器并远程操作 MCDU。';
-
-  @override
-  String get settingsRemoteEnable => '启用内嵌服务器';
-
-  @override
-  String get settingsRemotePort => '监听端口';
-
-  @override
-  String get settingsRemotePortHint => '桌面端监听的 TCP 端口（默认 48080）。';
-
-  @override
-  String get settingsRemoteToken => '访问令牌';
-
-  @override
-  String get settingsRemoteTokenHint => '每个手机/网页客户端都必须出示的共享密钥。';
-
-  @override
-  String get settingsRemoteRegenerateToken => '重新生成令牌';
-
-  @override
-  String get settingsRemoteStatusTitle => '服务器状态';
-
-  @override
-  String get settingsRemoteNotRunning => '未运行';
-
-  @override
-  String settingsRemoteRunningOn(String host, int port) {
-    return '正在监听 http://$host:$port';
-  }
-
-  @override
-  String get settingsRemoteMdns => '在局域网广播（mDNS）';
-
-  @override
-  String get settingsRemoteMdnsHint => '让配套应用可以自动发现本机。';
 
   @override
   String get settingsAboutTitle => '关于 Flight Studio';
@@ -963,13 +795,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsSplash => '启动画面';
 
   @override
-  String get settingsSplashHint => '启动时显示扫描导航数据的画面';
-
-  @override
   String get settingsSplashScan => '启动时自动扫描导航数据';
-
-  @override
-  String get settingsSplashScanHint => '每次启动执行完整导航数据导入的频率';
 
   @override
   String get splashScanAlways => '始终';
@@ -1050,16 +876,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsCategoryApiKeys => 'API 密钥';
 
   @override
-  String get settingsCategoryApiKeysDesc => '地图瓦片、AI 副驾驶和航班追踪的凭证。';
-
-  @override
   String get apiKeysSecurityNote => '密钥仅存储于本设备，保存后不再完整显示。';
 
   @override
   String get apiTileProvider => '地图瓦片提供商';
-
-  @override
-  String get apiTileProviderHint => '选择光栅地图瓦片来源。OSM 免费且无需密钥。';
 
   @override
   String get apiTileProviderOsm => 'OSM';
@@ -1077,14 +897,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get apiMapboxToken => 'Mapbox 访问令牌';
 
   @override
-  String get apiMapboxTokenHint => '在 mapbox.com 获取免费令牌。使用 Mapbox 瓦片时必需。';
-
-  @override
   String get apiCustomTileUrl => '自定义瓦片 URL';
-
-  @override
-  String get apiCustomTileUrlHint =>
-      '包含 z/x/y 坐标段的 URL 模板，用于自建瓦片服务器。使用花括号包裹 z、x、y 以表示动态值。';
 
   @override
   String get apiCustomTileUrlPlaceholder =>
@@ -1092,9 +905,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get apiFlightAwareKey => 'FlightAware API 密钥';
-
-  @override
-  String get apiFlightAwareKeyHint => '用于查询真实世界航班和航线灵感。';
 
   @override
   String get apiKeySet => '密钥已设置';
@@ -1107,9 +917,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get apiKeyType => '类型';
-
-  @override
-  String get apiKeyTypeHint => '选择 API 凭证类型';
 
   @override
   String get apiKeyValue => 'API 密钥';
@@ -1303,10 +1110,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get aiDeleteLettaData => '删除 Letta 数据';
 
   @override
-  String get aiDeleteLettaDataHint =>
-      '永久删除全部 Letta 智能体、会话、记忆与已存储的提供商凭据（~/.letta）。下一条消息将重新初始化副驾驶。';
-
-  @override
   String get aiDeleteLettaDataDesc =>
       '将永久删除全部 Letta 数据——智能体、会话、长期记忆与已存储的提供商密钥（C:\\Users\\<你>\\.letta）。此操作不可撤销。下一条消息将重新初始化副驾驶。';
 
@@ -1334,9 +1137,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get openAiModel => '模型';
 
   @override
-  String get openAiModelHint => '如 glm-4-flash、deepseek-chat、qwen-turbo';
-
-  @override
   String get apiKeyTypeCustomTileUrl => '自定义瓦片 URL';
 
   @override
@@ -1362,9 +1162,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get simType => '模拟器类型';
-
-  @override
-  String get simTypeHint => '选择模拟器类型';
 
   @override
   String get simInstallPath => '安装路径';

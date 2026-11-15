@@ -74,12 +74,12 @@ class AppColors extends ThemeExtension<AppColors> {
   ///
   /// The user-requested contrast: panels/cards/drawers are pure white
   /// (`#FFFFFF`) so they pop against the app background (`#E9EAEE` — the
-  /// darker shade). Input fields inside those white cards use a very light
-  /// gray (`surfaceLowered`) so they're subtly visible without a hard border.
+  /// darker shade). Input fields inside those white cards are white too
+  /// (`surfaceRaised`) — their border keeps them visible.
   ///
-  /// - `surfaceRaised` = `#FFFFFF` — cards, panels, drawers (lightest)
+  /// - `surfaceRaised` = `#FFFFFF` — cards, panels, drawers, input fills
   /// - `surfaceBase`   = `#E9EAEE` — app background (user-requested gray)
-  /// - `surfaceLowered`= `#F0F1F4` — recessed inputs inside white cards
+  /// - `surfaceLowered`= `#F0F1F4` — recessed wells (map canvas, hover)
   /// - `chrome`        = `#E9EAEE` — toolbar / status bar / tab strip (same as base)
   static const AppColors light = AppColors(
     accent: Color(0xFFFF7F27),

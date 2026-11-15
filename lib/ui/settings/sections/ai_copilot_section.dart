@@ -105,7 +105,6 @@ class _AiCopilotSectionState extends State<AiCopilotSection> {
     final l10n = AppLocalizations.of(context)!;
     return SettingsSectionBody(
       title: l10n.settingsAiTitle,
-      description: l10n.settingsAiDesc,
       children: [
         SettingsSectionTitle(l10n.aiLettaRuntimeTitle),
         _buildStateCard(context),
@@ -207,7 +206,6 @@ class _AiCopilotSectionState extends State<AiCopilotSection> {
       children: [
         SettingsTile(
           title: l10n.aiDeleteLettaData,
-          subtitle: l10n.aiDeleteLettaDataHint,
           leading: Icon(Icons.delete_forever_rounded,
               size: 22, color: colors.danger),
           trailing: FilledButton.icon(
@@ -284,7 +282,6 @@ class _AiCopilotSectionState extends State<AiCopilotSection> {
         children: [
           SettingsTile(
             title: l10n.aiLettaNotInstalledTitle,
-            subtitle: l10n.aiLettaIntro,
             leading: Icon(Icons.smart_toy_outlined,
                 size: 22, color: colors.textSecondary),
             trailing: Row(mainAxisSize: MainAxisSize.min, children: [
@@ -327,7 +324,6 @@ class _AiCopilotSectionState extends State<AiCopilotSection> {
       children: [
         SettingsTile(
           title: l10n.aiLettaInstalledTitle,
-          subtitle: l10n.aiLettaIntro,
           leading:
           Icon(Icons.smart_toy_rounded, size: 22, color: colors.success),
           trailing: Row(mainAxisSize: MainAxisSize.min, children: [

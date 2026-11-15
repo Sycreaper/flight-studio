@@ -189,21 +189,6 @@ class SettingsController extends ChangeNotifier {
   Future<void> setAiAutoRead(bool v) =>
       _updateBool(aiAutoRead: v, key: SettingsKeys.aiAutoRead, value: v);
 
-  Future<void> setRemoteEnabled(bool v) =>
-      _updateBool(remoteEnabled: v, key: SettingsKeys.remoteEnabled, value: v);
-
-  Future<void> setRemotePort(int port) => _updateInt(
-    mutator: (s) => s.copyWith(remotePort: port),
-    key: SettingsKeys.remotePort,
-    value: port,
-  );
-
-  Future<void> setRemoteToken(String token) =>
-      _update(remoteToken: token, key: SettingsKeys.remoteToken, value: token);
-
-  Future<void> setRemoteMdns(bool v) =>
-      _updateBool(remoteMdns: v, key: SettingsKeys.remoteMdns, value: v);
-
   // --- Map tiles + API keys --------------------------------------------------
 
   Future<void> setMapTileProvider(MapTileProvider provider) =>
@@ -358,9 +343,6 @@ class SettingsController extends ChangeNotifier {
     bool? useXplaneNative,
     bool? aiConfirmWrites,
     bool? aiAutoRead,
-    bool? remoteEnabled,
-    String? remoteToken,
-    bool? remoteMdns,
     required String key,
     required Object? value,
   }) async {
@@ -380,9 +362,6 @@ class SettingsController extends ChangeNotifier {
       useXplaneNative: useXplaneNative,
       aiConfirmWrites: aiConfirmWrites,
       aiAutoRead: aiAutoRead,
-      remoteEnabled: remoteEnabled,
-      remoteToken: remoteToken,
-      remoteMdns: remoteMdns,
     );
     notifyListeners();
     await _persist(key, value);
@@ -398,8 +377,6 @@ class SettingsController extends ChangeNotifier {
     bool? useXplaneNative,
     bool? aiConfirmWrites,
     bool? aiAutoRead,
-    bool? remoteEnabled,
-    bool? remoteMdns,
     required String key,
     required bool value,
   }) => _update(
@@ -412,8 +389,6 @@ class SettingsController extends ChangeNotifier {
     useXplaneNative: useXplaneNative,
     aiConfirmWrites: aiConfirmWrites,
     aiAutoRead: aiAutoRead,
-    remoteEnabled: remoteEnabled,
-    remoteMdns: remoteMdns,
     key: key,
     value: value,
   );
@@ -512,10 +487,6 @@ class SettingsController extends ChangeNotifier {
       aiModel: await p.getString(SettingsKeys.aiModel),
       aiConfirmWrites: await p.getBool(SettingsKeys.aiConfirmWrites) ?? true,
       aiAutoRead: await p.getBool(SettingsKeys.aiAutoRead) ?? true,
-      remoteEnabled: await p.getBool(SettingsKeys.remoteEnabled) ?? false,
-      remotePort: await p.getInt(SettingsKeys.remotePort) ?? 48080,
-      remoteToken: await p.getString(SettingsKeys.remoteToken) ?? '',
-      remoteMdns: await p.getBool(SettingsKeys.remoteMdns) ?? true,
       mapTileProvider: MapTileProvider.fromPersistedName(
           await p.getString(SettingsKeys.mapTileProvider)),
       mapTheme: MapTheme.fromPersistedName(
@@ -555,10 +526,6 @@ class SettingsController extends ChangeNotifier {
       SettingsKeys.aiModel,
       SettingsKeys.aiConfirmWrites,
       SettingsKeys.aiAutoRead,
-      SettingsKeys.remoteEnabled,
-      SettingsKeys.remotePort,
-      SettingsKeys.remoteToken,
-      SettingsKeys.remoteMdns,
       SettingsKeys.mapTileProvider,
       SettingsKeys.mapTheme,
       SettingsKeys.selectedMapApiKeyId,

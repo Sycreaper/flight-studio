@@ -39,12 +39,6 @@ class SettingsKeys {
   static const aiConfirmWrites = 'ai.confirmWrites';
   static const aiAutoRead = 'ai.autoRead';
 
-  // Remote access
-  static const remoteEnabled = 'remote.enabled';
-  static const remotePort = 'remote.port';
-  static const remoteToken = 'remote.token';
-  static const remoteMdns = 'remote.mdns';
-
   // Map tiles + API keys
   static const mapTileProvider = 'map.tileProvider';
   static const mapTheme = 'map.theme';

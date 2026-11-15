@@ -33,15 +33,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get flightAcademy => 'Flight Academy';
 
   @override
-  String get createFlightHint => 'Plan a new route from scratch';
-
-  @override
-  String get worldMapHint => 'Explore the global map and airports';
-
-  @override
-  String get flightAcademyHint => 'Learn flight planning and procedures';
-
-  @override
   String get searchFlights => 'Search flights…';
 
   @override
@@ -55,9 +46,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsTitle => 'Settings';
-
-  @override
-  String get settingsDesc => 'Application preferences';
 
   @override
   String get comingSoon => 'Coming soon';
@@ -251,9 +239,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get resetForm => 'Reset';
 
   @override
-  String get settingsSearchHint => 'Search settings…';
-
-  @override
   String get settingsResetDefaults => 'Reset to defaults';
 
   @override
@@ -280,10 +265,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsNotSet => 'Not set';
-
-  @override
-  String get settingsRestartHint =>
-      'Restart Flight Studio for this change to take full effect.';
 
   @override
   String get settingsPlannedBadge => 'Planned';
@@ -325,42 +306,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsCategoryGeneral => 'General';
 
   @override
-  String get settingsCategoryGeneralDesc =>
-      'Appearance, language and startup behaviour.';
+  String get settingsCategoryData => 'Data';
 
   @override
   String get settingsCategorySimulator => 'Simulator';
 
   @override
-  String get settingsCategorySimulatorDesc =>
-      'X-Plane, MSFS and Prepar3D bridges.';
-
-  @override
   String get settingsCategoryNavdata => 'Navigation Data';
-
-  @override
-  String get settingsCategoryNavdataDesc =>
-      'Airports, airways, procedures and AIRAC sources.';
 
   @override
   String get settingsCategoryAi => 'AI Copilot';
 
   @override
-  String get settingsCategoryAiDesc =>
-      'Bring your own LLM key and configure tool access.';
-
-  @override
-  String get settingsCategoryRemote => 'Remote Access';
-
-  @override
-  String get settingsCategoryRemoteDesc =>
-      'Embedded server for phone and web clients.';
-
-  @override
   String get settingsCategoryAbout => 'About';
-
-  @override
-  String get settingsCategoryAboutDesc => 'Version, license and credits.';
 
   @override
   String get settingsAppearanceTitle => 'Appearance';
@@ -375,10 +333,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsFontFamily => 'Interface font';
 
   @override
-  String get settingsFontFamilyHint =>
-      'Applies to the whole application. Takes effect immediately.';
-
-  @override
   String get settingsFontDefault => 'Default';
 
   @override
@@ -391,14 +345,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsThemeSystem => 'Follow system';
 
   @override
-  String get settingsThemeHint =>
-      'Dark is recommended for cockpit use at night.';
-
-  @override
   String get settingsLanguage => 'Language';
-
-  @override
-  String get settingsLanguageHint => 'Application interface language.';
 
   @override
   String get settingsLanguageEn => 'English';
@@ -413,15 +360,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsReopenLastWorkspace => 'Reopen last workspace on launch';
 
   @override
-  String get settingsReopenLastWorkspaceHint =>
-      'Skip the welcome screen and jump straight into your last session.';
-
-  @override
   String get settingsCheckUpdatesOnLaunch => 'Check for updates on launch';
-
-  @override
-  String get settingsCheckUpdatesOnLaunchHint =>
-      'Notify when a new Flight Studio build is available.';
 
   @override
   String get settingsUnitsTitle => 'Default units';
@@ -433,15 +372,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsUnitsImperial => 'Imperial (lb, nm)';
 
   @override
-  String get settingsUnitsHint =>
-      'Used by new flight plans and the fuel planner.';
-
-  @override
   String get settingsSimulatorTitle => 'Simulator connections';
-
-  @override
-  String get settingsSimulatorDesc =>
-      'Flight Studio reads telemetry and sends commands through per-simulator bridges. Only one simulator needs to be connected at a time.';
 
   @override
   String get settingsXplaneTitle => 'X-Plane 12';
@@ -458,10 +389,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsXplaneInstallPath => 'X-Plane install folder';
 
   @override
-  String get settingsXplaneInstallHint =>
-      'Location of the X-Plane 12 root (contains ‘Resources’ and ‘Aircraft’).';
-
-  @override
   String get settingsXplaneInstallPick => 'Choose folder…';
 
   @override
@@ -471,22 +398,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsXplaneUdpPort => 'Telemetry UDP port';
 
   @override
-  String get settingsXplaneUdpPortHint =>
-      'Port X-Plane sends Data Output to (default 49000).';
-
-  @override
   String get settingsXplaneBridgePort => 'Bridge command port';
 
   @override
-  String get settingsXplaneBridgePortHint =>
-      'Port the bundled FlyWithLua script listens on (default 49001).';
-
-  @override
   String get settingsXplaneInstallBridge => 'Install FlyWithLua bridge…';
-
-  @override
-  String get settingsXplaneInstallBridgeHint =>
-      'Copies FlightStudioBridge.lua into the FlyWithLua Scripts folder.';
 
   @override
   String get settingsXplaneTestConnection => 'Test connection';
@@ -502,15 +417,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsMsfsBridgePath => 'SimConnect bridge daemon';
 
   @override
-  String get settingsMsfsBridgePathHint =>
-      'Auto-discovered when the daemon ships.';
-
-  @override
   String get settingsNavdataTitle => 'Navigation data sources';
-
-  @override
-  String get settingsNavdataDesc =>
-      'Mix and match sources. The trust layer shows where each plan’s data came from and validates AIRAC consistency on import/export.';
 
   @override
   String get settingsNavdataBundledTitle => 'Bundled (free & open)';
@@ -519,32 +426,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsNavdataOurAirports => 'OurAirports';
 
   @override
-  String get settingsNavdataOurAirportsHint =>
-      'Airports, runways, frequencies and navaids (Public Domain).';
-
-  @override
   String get settingsNavdataFaaCifp => 'FAA CIFP / NASR';
 
   @override
-  String get settingsNavdataFaaCifpHint =>
-      'U.S. instrument procedures (Public Domain).';
-
-  @override
   String get settingsNavdataXplaneNative => 'Parse X-Plane native files';
-
-  @override
-  String get settingsNavdataXplaneNativeHint =>
-      'Reads apt.dat, earth_nav.dat, earth_fix.dat and awy.dat directly from the install folder.';
 
   @override
   String get settingsNavdataRefreshBundled => 'Refresh bundled data';
 
   @override
   String get settingsNavdataNavigraphTitle => 'Navigraph (user subscription)';
-
-  @override
-  String get settingsNavdataNavigraphHint =>
-      'Sign in with your own Navigraph account. Charts and AIRAC are never bundled or redistributed by Flight Studio.';
 
   @override
   String settingsNavdataNavigraphSignedIn(String user) {
@@ -570,10 +461,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsNavdataSimBriefTitle => 'SimBrief (free account)';
 
   @override
-  String get settingsNavdataSimBriefHint =>
-      'Link your SimBrief account to import OFPs and route strings. Nothing is redistributed.';
-
-  @override
   String settingsNavdataSimBriefLinked(String username) {
     return 'Linked to $username';
   }
@@ -591,15 +478,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsAiTitle => 'AI Copilot';
 
   @override
-  String get settingsAiDesc =>
-      'Letta is the local, stateful runtime behind the Flight Studio AI copilot — it carries your long-term memory across sessions. Install it with one click, create pilot accounts, and chat with your copilot from the welcome screen.';
-
-  @override
   String get settingsAiProvider => 'Provider';
-
-  @override
-  String get settingsAiProviderHint =>
-      'Which LLM provider to use for the AI copilot.';
 
   @override
   String get settingsAiProviderOpenAi => 'OpenAI-compatible';
@@ -614,18 +493,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsAiApiKey => 'API key';
 
   @override
-  String get settingsAiApiKeyHint =>
-      'Stored locally on this device and only ever sent to the provider you pick.';
-
-  @override
   String get settingsAiApiKeyHidden => 'Key set (hidden)';
 
   @override
   String get settingsAiEndpoint => 'Endpoint URL';
-
-  @override
-  String get settingsAiEndpointHint =>
-      'Override the provider’s default base URL (e.g. http://localhost:11434 for Ollama).';
 
   @override
   String get settingsAiEndpointPlaceholder => 'https://api.openai.com/v1';
@@ -634,18 +505,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsAiModel => 'Model';
 
   @override
-  String get settingsAiModelHint =>
-      'Example: gpt-4o-mini, claude-3-5-sonnet, llama3.1.';
-
-  @override
   String get settingsAiModelPlaceholder => 'model-id';
 
   @override
   String get settingsReasoningEffort => 'Reasoning effort';
-
-  @override
-  String get settingsReasoningEffortHint =>
-      'How much thinking the model should do before answering.';
 
   @override
   String get settingsAiModelService => 'Model service';
@@ -663,10 +526,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get aiLettaInstalledTitle => 'Letta CLI is installed';
 
   @override
-  String get aiLettaIntro =>
-      'Letta is the local, stateful agent runtime behind the Flight Studio AI copilot — it carries your long-term memory across sessions. Once installed, create a pilot account and chat with your copilot right from the welcome screen. Model providers (OpenAI-compatible, Anthropic, Ollama/LM Studio) are connected inside Letta via /connect.';
-
-  @override
   String get aiLettaNodeMissingTitle => 'Node.js not found';
 
   @override
@@ -680,10 +539,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get aiLettaNodeRequiredHint =>
       'The Letta CLI requires Node.js 22.19 or newer (distributed via npm).';
-
-  @override
-  String get aiLettaNodeManualHint =>
-      'Install Node.js from the official website (LTS recommended), then press Re-check. Flight Studio will not install Node.js for you.';
 
   @override
   String get aiLettaNodeDownload => 'Open Node.js download page';
@@ -721,51 +576,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsAiClearApiKey => 'Clear';
-
-  @override
-  String get settingsRemoteTitle => 'Remote access';
-
-  @override
-  String get settingsRemoteDesc =>
-      'Host an embedded HTTP/WebSocket server in-process so the companion phone and web clients can watch the moving map, pause the sim and operate the MCDU over LAN.';
-
-  @override
-  String get settingsRemoteEnable => 'Enable embedded server';
-
-  @override
-  String get settingsRemotePort => 'Listen port';
-
-  @override
-  String get settingsRemotePortHint =>
-      'TCP port the desktop app listens on (default 48080).';
-
-  @override
-  String get settingsRemoteToken => 'Access token';
-
-  @override
-  String get settingsRemoteTokenHint =>
-      'Shared secret every phone/web client must present.';
-
-  @override
-  String get settingsRemoteRegenerateToken => 'Regenerate token';
-
-  @override
-  String get settingsRemoteStatusTitle => 'Server status';
-
-  @override
-  String get settingsRemoteNotRunning => 'Not running';
-
-  @override
-  String settingsRemoteRunningOn(String host, int port) {
-    return 'Listening on http://$host:$port';
-  }
-
-  @override
-  String get settingsRemoteMdns => 'Advertise on local network (mDNS)';
-
-  @override
-  String get settingsRemoteMdnsHint =>
-      'Lets the companion apps discover this machine automatically.';
 
   @override
   String get settingsAboutTitle => 'About Flight Studio';
@@ -993,15 +803,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsSplash => 'Splash screen';
 
   @override
-  String get settingsSplashHint =>
-      'Show the startup screen while navigation data is scanned';
-
-  @override
   String get settingsSplashScan => 'Auto-scan navigation data on startup';
-
-  @override
-  String get settingsSplashScanHint =>
-      'How often the full navdata import runs at launch';
 
   @override
   String get splashScanAlways => 'Always';
@@ -1082,19 +884,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsCategoryApiKeys => 'API Keys';
 
   @override
-  String get settingsCategoryApiKeysDesc =>
-      'Credentials for map tiles, AI copilot and flight tracking.';
-
-  @override
   String get apiKeysSecurityNote =>
       'Keys are stored locally on this device and never displayed in full after saving.';
 
   @override
   String get apiTileProvider => 'Map tile provider';
-
-  @override
-  String get apiTileProviderHint =>
-      'Choose where raster map tiles come from. OSM is free and needs no key.';
 
   @override
   String get apiTileProviderOsm => 'OSM';
@@ -1112,15 +906,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get apiMapboxToken => 'Mapbox access token';
 
   @override
-  String get apiMapboxTokenHint =>
-      'Get a free token at mapbox.com. Required for Mapbox tile providers.';
-
-  @override
   String get apiCustomTileUrl => 'Custom tile URL';
-
-  @override
-  String get apiCustomTileUrlHint =>
-      'URL template with z/x/y coordinate segments for self-hosted tiles. Use curly braces around z, x, y for dynamic values.';
 
   @override
   String get apiCustomTileUrlPlaceholder =>
@@ -1128,10 +914,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get apiFlightAwareKey => 'FlightAware API key';
-
-  @override
-  String get apiFlightAwareKeyHint =>
-      'For querying real-world flights and route inspiration.';
 
   @override
   String get apiKeySet => 'Key set';
@@ -1144,9 +926,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get apiKeyType => 'Type';
-
-  @override
-  String get apiKeyTypeHint => 'Select the type of API credential';
 
   @override
   String get apiKeyValue => 'API Key';
@@ -1342,10 +1121,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get aiDeleteLettaData => 'Delete Letta data';
 
   @override
-  String get aiDeleteLettaDataHint =>
-      'Permanently removes all Letta agents, conversations, memory and stored provider credentials (~/.letta). The copilot starts fresh on the next message.';
-
-  @override
   String get aiDeleteLettaDataDesc =>
       'This permanently deletes ALL Letta data — agents, conversations, long-term memory and stored provider keys (C:\\Users\\<you>\\.letta). This cannot be undone. The copilot re-initializes on the next message.';
 
@@ -1375,9 +1150,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get openAiModel => 'Model';
 
   @override
-  String get openAiModelHint => 'e.g. glm-4-flash, deepseek-chat, qwen-turbo';
-
-  @override
   String get apiKeyTypeCustomTileUrl => 'Custom Tile URL';
 
   @override
@@ -1403,9 +1175,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get simType => 'Simulator Type';
-
-  @override
-  String get simTypeHint => 'Select the type of simulator';
 
   @override
   String get simInstallPath => 'Install Path';

@@ -43,6 +43,7 @@ class AppShell extends StatefulWidget {
     required this.settings,
     this.initialTab,
     this.initialSettingsSection,
+    this.initialSettingsDataTab,
     this.initialChatSessionKey,
   });
 
@@ -61,6 +62,10 @@ class AppShell extends StatefulWidget {
 
   /// When [initialTab] is [TabIds.settings], optionally land on this section.
   final SettingsSection? initialSettingsSection;
+
+  /// Initial Data-section tab when [initialSettingsSection] is
+  /// [SettingsSection.data].
+  final SettingsDataTab? initialSettingsDataTab;
 
   @override
   State<AppShell> createState() => AppShellState();
@@ -220,6 +225,7 @@ class AppShellState extends State<AppShell> {
               controller: widget.settings,
               initialSection:
               widget.initialSettingsSection ?? SettingsSection.general,
+              initialDataTab: widget.initialSettingsDataTab,
             ),
       ),
     );
@@ -297,14 +303,17 @@ class AppShellState extends State<AppShell> {
   /// Opens the settings tab (singleton). If a settings tab already exists it is
   /// selected and [goToSection] is called on its live state; if not, a new one
   /// is created with [section] as the initial landing spot.
-  void openSettingsTab({SettingsSection? section}) {
+  void openSettingsTab({
+    SettingsSection? section,
+    SettingsDataTab? dataTab,
+  }) {
     _tabController.openOrCreate(TabIds.settings);
     if (section != null) {
       // Use a post-frame callback so the widget is mounted before we call
       // its state method (especially important when the tab was just created
       // and hasn't built yet).
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _settingsTabKey.currentState?.goToSection(section);
+        _settingsTabKey.currentState?.goToSection(section, dataTab: dataTab);
       });
     }
   }

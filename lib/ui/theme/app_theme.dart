@@ -191,7 +191,7 @@ class AppTheme {
     );
     return InputDecorationTheme(
       filled: true,
-      fillColor: colors.surfaceLowered,
+      fillColor: colors.surfaceRaised,
       isDense: true,
       contentPadding:
           const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
