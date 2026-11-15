@@ -292,6 +292,7 @@
   "inspectorNotAvailable": "—",
   "inspectorRawReport": "Raw report",
   "inspectorWindCalm": "Calm",
+  "splashStarting": "Starting Flight Studio",
   "splashScanning": "Scanning navigation data…",
   "splashNoNavdata": "No navigation data found",
   "settingsSplash": "Splash screen",

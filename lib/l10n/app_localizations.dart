@@ -1622,6 +1622,12 @@ abstract class AppLocalizations {
   /// **'Calm'**
   String get inspectorWindCalm;
 
+  /// No description provided for @splashStarting.
+  ///
+  /// In en, this message translates to:
+  /// **'Starting Flight Studio'**
+  String get splashStarting;
+
   /// No description provided for @splashScanning.
   ///
   /// In en, this message translates to:

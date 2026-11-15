@@ -292,6 +292,7 @@
   "inspectorNotAvailable": "—",
   "inspectorRawReport": "源报文",
   "inspectorWindCalm": "静风",
+  "splashStarting": "正在启动 FlightStudio",
   "splashScanning": "正在扫描导航数据…",
   "splashNoNavdata": "未找到导航数据",
   "settingsSplash": "启动画面",

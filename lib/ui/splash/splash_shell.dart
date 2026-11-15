@@ -2,8 +2,10 @@ import 'dart:async';
 import 'dart:io' show Platform;
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:window_manager/window_manager.dart';
 
 import '../../data/background_tasks.dart';
 import '../../data/navdata/navdata_service.dart';
@@ -12,16 +14,22 @@ import '../../data/settings/settings_controller.dart';
 import '../../l10n/app_localizations.dart';
 import '../theme/app_colors.dart';
 
-/// Startup splash — a compact centred card split by the golden ratio, in
-/// the app's own colours: left (larger) part is the X-Plane background image
-/// (aspect preserved, cropped to fill), right part is the app chrome colour
-/// carrying the logo, app name and a gear-menu-style progress bar.
+/// Splash-window size while the splash shows (the window starts at this size
+/// in main.dart and grows back to the working size when the splash ends).
+const kSplashWindowSize = Size(600, 372);
+
+/// Startup splash — a small full-screen surface: "Flight Studio" top-left in
+/// dark red-brown over a warm-yellow shadow block, the real app logo (the
+/// same SVG as the welcome drawer, launcher icons and About page) centred,
+/// and a status line under it — the four-colour progress indicator plus
+/// "Starting Flight Studio" when no scan is due, or the live navdata-scan
+/// task label while one runs.
 ///
 /// Every launch runs the FULL "check all navigation data" pass (the same
-/// re-import the navdata settings trigger), with its live progress driving
-/// the bar — regardless of whether data already exists. When no simulator is
-/// configured (or the import yields nothing) the "no navigation data" hint is
-/// held for 3 seconds, then the splash replaces itself with [next].
+/// re-import the navdata settings trigger). When no simulator is configured
+/// (or the import yields nothing) the "no navigation data" hint is held for
+/// 3 seconds. When the splash finishes, the window grows back to the working
+/// size and the splash replaces itself with [next].
 class SplashShell extends StatefulWidget {
   const SplashShell({super.key, required this.next, required this.settings});
 
@@ -39,8 +47,8 @@ class _SplashShellState extends State<SplashShell> {
   bool _importing = false;
 
   /// Whether the automatic scan should run for this launch (settings-driven).
-  /// When `false` the splash shows ONLY logo + name (no progress content) and
-  /// holds for 3 seconds.
+  /// When `false` the splash shows ONLY the starting hint (no scan content)
+  /// and holds for 3 seconds.
   bool _scanDue = true;
   ScanTask? _task;
   Timer? _ticker;
@@ -65,9 +73,8 @@ class _SplashShellState extends State<SplashShell> {
   }
 
   /// Real import progress (from the navdata provider's background task)
-  /// replaces the cosmetic crawl entirely — the bar starts from the task's
-  /// true 0 % instead of the crawled baseline. The task itself is kept so the
-  /// hint line can show the exact label the gear menu shows.
+  /// drives the status line — kept so the label can show the exact task the
+  /// gear menu shows.
   void _onTasksChanged() {
     if (!_importing) return;
     final tasks = BackgroundTaskManager.instance.tasks;
@@ -79,7 +86,7 @@ class _SplashShellState extends State<SplashShell> {
   }
 
   Future<void> _startScan() async {
-    // Scan disabled (or not yet due): splash shows logo + name only —
+    // Scan disabled (or not yet due): splash shows the starting hint only —
     // nothing else — for 3 seconds, then moves on.
     if (!_scanDue) {
       await Future<void>.delayed(const Duration(seconds: 3));
@@ -87,8 +94,8 @@ class _SplashShellState extends State<SplashShell> {
       return;
     }
 
-    // Crawl the bar towards 90% while the pre-import setup runs (database
-    // open/clear), so those steps never look frozen.
+    // Crawl the progress towards 90% while the pre-import setup runs
+    // (database open/clear), so those steps never look frozen.
     _ticker = Timer.periodic(const Duration(milliseconds: 50), (_) {
       if (mounted && _progress < 0.9) {
         setState(() => _progress = math.min(0.9, _progress + 0.02));
@@ -97,8 +104,7 @@ class _SplashShellState extends State<SplashShell> {
 
     // Full "check all navigation data" pass honouring the active source
     // selection (radio in the navdata section) — real import, real progress
-    // via [BackgroundTaskManager]. The bar switches to the task's TRUE
-    // progress (from 0 %) — the crawl is only for the pre-import phase.
+    // via [BackgroundTaskManager].
     final hasTarget = resolveImportTarget(widget.settings.value) != null;
     if (hasTarget && !Platform.environment.containsKey('FLUTTER_TEST')) {
       _ticker?.cancel();
@@ -119,7 +125,7 @@ class _SplashShellState extends State<SplashShell> {
 
     if (hasData) {
       setState(() => _progress = 1.0);
-      // Let the bar visibly complete before switching screens.
+      // Let the status visibly complete before switching screens.
       await Future<void>.delayed(const Duration(milliseconds: 700));
     } else {
       setState(() => _noData = true);
@@ -132,6 +138,19 @@ class _SplashShellState extends State<SplashShell> {
   void _navigate() {
     if (!mounted || _navigated) return;
     _navigated = true;
+    // Grow the locked splash window back to the working size (and re-enable
+    // resizing) before the welcome screen appears.
+    if (!kIsWeb) {
+      () async {
+        try {
+          await windowManager.setResizable(true);
+          await windowManager.setSize(const Size(1280, 720));
+          await windowManager.center();
+        } on Exception {
+          // Best-effort (e.g. missing plugin channel in tests) — never block.
+        }
+      }();
+    }
     Navigator.of(
       context,
     ).pushReplacement(MaterialPageRoute(builder: widget.next));
@@ -141,146 +160,80 @@ class _SplashShellState extends State<SplashShell> {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppColors>()!;
     final l10n = AppLocalizations.of(context)!;
-    final size = MediaQuery.sizeOf(context);
-    // Compact centred card on a pure-black surround.
-    final width = math.min(560.0, size.width * 0.78);
-    final height = math.min(320.0, size.height * 0.62);
 
     return Scaffold(
-      backgroundColor: colors.surfaceBase,
-      body: Center(
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: SizedBox(
-            width: width,
-            height: height,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Left — golden-ratio larger part: background image, aspect
-                // preserved (BoxFit.cover crops the overflow).
-                Expanded(
-                  flex: 618,
-                  child: Image.asset(
-                    'assets/images/splash_bg.png',
-                    fit: BoxFit.cover,
-                    alignment: Alignment.centerLeft,
-                  ),
+      backgroundColor: colors.surfaceRaised,
+      body: Stack(
+        children: [
+          // App name top-left: dark red-brown type over a rounded
+          // warm-yellow shadow block (per the reference design).
+          Positioned(
+            top: 16,
+            left: 14,
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 8,
+                vertical: 4,
+              ),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF6DBD4),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Text(
+                l10n.appName,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.3,
+                  color: Color(0xFFB13B34),
                 ),
-                // Right — app chrome colour: logo + name, gear-menu-style
-                // progress.
-                Expanded(
-                  flex: 382,
-                  child: Container(
-                    color: colors.chrome,
-                    padding: const EdgeInsets.symmetric(horizontal: 26),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        SvgPicture.asset(
-                          'assets/icons/logo.svg',
-                          width: 44,
-                          height: 44,
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          l10n.appName,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 0.3,
-                            color: colors.textPrimary,
-                          ),
-                        ),
-                        // Same presentation as the gear dropdown's progress
-                        // entries: icon + live task label + percent over a
-                        // 4 px accent bar. Hidden entirely when no scan is
-                        // due for this launch.
-                        if (_scanDue) ...[
-                          const SizedBox(height: 36),
-                          _SplashProgressEntry(
-                            task: _task,
-                            fallbackLabel: _noData
-                                ? l10n.splashNoNavdata
-                                : l10n.splashScanning,
-                            progress: _progress,
-                            colors: colors,
-                          ),
-                        ],
-                      ],
+              ),
+            ),
+          ),
+          // Real logo centred, status line under it.
+          Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SvgPicture.asset(
+                  'assets/icons/logo.svg',
+                  width: 112,
+                  height: 112,
+                ),
+                const SizedBox(height: 26),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      width: 14,
+                      height: 14,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 1.8,
+                        valueColor: AlwaysStoppedAnimation(colors.accent),
+                      ),
                     ),
-                  ),
+                    const SizedBox(width: 10),
+                    Text(
+                      _statusText(l10n),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: colors.textSecondary,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Mirrors the gear dropdown's `_ProgressEntry` from settings_window.dart:
-/// radar/check icon, 11 px task label, right-aligned percentage and a 4 px
-/// accent progress bar. Shows the plain hint text when no task is running.
-class _SplashProgressEntry extends StatelessWidget {
-  const _SplashProgressEntry({
-    required this.task,
-    required this.fallbackLabel,
-    required this.progress,
-    required this.colors,
-  });
-
-  final ScanTask? task;
-  final String fallbackLabel;
-  final double progress;
-  final AppColors colors;
-
-  @override
-  Widget build(BuildContext context) {
-    final label = task?.label ?? fallbackLabel;
-    final complete = progress >= 1.0;
-    final pct = (progress * 100).round();
-    return SizedBox(
-      width: 200,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            children: [
-              Icon(
-                complete ? Icons.check_circle_rounded : Icons.radar_rounded,
-                size: 13,
-                color: complete ? colors.success : colors.accent,
-              ),
-              const SizedBox(width: 6),
-              Expanded(
-                child: Text(
-                  label,
-                  style: TextStyle(fontSize: 11, color: colors.textSecondary),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              Text(
-                '$pct%',
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w600,
-                  color: colors.textSecondary,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(3),
+          // Full-width progress bar hugging the window's bottom edge. Empty
+          // and static when no scan is due (nothing to measure).
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
             child: LinearProgressIndicator(
-              value: progress,
-              minHeight: 4,
+              value: _scanDue ? _progress : 0,
+              minHeight: 3,
               backgroundColor: colors.surfaceLowered,
               valueColor: AlwaysStoppedAnimation(colors.accent),
             ),
@@ -288,5 +241,17 @@ class _SplashProgressEntry extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  /// The status line under the logo: the live scan-task label (with the
+  /// percentage while running) when a scan is due, the plain starting hint
+  /// otherwise.
+  String _statusText(AppLocalizations l10n) {
+    if (!_scanDue) return l10n.splashStarting;
+    final task = _task;
+    if (task != null && task.progress < 1.0) {
+      return '${task.label} ${(task.progress * 100).round()}%';
+    }
+    return _noData ? l10n.splashNoNavdata : l10n.splashScanning;
   }
 }

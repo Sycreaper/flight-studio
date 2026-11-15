@@ -29,20 +29,33 @@ void main() async {
   registerBuiltInSimConnectors();
   registerBuiltInNavdataProviders();
 
+  // Load persisted user settings before the first frame. If the store is empty
+  // (or fails), the controller falls back to defaults — boot is never blocked.
+  final settings = SettingsController();
+  await settings.load();
+
+  final splashEnabled = settings.value.splashEnabled;
+
   // Desktop window control. The native Windows title bar is hidden so the app
   // can draw its own caption controls via a top-level overlay; other platforms
-  // keep their native chrome.
+  // keep their native chrome. When the splash will show, the window starts
+  // small (splash size) and locked; SplashShell grows it back to the working
+  // size once the splash finishes.
   if (!kIsWeb) {
     await windowManager.ensureInitialized();
     if (Platform.isWindows) {
       await windowManager.setTitleBarStyle(TitleBarStyle.hidden);
     }
+    if (splashEnabled) {
+      try {
+        await windowManager.setSize(const Size(600, 372));
+        await windowManager.center();
+        await windowManager.setResizable(false);
+      } on Exception {
+        // Best-effort — a missing plugin channel must never block boot.
+      }
+    }
   }
-
-  // Load persisted user settings before the first frame. If the store is empty
-  // (or fails), the controller falls back to defaults — boot is never blocked.
-  final settings = SettingsController();
-  await settings.load();
 
   // Record the resolved UI locale for below-widget-layer progress messages
   // (navdata parsers report through ImportMessages, no BuildContext there).
@@ -51,8 +64,6 @@ void main() async {
       : settings.value.localeCode == AppLocaleCode.en
       ? 'en'
       : Platform.localeName;
-
-  final splashEnabled = settings.value.splashEnabled;
 
   runApp(FlightStudioApp(
     repository: FlightRepository(),

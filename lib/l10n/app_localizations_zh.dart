@@ -786,6 +786,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get inspectorWindCalm => '静风';
 
   @override
+  String get splashStarting => '正在启动 FlightStudio';
+
+  @override
   String get splashScanning => '正在扫描导航数据…';
 
   @override

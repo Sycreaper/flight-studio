@@ -1,5 +1,6 @@
-// Splash screen tests: golden-ratio card, scan hint while scanning, and the
-// 3-second "no navigation data" hold before navigating on (fresh installs).
+// Splash screen tests: full-screen layout (top-left app name, real logo,
+// status line), scan hint while scanning, and the 3-second "no navigation
+// data" hold before navigating on (fresh installs).
 
 import 'package:flight_studio/data/settings/settings_controller.dart';
 import 'package:flight_studio/data/settings/settings_enums.dart';
@@ -7,6 +8,7 @@ import 'package:flight_studio/l10n/app_localizations.dart';
 import 'package:flight_studio/ui/splash/splash_shell.dart';
 import 'package:flight_studio/ui/theme/app_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
@@ -42,15 +44,20 @@ Future<void> _pumpSplash(
 }
 
 void main() {
-  testWidgets('splash shows card with hint, then navigates after the '
+  testWidgets('splash shows layout with hint, then navigates after the '
       'no-data hold (no DB in test env)', (tester) async {
     await _pumpSplash(tester);
 
-    // While scanning: scanning hint is visible (localized zh key not active
-    // here — the delegate resolves en by default test locale).
+    // Layout: app name top-left over the rounded warm-yellow shadow block,
+    // the real logo centred, the scan status line under it, and the
+    // full-width progress bar hugging the bottom edge.
     await tester.pump(const Duration(milliseconds: 200));
+    expect(find.text('Flight Studio'), findsOneWidget);
+    expect(
+      find.byWidgetPredicate((w) => w is SvgPicture),
+      findsOneWidget,
+    );
     expect(find.textContaining('navigation data'), findsOneWidget);
-    // Progress bar exists.
     expect(
       find.byWidgetPredicate((w) => w is LinearProgressIndicator),
       findsOneWidget,
@@ -74,12 +81,14 @@ void main() {
     await _pumpSplash(tester, settings: settings);
     await tester.pump(const Duration(milliseconds: 200));
 
-    // No progress content at all.
+    // No scan content — only the plain starting hint under the logo; the
+    // bottom bar still shows (empty and static while waiting).
+    expect(find.textContaining('navigation data'), findsNothing);
+    expect(find.textContaining('Starting'), findsOneWidget);
     expect(
       find.byWidgetPredicate((w) => w is LinearProgressIndicator),
-      findsNothing,
+      findsOneWidget,
     );
-    expect(find.textContaining('navigation data'), findsNothing);
 
     for (var i = 0; i < 10; i++) {
       await tester.pump(const Duration(milliseconds: 500));

@@ -794,6 +794,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get inspectorWindCalm => 'Calm';
 
   @override
+  String get splashStarting => 'Starting Flight Studio';
+
+  @override
   String get splashScanning => 'Scanning navigation data…';
 
   @override
