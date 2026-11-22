@@ -6,7 +6,7 @@ import '../../../data/settings/settings_controller.dart';
 import '../../../data/settings/simulator_install.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../theme/app_colors.dart';
-import '../../widgets/floating_window.dart';
+import '../../widgets/confirm_dialog.dart';
 import '../settings_page.dart';
 import 'add_navdata_dialog.dart';
 
@@ -130,53 +130,21 @@ class _NavDataSectionState extends State<NavDataSection> {
     );
   }
 
-  void _confirmDelete(BuildContext context, String id) {
+  Future<void> _confirmDelete(BuildContext context, String id) async {
     final l10n = AppLocalizations.of(context)!;
-    final colors = Theme.of(context).extension<AppColors>()!;
-    late OverlayEntry entry;
-    entry = OverlayEntry(
-      builder: (ctx) =>
-          FloatingWindow(
-            title: l10n.navConfirmDelete,
-            titleIcon: Icons.warning_amber_rounded,
-            width: 400,
-            height: 200,
-            onClose: () => entry.remove(),
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(children: [
-                Icon(Icons.delete_outline_rounded, size: 32,
-                    color: colors.danger),
-                const SizedBox(height: 12),
-                Text(l10n.navConfirmDeleteDesc,
-                    style: TextStyle(
-                        fontSize: 13, color: colors.textSecondary)),
-                const Spacer(),
-                Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-                  TextButton(onPressed: () => entry.remove(),
-                      child: Text(l10n.settingsCancel)),
-                  const SizedBox(width: 8),
-                  FilledButton(
-                    style: FilledButton.styleFrom(
-                        backgroundColor: colors.danger),
-                    onPressed: () {
-                      entry.remove();
-                      // Deleting the ACTIVE source clears the selection so
-                      // the fallback (first compatible install) resumes.
-                      if (widget.controller.value.activeNavdataSourceId ==
-                          id) {
-                        widget.controller.setActiveNavdataSource(null);
-                      }
-                      widget.controller.removeNavdataSource(id);
-                    },
-                    child: Text(l10n.navConfirmDelete.split('?')[0]),
-                  ),
-                ]),
-              ]),
-            ),
-          ),
+    final confirmed = await showConfirmDialog(
+      context,
+      title: l10n.navConfirmDelete,
+      body: l10n.navConfirmDeleteDesc,
+      confirmLabel: l10n.navConfirmDelete.split('?')[0],
     );
-    Overlay.of(context).insert(entry);
+    if (!confirmed) return;
+    // Deleting the ACTIVE source clears the selection so the fallback
+    // (first compatible install) resumes.
+    if (widget.controller.value.activeNavdataSourceId == id) {
+      widget.controller.setActiveNavdataSource(null);
+    }
+    widget.controller.removeNavdataSource(id);
   }
 
   String? _installPathFor(List<SimulatorInstall> sims, String simulatorId) {

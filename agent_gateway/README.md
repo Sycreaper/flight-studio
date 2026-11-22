@@ -79,3 +79,20 @@ CI runs `npm run build` + `npm test` on Node 22.
 - Memory updates are allow-listed, length-capped and secret-rejecting.
 - Provider credentials never touch disk here — they are lent to the
   Letta local backend via the official `connect_provider` protocol.
+
+## Troubleshooting
+
+**`listen EACCES: permission denied 127.0.0.1:8787` on Windows** — the
+port is not in use; it landed in a dynamic exclusion range that
+Hyper-V/winnat reserves after a reboot (`netsh interface ipv4 show
+excludedportrange protocol=tcp` lists them). Reserve 8787 permanently
+from an elevated shell:
+
+```powershell
+net stop winnat
+netsh int ipv4 add excludedportrange protocol=tcp startport=8787 numberofports=1
+net start winnat
+```
+
+Alternatively pick a free port via the `GATEWAY_PORT` env — but note the
+Flutter client currently hard-codes 8787 (`GatewayClient.baseUrl`).

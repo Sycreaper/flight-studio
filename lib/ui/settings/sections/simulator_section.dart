@@ -7,7 +7,7 @@ import '../../../data/settings/simulator_install.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../sim/simulator_connector.dart';
 import '../../theme/app_colors.dart';
-import '../../widgets/floating_window.dart';
+import '../../widgets/confirm_dialog.dart';
 import '../settings_page.dart';
 import '../widgets/settings_tile.dart';
 import 'add_simulator_dialog.dart';
@@ -69,54 +69,17 @@ class SimulatorSection extends StatelessWidget {
     );
   }
 
-  void _confirmDelete(BuildContext context, SimulatorInstall sim) {
+  Future<void> _confirmDelete(BuildContext context, SimulatorInstall sim) async {
     final l10n = AppLocalizations.of(context)!;
-    final colors = Theme.of(context).extension<AppColors>()!;
-    late OverlayEntry entry;
-    entry = OverlayEntry(
-      builder: (ctx) =>
-          FloatingWindow(
-            title: l10n.simConfirmDelete,
-            titleIcon: Icons.warning_amber_rounded,
-            width: 400,
-            height: 200,
-            onClose: () => entry.remove(),
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                children: [
-                  Icon(Icons.delete_outline_rounded,
-                      size: 32, color: colors.danger),
-                  const SizedBox(height: 12),
-                  Text(l10n.simConfirmDeleteDesc,
-                      style:
-                      TextStyle(fontSize: 13, color: colors.textSecondary)),
-                  const Spacer(),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      TextButton(
-                        onPressed: () => entry.remove(),
-                        child: Text(l10n.settingsCancel),
-                      ),
-                      const SizedBox(width: 8),
-                      FilledButton(
-                        style: FilledButton.styleFrom(
-                            backgroundColor: colors.danger),
-                        onPressed: () {
-                          entry.remove();
-                          controller.removeSimulator(sim.id);
-                        },
-                        child: Text(l10n.simConfirmDelete.split('?')[0]),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
+    final confirmed = await showConfirmDialog(
+      context,
+      title: l10n.simConfirmDelete,
+      body: l10n.simConfirmDeleteDesc,
+      confirmLabel: l10n.simConfirmDelete.split('?')[0],
     );
-    Overlay.of(context).insert(entry);
+    if (confirmed) {
+      controller.removeSimulator(sim.id);
+    }
   }
 }
 

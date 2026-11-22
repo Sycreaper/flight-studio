@@ -8,7 +8,7 @@ import 'package:flutter/services.dart' show Uint8List;
 import '../../l10n/app_localizations.dart';
 import '../chat/chat_session.dart';
 import '../theme/app_colors.dart';
-import '../widgets/floating_window.dart';
+import '../widgets/confirm_dialog.dart';
 
 /// Left-drawer panel listing every conversation with the flight-assistant
 /// agent (official Letta conversations API via [ChatSessionManager]).
@@ -121,81 +121,18 @@ class _ConversationDrawerState extends State<ConversationDrawer> {
     );
   }
 
-  /// "Delete conversation" confirm floating window — the same style the
-  /// settings page uses for destructive confirmations. Deletion cannot be
-  /// undone.
-  void _confirmDelete(String id) {
+  /// "Delete conversation" confirmation. Deletion cannot be undone.
+  Future<void> _confirmDelete(String id) async {
     final l10n = AppLocalizations.of(context)!;
-    late OverlayEntry confirmEntry;
-    confirmEntry = OverlayEntry(
-      builder: (ctx) => FloatingWindow(
-        title: l10n.conversationDelete,
-        titleIcon: Icons.warning_amber_rounded,
-        width: 400,
-        height: 200,
-        onClose: () => confirmEntry.remove(),
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Builder(
-            builder: (ctx) {
-              final colors = Theme.of(ctx).extension<AppColors>()!;
-              return Column(
-                children: [
-                  Icon(
-                    Icons.delete_outline_rounded,
-                    size: 32,
-                    color: colors.danger,
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    l10n.conversationDeleteConfirm,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: colors.textSecondary,
-                    ),
-                  ),
-                  const Spacer(),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      TextButton(
-                        onPressed: () => confirmEntry.remove(),
-                        child: Text(
-                          l10n.settingsCancel,
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: colors.textSecondary,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      FilledButton(
-                        style: FilledButton.styleFrom(
-                          backgroundColor: colors.danger,
-                        ),
-                        onPressed: () {
-                          confirmEntry.remove();
-                          ChatSessionManager.instance.deleteConversation(id);
-                        },
-                        child: Text(
-                          l10n.conversationDeleteAction,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              );
-            },
-          ),
-        ),
-      ),
+    final confirmed = await showConfirmDialog(
+      context,
+      title: l10n.conversationDelete,
+      body: l10n.conversationDeleteConfirm,
+      confirmLabel: l10n.conversationDeleteAction,
     );
-    Overlay.of(context).insert(confirmEntry);
+    if (confirmed) {
+      ChatSessionManager.instance.deleteConversation(id);
+    }
   }
 
   /// "Export conversation" — one Markdown file (title header +

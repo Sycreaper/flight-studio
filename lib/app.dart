@@ -81,10 +81,16 @@ class FlightStudioApp extends StatelessWidget {
               return Stack(
                 children: [
                   child ?? const SizedBox.shrink(),
-                  const Positioned(
+                  Positioned(
                     top: 0,
                     right: 0,
-                    child: WindowCaptionControls(),
+                    // Maximize stays hidden while the size-locked splash
+                    // shows (splashActive flips false when it finishes).
+                    child: ValueListenableBuilder<bool>(
+                      valueListenable: splashActive,
+                      builder: (_, locked, _) =>
+                          WindowCaptionControls(hideMaximize: locked),
+                    ),
                   ),
                 ],
               );

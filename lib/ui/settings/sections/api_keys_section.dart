@@ -4,6 +4,7 @@ import '../../../data/settings/api_key_entry.dart';
 import '../../../data/settings/settings_controller.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../theme/app_colors.dart';
+import '../../widgets/confirm_dialog.dart';
 import '../../widgets/floating_window.dart';
 import '../settings_page.dart';
 import 'add_api_key_dialog.dart';
@@ -166,66 +167,19 @@ class _ApiKeyListTile extends StatefulWidget {
 class _ApiKeyListTileState extends State<_ApiKeyListTile> {
   bool _hovering = false;
 
-  void _confirmDelete(
+  Future<void> _confirmDelete(
     BuildContext context,
     ApiKeyEntry entry,
     VoidCallback onConfirm,
-  ) {
+  ) async {
     final l10n = AppLocalizations.of(context)!;
-    late OverlayEntry confirmEntry;
-    confirmEntry = OverlayEntry(
-      builder: (ctx) => FloatingWindow(
-        title: l10n.apiKeyConfirmDelete,
-        titleIcon: Icons.warning_amber_rounded,
-        width: 400,
-        height: 200,
-        onClose: () => confirmEntry.remove(),
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            children: [
-              Icon(
-                Icons.delete_outline_rounded,
-                size: 32,
-                color: Theme.of(ctx).extension<AppColors>()!.danger,
-              ),
-              const SizedBox(height: 12),
-              Text(
-                l10n.apiKeyConfirmDeleteDesc,
-                style: TextStyle(
-                  fontSize: 13,
-                  color: Theme.of(ctx).extension<AppColors>()!.textSecondary,
-                ),
-              ),
-              const Spacer(),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    onPressed: () => confirmEntry.remove(),
-                    child: Text(l10n.settingsCancel),
-                  ),
-                  const SizedBox(width: 8),
-                  FilledButton(
-                    style: FilledButton.styleFrom(
-                      backgroundColor: Theme.of(
-                        ctx,
-                      ).extension<AppColors>()!.danger,
-                    ),
-                    onPressed: () {
-                      confirmEntry.remove();
-                      onConfirm();
-                    },
-                    child: Text(l10n.apiKeyConfirmDelete.split('?')[0]),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
+    final confirmed = await showConfirmDialog(
+      context,
+      title: l10n.apiKeyConfirmDelete,
+      body: l10n.apiKeyConfirmDeleteDesc,
+      confirmLabel: l10n.apiKeyConfirmDelete.split('?')[0],
     );
-    Overlay.of(context).insert(confirmEntry);
+    if (confirmed) onConfirm();
   }
 
   @override

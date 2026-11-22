@@ -5,7 +5,7 @@ import '../../../data/ai/letta_cli_service.dart';
 import '../../../data/background_tasks.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../theme/app_colors.dart';
-import '../../widgets/floating_window.dart';
+import '../../widgets/confirm_dialog.dart';
 import '../settings_page.dart';
 import '../widgets/settings_tile.dart';
 
@@ -124,63 +124,15 @@ class _AiCopilotSectionState extends State<AiCopilotSection> {
 
   // ── One-click Letta data wipe ─────────────────────────────────────────────
 
-  void _confirmDeleteLettaData(BuildContext context) {
+  Future<void> _confirmDeleteLettaData(BuildContext context) async {
     final l10n = AppLocalizations.of(context)!;
-    late OverlayEntry confirmEntry;
-    confirmEntry = OverlayEntry(
-      builder: (ctx) =>
-          FloatingWindow(
-            title: l10n.aiDeleteLettaData,
-            titleIcon: Icons.warning_amber_rounded,
-            width: 400,
-            height: 210,
-            onClose: () => confirmEntry.remove(),
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                children: [
-                  Icon(
-                    Icons.delete_outline_rounded,
-                    size: 32,
-                    color: Theme.of(ctx).extension<AppColors>()!.danger,
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    l10n.aiDeleteLettaDataDesc,
-                    style: TextStyle(
-                      fontSize: 12.5,
-                      color: Theme.of(ctx).extension<AppColors>()!
-                          .textSecondary,
-                    ),
-                  ),
-                  const Spacer(),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      TextButton(
-                        onPressed: () => confirmEntry.remove(),
-                        child: Text(l10n.settingsCancel),
-                      ),
-                      const SizedBox(width: 8),
-                      FilledButton(
-                        style: FilledButton.styleFrom(
-                          backgroundColor:
-                          Theme.of(ctx).extension<AppColors>()!.danger,
-                        ),
-                        onPressed: () {
-                          confirmEntry.remove();
-                          _deleteLettaData();
-                        },
-                        child: Text(l10n.aiDeleteLettaData),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
+    final confirmed = await showConfirmDialog(
+      context,
+      title: l10n.aiDeleteLettaData,
+      body: l10n.aiDeleteLettaDataDesc,
+      confirmLabel: l10n.aiDeleteLettaData,
     );
-    Overlay.of(context).insert(confirmEntry);
+    if (confirmed) _deleteLettaData();
   }
 
   Future<void> _deleteLettaData() async {
@@ -349,54 +301,15 @@ class _AiCopilotSectionState extends State<AiCopilotSection> {
     );
   }
 
-  void _confirmUninstall(BuildContext context) {
+  Future<void> _confirmUninstall(BuildContext context) async {
     final l10n = AppLocalizations.of(context)!;
-    final colors = Theme.of(context).extension<AppColors>()!;
-    late OverlayEntry entry;
-    entry = OverlayEntry(
-      builder: (ctx) =>
-          FloatingWindow(
-            title: l10n.aiLettaUninstallConfirmTitle,
-            titleIcon: Icons.warning_amber_rounded,
-            width: 420,
-            height: 210,
-            onClose: () => entry.remove(),
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                children: [
-                  Icon(Icons.delete_outline_rounded,
-                      size: 32, color: colors.danger),
-                  const SizedBox(height: 12),
-                  Text(
-                    l10n.aiLettaUninstallConfirmDesc,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                        fontSize: 12.5, color: colors.textSecondary),
-                  ),
-                  const Spacer(),
-                  Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-                    TextButton(
-                      onPressed: () => entry.remove(),
-                      child: Text(l10n.settingsCancel),
-                    ),
-                    const SizedBox(width: 8),
-                    FilledButton(
-                      style:
-                      FilledButton.styleFrom(backgroundColor: colors.danger),
-                      onPressed: () {
-                        entry.remove();
-                        _uninstall();
-                      },
-                      child: Text(l10n.aiLettaUninstall),
-                    ),
-                  ]),
-                ],
-              ),
-            ),
-          ),
+    final confirmed = await showConfirmDialog(
+      context,
+      title: l10n.aiLettaUninstallConfirmTitle,
+      body: l10n.aiLettaUninstallConfirmDesc,
+      confirmLabel: l10n.aiLettaUninstall,
     );
-    Overlay.of(context).insert(entry);
+    if (confirmed) _uninstall();
   }
 }
 

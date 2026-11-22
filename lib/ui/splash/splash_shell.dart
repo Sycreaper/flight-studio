@@ -18,6 +18,11 @@ import '../theme/app_colors.dart';
 /// in main.dart and grows back to the working size when the splash ends).
 const kSplashWindowSize = Size(600, 372);
 
+/// Whether the splash is currently showing. The app shell listens so the
+/// custom caption controls can hide the maximize button while the window is
+/// size-locked (programmatic maximize bypasses `setResizable(false)`).
+final ValueNotifier<bool> splashActive = ValueNotifier(false);
+
 /// Startup splash — a small full-screen surface: "Flight Studio" top-left in
 /// dark red-brown over a warm-yellow shadow block, the real app logo (the
 /// same SVG as the welcome drawer, launcher icons and About page) centred,
@@ -57,6 +62,7 @@ class _SplashShellState extends State<SplashShell> {
   @override
   void initState() {
     super.initState();
+    splashActive.value = true;
     _scanDue = isNavdataScanDue(
       widget.settings.value.splashScanMode,
       widget.settings.value.lastNavdataScanAt,
@@ -138,6 +144,8 @@ class _SplashShellState extends State<SplashShell> {
   void _navigate() {
     if (!mounted || _navigated) return;
     _navigated = true;
+    // Release the splash lock: caption controls may show maximize again.
+    splashActive.value = false;
     // Grow the locked splash window back to the working size (and re-enable
     // resizing) before the welcome screen appears.
     if (!kIsWeb) {

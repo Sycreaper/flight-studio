@@ -12,7 +12,11 @@ const double kCaptionWidth = 46 * 3;
 /// drawn with native-looking glyphs. Theme-aware so it works in both dark and
 /// light themes. The close button turns red on hover (Windows behaviour).
 class WindowCaptionControls extends StatefulWidget {
-  const WindowCaptionControls({super.key});
+  const WindowCaptionControls({super.key, this.hideMaximize = false});
+
+  /// Hides the maximize/restore button (e.g. during the splash, when the
+  /// window is size-locked). Minimize and close stay available.
+  final bool hideMaximize;
 
   @override
   State<WindowCaptionControls> createState() => _WindowCaptionControlsState();
@@ -57,17 +61,18 @@ class _WindowCaptionControlsState extends State<WindowCaptionControls>
             glyph: _CaptionGlyph.minimize,
             onPressed: () => windowManager.minimize(),
           ),
-          _CaptionButton(
-            glyph:
-                _maximized ? _CaptionGlyph.restore : _CaptionGlyph.maximize,
-            onPressed: () async {
-              if (await windowManager.isMaximized()) {
-                windowManager.unmaximize();
-              } else {
-                windowManager.maximize();
-              }
-            },
-          ),
+          if (!widget.hideMaximize)
+            _CaptionButton(
+              glyph:
+                  _maximized ? _CaptionGlyph.restore : _CaptionGlyph.maximize,
+              onPressed: () async {
+                if (await windowManager.isMaximized()) {
+                  windowManager.unmaximize();
+                } else {
+                  windowManager.maximize();
+                }
+              },
+            ),
           _CaptionButton(
             glyph: _CaptionGlyph.close,
             isClose: true,
