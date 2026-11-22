@@ -39,6 +39,7 @@ class PendingApproval {
     required this.input,
     this.autoAllowed = false,
     this.autoDenied = false,
+    this.auditOutcome,
   });
 
   final String id;
@@ -46,6 +47,13 @@ class PendingApproval {
   final Map<String, dynamic> input;
   final bool autoAllowed;
   final bool autoDenied;
+
+  /// Outcome from the gateway's approval audit trail, for cards restored
+  /// from history: 'approved' | 'denied' | 'denied-timeout' |
+  /// 'auto-allowed' | 'policy-denied' | 'fail-closed' | … Null when no
+  /// audit record matched (pre-audit history) — renders as the neutral
+  /// ended marker.
+  final String? auditOutcome;
 }
 
 /// One chat bubble. [done] is `false` while an assistant reply is still
@@ -446,9 +454,35 @@ class ChatSession extends ChangeNotifier {
       return;
     }
     if (messages.isNotEmpty) return;
+    // The gateway's approval audit trail (newest first) reversed into
+    // chronological order; tool-call rows are matched against it in order
+    // so restored cards show the REAL decision instead of the neutral
+    // ended marker.
+    final auditNewestFirst =
+        await GatewayClient.instance.fetchApprovalAudit(
+          conversationId: conversationId,
+        ) ?? const <Map<String, dynamic>>[];
+    final auditChrono = auditNewestFirst.reversed.toList();
+    var auditPos = 0;
     final hydrated = <ChatMessage>[];
     for (var i = 0; i < history.length; i++) {
-      final message = messageFromHistoryRow(history[i], id: 'hist_$i');
+      String? auditOutcome;
+      if (history[i].role == 'tool_call') {
+        final rowTool = _bareName(history[i].tool ?? '');
+        for (var j = auditPos; j < auditChrono.length; j++) {
+          if (_bareName('${auditChrono[j]['tool'] ?? ''}') == rowTool) {
+            auditOutcome = '${auditChrono[j]['outcome'] ?? ''}';
+            if (auditOutcome.isEmpty) auditOutcome = null;
+            auditPos = j + 1;
+            break;
+          }
+        }
+      }
+      final message = messageFromHistoryRow(
+        history[i],
+        id: 'hist_$i',
+        auditOutcome: auditOutcome,
+      );
       if (message != null) hydrated.add(message);
     }
     if (hydrated.isEmpty) return;
@@ -456,15 +490,24 @@ class ChatSession extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// MCP-qualified or bare tool name reduced to its bare form (suffix after
+  /// the last `__` of an `mcp__server__tool` qualifier).
+  static String _bareName(String raw) {
+    if (!raw.toLowerCase().startsWith('mcp__')) return raw;
+    final parts = raw.split('__');
+    return parts.length >= 3 ? parts.sublist(2).join('__') : raw;
+  }
+
   /// Maps one official-history row to a transcript message: tool-call rows
-  /// become resolved permission cards at their original position (no
-  /// outcome is restored — the backend history carries no approval
-  /// records, so they render as neutral ended markers); text rows become
-  /// regular bubbles. Visible for testing.
+  /// become resolved permission cards at their original position; text rows
+  /// become regular bubbles. [auditOutcome] (from the gateway's approval
+  /// audit trail, matched in order) restores the real decision — null
+  /// renders the neutral ended marker. Visible for testing.
   @visibleForTesting
   static ChatMessage? messageFromHistoryRow(
     HistoryRow row, {
     required String id,
+    String? auditOutcome,
   }) {
     if (row.role == 'tool_call' && row.tool != null) {
       return ChatMessage(
@@ -474,10 +517,13 @@ class ChatSession extends ChangeNotifier {
           id: id,
           tool: row.tool!,
           input: row.input ?? const {},
+          auditOutcome: auditOutcome,
         ),
       )
         ..approvalResolved = true
-        ..approvalOutcomeKnown = false;
+        ..approvalApproved = const ['approved', 'auto-allowed', 'silent-allowed']
+            .contains(auditOutcome)
+        ..approvalOutcomeKnown = auditOutcome != null;
     }
     if (row.content.trim().isEmpty) return null;
     return ChatMessage(
@@ -504,6 +550,15 @@ class ChatSession extends ChangeNotifier {
 /// Letta's official conversations API. The manager also owns ONE SSE
 /// subscription to the gateway and dispatches each event to the session
 /// matching its `conversationId` — sessions never subscribe individually.
+/// A pending "jump to context" request raised by the permission log:
+/// scroll the chat tab of [conversationId] to the exchange whose user
+/// turn starts with [excerpt] (the audited tool call's context anchor).
+typedef AuditRevealRequest = ({
+  String conversationId,
+  String excerpt,
+  String tool,
+});
+
 class ChatSessionManager extends ChangeNotifier {
   ChatSessionManager._();
 
@@ -511,6 +566,25 @@ class ChatSessionManager extends ChangeNotifier {
 
   /// Conversations of the flight assistant, newest activity first (official API).
   final List<GatewayConversation> conversations = [];
+
+  /// Pending permission-log jump request; the matching ChatTabView
+  /// consumes (and clears) it after scrolling.
+  final ValueNotifier<AuditRevealRequest?> auditRevealRequest =
+      ValueNotifier(null);
+
+  /// Asks the chat tab of [conversationId] to scroll to the exchange that
+  /// triggered [tool] (anchored by the turn's user-text [excerpt]).
+  void requestAuditReveal(
+    String conversationId,
+    String excerpt,
+    String tool,
+  ) {
+    auditRevealRequest.value = (
+      conversationId: conversationId,
+      excerpt: excerpt,
+      tool: tool,
+    );
+  }
 
   /// Session owning the live turn (null while idle) — the fallback target
   /// for SSE events that carry no conversation tag.

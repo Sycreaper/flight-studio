@@ -309,6 +309,30 @@ class GatewayClient {
       return null;
     }
   }
+  /// The approval audit trail from the gateway, newest first — optionally
+  /// scoped to one conversation. Returns null when the gateway is
+  /// unreachable; an empty list when no decision has been settled yet.
+  Future<List<Map<String, dynamic>>?> fetchApprovalAudit({
+    String? conversationId,
+  }) async {
+    try {
+      final res = await _dio.get<Map<String, dynamic>>(
+        '$baseUrl/agent/approvals/audit',
+        queryParameters: {
+          if (conversationId != null && conversationId.isNotEmpty)
+            'conversationId': conversationId,
+        },
+      );
+      final entries = res.data?['entries'];
+      if (entries is! List) return const [];
+      return entries
+          .whereType<Map>()
+          .map((e) => Map<String, dynamic>.from(e))
+          .toList();
+    } on Exception catch (_) {
+      return null;
+    }
+  }
 }
 
 /// One row of the official conversation history: a user/assistant text

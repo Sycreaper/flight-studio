@@ -25,6 +25,10 @@ import {
     isMcpQualified,
     type SafetyLevel,
 } from "./safety_policy_guard.js";
+import {
+    appendApprovalAudit,
+    type ApprovalOutcome,
+} from "./approval_audit.js";
 import {log} from "./logger.js";
 
 /// A permission card that nobody answers blocks the turn this long.
@@ -33,6 +37,9 @@ export const ApprovalTimeoutMs = 300_000;
 export interface ApprovalPort {
     createApproval: (tool: string, input: unknown) => { id: string };
     waitForResolution: (id: string, timeoutMs: number) => Promise<boolean>;
+    /// Whether [id] is still unresolved (distinguishes a timeout from an
+    /// explicit user denial after waitForResolution settles false).
+    isPending: (id: string) => boolean;
 }
 
 export interface ApprovalBridgeDeps {
@@ -42,6 +49,9 @@ export interface ApprovalBridgeDeps {
     /// Conversation the live turn runs in (null = agent default);
     /// approval events are tagged with it so Flutter routes the card.
     activeConversationId(): string | null;
+    /// The user text that started the live turn (context anchor for the
+    /// approval audit; null between turns).
+    turnText(): string | null;
     approvals(): ApprovalPort | null;
     emit(event: Record<string, unknown>): void;
 }
@@ -50,6 +60,26 @@ export class ApprovalBridge {
     private autoSeq = 0;
 
     constructor(private readonly deps: ApprovalBridgeDeps) {}
+
+    /// Appends one settled decision to the approval audit trail
+    /// (best-effort; see approval_audit.ts).
+    private audit(
+        tool: string,
+        input: Record<string, unknown>,
+        outcome: ApprovalOutcome,
+        granted: SafetyLevel,
+        reason: string,
+    ): void {
+        void appendApprovalAudit({
+            conversationId: this.deps.activeConversationId(),
+            tool,
+            input,
+            outcome,
+            grantedLevel: granted,
+            reason,
+            turnExcerpt: this.deps.turnText(),
+        });
+    }
 
     /// Official canUseTool bridge: emit `approval_request` on SSE, wait
     /// for the Flutter card (or timeout → deny). Unknown/hanging
@@ -65,6 +95,9 @@ export class ApprovalBridge {
         if (!guard.allowed) {
             log.warn(
                 "approval", "denied by safety policy:", guard.reason,
+            );
+            this.audit(
+                toolName, toolInput, "policy-denied", granted, guard.reason,
             );
             // EVERY MCP call is recorded — even a policy denial surfaces
             // as an already-resolved (denied) card in the transcript.
@@ -85,6 +118,13 @@ export class ApprovalBridge {
         // Skills run silently — no card, no record.
         if (guard.silent) {
             log.info("approval", "skill allowed:", toolName);
+            this.audit(
+                toolName,
+                toolInput,
+                "silent-allowed",
+                granted,
+                "skill usage — always allowed",
+            );
             return {
                 behavior: "allow",
                 message: "skill usage — always allowed",
@@ -95,6 +135,9 @@ export class ApprovalBridge {
         // in the transcript at the tool-call position.
         if (guard.autoAllowed) {
             const conversationId = this.deps.activeConversationId();
+            this.audit(
+                toolName, toolInput, "auto-allowed", granted, guard.reason,
+            );
             this.deps.emit({
                 type: "approval_auto",
                 id: `auto_${Date.now()}_${++this.autoSeq}`,
@@ -114,6 +157,13 @@ export class ApprovalBridge {
                 "approval",
                 "no approval controller wired — failing closed for tool:",
                 toolName,
+            );
+            this.audit(
+                toolName,
+                toolInput,
+                "fail-closed",
+                granted,
+                "no approval UI available",
             );
             return {
                 behavior: "deny",
@@ -141,6 +191,21 @@ export class ApprovalBridge {
             ApprovalTimeoutMs,
         );
         log.info("approval", "resolved", req.id, "→", approved ? "allow" : "deny");
+        // A false resolution is either an explicit user Deny or the 300 s
+        // timeout — the request still sitting in the pending list (nothing
+        // resolved it) distinguishes the timeout.
+        const timedOut = !approved && approvals.isPending(req.id);
+        this.audit(
+            toolName,
+            toolInput,
+            timedOut ? "denied-timeout" : approved ? "approved" : "denied",
+            granted,
+            timedOut
+                ? "no answer within the approval timeout"
+                : approved
+                    ? "approved by user"
+                    : "denied by user",
+        );
         this.deps.emit({
             type: "approval_resolved",
             id: req.id,

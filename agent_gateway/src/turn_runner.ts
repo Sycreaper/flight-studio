@@ -34,6 +34,8 @@ export class TurnRunner {
     /// Conversation the live turn runs in (null = agent default).
     private activeConversationId: string | null = null;
     private turnAiLevel: number | null = null;
+    /// The user text that started the live turn (audit context anchor).
+    private turnText: string | null = null;
     /// Live turn session (for real aborts).
     private activeSession: { abort(): Promise<void> } | null = null;
 
@@ -49,6 +51,10 @@ export class TurnRunner {
 
     get liveAiLevel(): number | null {
         return this.turnAiLevel;
+    }
+
+    get liveTurnText(): string | null {
+        return this.turnText;
     }
 
     /// Maps OFFICIAL SDK loop-status strings (e.g.
@@ -87,6 +93,7 @@ export class TurnRunner {
         this.deps.setTurnAiLevel(aiLevel ?? null);
         this.turnAiLevel = aiLevel ?? null;
         this.activeConversationId = conversationId ?? null;
+        this.turnText = text;
         const emitTurn = (event: Record<string, unknown>) => {
             if (this.activeConversationId != null) {
                 this.deps.emit({

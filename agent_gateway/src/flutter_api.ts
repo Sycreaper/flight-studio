@@ -1,6 +1,7 @@
 import type {FastifyInstance} from "fastify";
 import type {ApprovalController, SessionController} from "./session_controller.js";
 import type {GatewayEvent, LettaRuntime} from "./letta_runtime.js";
+import {readApprovalAudit} from "./approval_audit.js";
 import {log} from "./logger.js";
 
 /// Registers the Flutter-facing API surface:
@@ -124,6 +125,25 @@ export function registerFlutterApi(
     app.get("/agent/approvals", async () => ({
         approvals: approvals.list(),
     }));
+
+    /// The approval audit trail (approval-audit.jsonl), newest first —
+    /// optionally scoped to one conversation. `entries: null` means no
+    /// decision has been settled yet (no audit file exists).
+    app.get<{ Querystring: { conversationId?: string; limit?: string } }>(
+        "/agent/approvals/audit",
+        async (request) => {
+            const conversationId =
+                request.query?.conversationId?.trim() || undefined;
+            const limitRaw = Number.parseInt(request.query?.limit ?? "", 10);
+            const entries = await readApprovalAudit({
+                conversationId,
+                limit: Number.isInteger(limitRaw) && limitRaw > 0
+                    ? Math.min(limitRaw, 1000)
+                    : 500,
+            });
+            return {entries};
+        },
+    );
 
     app.post<{ Params: { approvalId: string }; Body: { approve?: boolean } }>(
         "/agent/approval/:approvalId",

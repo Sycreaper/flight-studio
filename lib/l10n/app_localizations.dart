@@ -254,6 +254,84 @@ abstract class AppLocalizations {
   /// **'Export conversation'**
   String get conversationExport;
 
+  /// No description provided for @conversationApprovalLog.
+  ///
+  /// In en, this message translates to:
+  /// **'Permission log'**
+  String get conversationApprovalLog;
+
+  /// No description provided for @approvalLogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Permission log'**
+  String get approvalLogTitle;
+
+  /// No description provided for @approvalLogEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No tool-permission decisions in this conversation yet'**
+  String get approvalLogEmpty;
+
+  /// No description provided for @approvalLogLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Permission log unavailable — is the gateway running?'**
+  String get approvalLogLoadFailed;
+
+  /// No description provided for @approvalOutcomeApproved.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved'**
+  String get approvalOutcomeApproved;
+
+  /// No description provided for @approvalOutcomeDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Denied'**
+  String get approvalOutcomeDenied;
+
+  /// No description provided for @approvalOutcomeDeniedTimeout.
+  ///
+  /// In en, this message translates to:
+  /// **'Denied (timeout)'**
+  String get approvalOutcomeDeniedTimeout;
+
+  /// No description provided for @approvalOutcomeAutoAllowed.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-allowed'**
+  String get approvalOutcomeAutoAllowed;
+
+  /// No description provided for @approvalOutcomePolicyDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Blocked by policy'**
+  String get approvalOutcomePolicyDenied;
+
+  /// No description provided for @approvalOutcomeSilentAllowed.
+  ///
+  /// In en, this message translates to:
+  /// **'Skill (always allowed)'**
+  String get approvalOutcomeSilentAllowed;
+
+  /// No description provided for @approvalOutcomeFailClosed.
+  ///
+  /// In en, this message translates to:
+  /// **'Fail-closed'**
+  String get approvalOutcomeFailClosed;
+
+  /// No description provided for @approvalRevealTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Jump to context'**
+  String get approvalRevealTooltip;
+
+  /// No description provided for @approvalLevelTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Access level granted for this turn: {level}'**
+  String approvalLevelTooltip(Object level);
+
   /// No description provided for @conversationExportUser.
   ///
   /// In en, this message translates to:

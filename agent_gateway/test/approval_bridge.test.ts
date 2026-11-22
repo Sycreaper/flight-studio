@@ -10,6 +10,7 @@ import type {ApprovalPort} from "../src/approval_bridge.js";
 class FakeDeps implements ApprovalBridgeDeps {
     level: number | null = 1;
     conversationId: string | null = null;
+    turn: string | null = null;
     port: ApprovalPort | null = null;
     readonly emitted: Array<Record<string, unknown>> = [];
 
@@ -19,6 +20,10 @@ class FakeDeps implements ApprovalBridgeDeps {
 
     activeConversationId(): string | null {
         return this.conversationId;
+    }
+
+    turnText(): string | null {
+        return this.turn;
     }
 
     approvals(): ApprovalPort | null {
@@ -36,6 +41,7 @@ function instantPort(approved: boolean): ApprovalPort {
         createApproval: (tool: string, _input: unknown) =>
             ({id: `approval_${tool}`}),
         waitForResolution: async () => approved,
+        isPending: () => false,
     };
 }
 

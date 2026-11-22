@@ -88,6 +88,49 @@ class AppLocalizationsEn extends AppLocalizations {
   String get conversationExport => 'Export conversation';
 
   @override
+  String get conversationApprovalLog => 'Permission log';
+
+  @override
+  String get approvalLogTitle => 'Permission log';
+
+  @override
+  String get approvalLogEmpty =>
+      'No tool-permission decisions in this conversation yet';
+
+  @override
+  String get approvalLogLoadFailed =>
+      'Permission log unavailable — is the gateway running?';
+
+  @override
+  String get approvalOutcomeApproved => 'Approved';
+
+  @override
+  String get approvalOutcomeDenied => 'Denied';
+
+  @override
+  String get approvalOutcomeDeniedTimeout => 'Denied (timeout)';
+
+  @override
+  String get approvalOutcomeAutoAllowed => 'Auto-allowed';
+
+  @override
+  String get approvalOutcomePolicyDenied => 'Blocked by policy';
+
+  @override
+  String get approvalOutcomeSilentAllowed => 'Skill (always allowed)';
+
+  @override
+  String get approvalOutcomeFailClosed => 'Fail-closed';
+
+  @override
+  String get approvalRevealTooltip => 'Jump to context';
+
+  @override
+  String approvalLevelTooltip(Object level) {
+    return 'Access level granted for this turn: $level';
+  }
+
+  @override
   String get conversationExportUser => 'User';
 
   @override

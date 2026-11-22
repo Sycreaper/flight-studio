@@ -40,6 +40,9 @@ class _ChatTabViewState extends State<ChatTabView> {
   final _historyController = ScrollController();
   late final ChatSession session;
 
+  /// Pending permission-log jump (consumed after the next frame's build).
+  AuditRevealRequest? _pendingReveal;
+
   @override
   void initState() {
     super.initState();
@@ -50,6 +53,8 @@ class _ChatTabViewState extends State<ChatTabView> {
     bound ??= manager.sessionByKey(manager.newChat());
     session = bound!;
     session.addListener(_onSessionChanged);
+    manager.auditRevealRequest.addListener(_onRevealRequest);
+    _onRevealRequest(); // Consume a request raised before this tab existed.
     // Hydrate the conversation from Letta's official history API (no-op
     // when already loaded, a draft, or running in tests).
     session.loadHistory();
@@ -57,10 +62,60 @@ class _ChatTabViewState extends State<ChatTabView> {
 
   @override
   void dispose() {
+    ChatSessionManager.instance.auditRevealRequest.removeListener(
+      _onRevealRequest,
+    );
     session.removeListener(_onSessionChanged);
     _prompt.dispose();
     _historyController.dispose();
     super.dispose();
+  }
+
+  /// Claims a pending permission-log jump when it targets THIS tab's
+  /// conversation.
+  void _onRevealRequest() {
+    final request = ChatSessionManager.instance.auditRevealRequest.value;
+    if (request == null) return;
+    if (request.conversationId != session.conversationId) return;
+    ChatSessionManager.instance.auditRevealRequest.value = null;
+    _pendingReveal = request;
+    if (mounted) setState(() {});
+  }
+
+  /// Scrolls to the user message whose turn triggered the audited call.
+  /// The excerpt anchor is whitespace-folded and the trailing ellipsis is
+  /// dropped before a prefix compare against the stored user texts.
+  void _scrollToReveal() {
+    final request = _pendingReveal;
+    _pendingReveal = null;
+    if (request == null) return;
+    String fold(String s) => s
+        .replaceAll('…', '')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim()
+        .toLowerCase();
+    final anchor = fold(request.excerpt);
+    if (anchor.isEmpty) return;
+    for (var i = 0; i < session.messages.length; i++) {
+      final m = session.messages[i];
+      if (m.role != ChatRole.user || m.approval != null) continue;
+      final text = fold(m.content);
+      if (text.isEmpty) continue;
+      if (text.startsWith(anchor.substring(
+            0,
+            anchor.length < 16 ? anchor.length : 16,
+          )) ||
+          anchor.startsWith(text.substring(
+            0,
+            text.length < 16 ? text.length : 16,
+          ))) {
+        final ctx = GlobalObjectKey(
+          'msg_${widget.sessionKey}_$i',
+        ).currentContext;
+        Scrollable.ensureVisible(ctx!, alignment: 0.35);
+        return;
+      }
+    }
   }
 
   /// Keep the latest message visible while streaming.
@@ -73,8 +128,59 @@ class _ChatTabViewState extends State<ChatTabView> {
     setState(() {});
   }
 
+  /// Builds one transcript row: permission rows render as embedded
+  /// approval cards (spanning the reply-text width budget), everything
+  /// else is a bubble with the streaming cursor on the live one.
+  Widget _buildMessageItem(
+    BuildContext context,
+    ChatSession session,
+    ChatMessage m,
+    int i,
+  ) {
+    if (m.approval != null) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Align(
+          alignment: Alignment.centerLeft,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: MediaQuery.sizeOf(context).width * 0.6,
+            ),
+            child: _ApprovalTile(message: m, onAnswer: session.answerApproval),
+          ),
+        ),
+      );
+    }
+    // The streaming cursor lives on the LAST real assistant message —
+    // permission rows appended after it never take the cursor.
+    var streamingIndex = -1;
+    if (session.isStreaming) {
+      for (var k = session.messages.length - 1; k >= 0; k--) {
+        final c = session.messages[k];
+        if (c.role == ChatRole.assistant && c.approval == null) {
+          streamingIndex = k;
+          break;
+        }
+      }
+    }
+    final streaming = i == streamingIndex;
+    return _Bubble(
+      role: m.role,
+      content: streaming ? '${m.content} ▍' : m.content,
+      // The status row stays while the turn is live — including pauses
+      // between streamed segments (tool calls, reasoning) — and disappears
+      // on turn_done/error.
+      thinking: streaming,
+      sessionPhase: session.phase,
+      phaseDetail: session.phaseDetail,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (_pendingReveal != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToReveal());
+    }
     return CenterCard(
       child: ListenableBuilder(
         listenable: session,
@@ -96,60 +202,14 @@ class _ChatTabViewState extends State<ChatTabView> {
                         itemCount: session.messages.length,
                         itemBuilder: (context, i) {
                           final m = session.messages[i];
-                          // Permission rows render as embedded approval
-                          // cards (collapsed once answered). They span the
-                          // SAME width budget as the assistant bubbles —
-                          // the AI reply text area, not the whole tab.
-                          if (m.approval != null) {
-                            return Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(vertical: 4),
-                              child: Align(
-                                alignment: Alignment.centerLeft,
-                                child: ConstrainedBox(
-                                  constraints: BoxConstraints(
-                                    maxWidth:
-                                        MediaQuery
-                                            .sizeOf(context)
-                                            .width *
-                                        0.6,
-                                  ),
-                                  child: _ApprovalTile(
-                                    message: m,
-                                    onAnswer: session.answerApproval,
-                                  ),
-                                ),
-                              ),
-                            );
-                          }
-                          // The streaming cursor lives on the LAST real
-                          // assistant message — permission rows appended
-                          // after it never take the cursor.
-                          var streamingIndex = -1;
-                          if (session.isStreaming) {
-                            for (var k = session.messages.length - 1;
-                                k >= 0;
-                                k--) {
-                              final c = session.messages[k];
-                              if (c.role == ChatRole.assistant &&
-                                  c.approval == null) {
-                                streamingIndex = k;
-                                break;
-                              }
-                            }
-                          }
-                          final streaming = i == streamingIndex;
-                          return _Bubble(
-                            role: m.role,
-                            content:
-                            streaming ? '${m.content} ▍' : m.content,
-                            // The status row stays while the turn is live —
-                            // including pauses between streamed segments
-                            // (tool calls, reasoning) — and disappears on
-                            // turn_done/error.
-                            thinking: streaming,
-                            sessionPhase: session.phase,
-                            phaseDetail: session.phaseDetail,
+                          final item = _buildMessageItem(context, session, m, i);
+                          // Stable object keys let the permission-log jump
+                          // ensureVisible any row by index.
+                          return KeyedSubtree(
+                            key: GlobalObjectKey(
+                              'msg_${widget.sessionKey}_$i',
+                            ),
+                            child: item,
                           );
                         },
                       ),
@@ -260,7 +320,13 @@ class _Bubble extends StatelessWidget {
               )
             else
               if (display.isNotEmpty && display != ' ▍')
-                ..._buildAssistantSegments(context, display),
+                ..._buildAssistantSegments(
+                  context,
+                  display,
+                  // A trailing cursor means the turn is still streaming —
+                  // the active think block stays expanded until it closes.
+                  streaming: display.endsWith('▍'),
+                ),
             if (thinking)
               Padding(
                 padding: EdgeInsets.only(
@@ -278,9 +344,14 @@ class _Bubble extends StatelessWidget {
 
   /// Splits assistant text into markdown segments and collapsible think
   /// blocks (`<think>…</think>`, `<thinking>…</thinking>`, and an unclosed
-  /// trailing `<think>` while streaming).
-  static List<Widget> _buildAssistantSegments(BuildContext context,
-      String display,) {
+  /// trailing `<think>` while streaming). While streaming, the ACTIVE
+  /// (last, unclosed) think block auto-expands; once the turn completes it
+  /// auto-collapses again.
+  static List<Widget> _buildAssistantSegments(
+    BuildContext context,
+    String display, {
+    bool streaming = false,
+  }) {
     final colors = Theme.of(context).extension<AppColors>()!;
     final style = TextStyle(fontSize: 12.5, color: colors.textPrimary);
     final segments = <Widget>[];
@@ -289,15 +360,25 @@ class _Bubble extends StatelessWidget {
       r'<think(?:ing)?>([\s\S]*?)(?:</think(?:ing)?>|\s*▍$|$)',
       caseSensitive: false,
     );
+    final matches = thinkRegex.allMatches(display).toList();
     var lastEnd = 0;
-    for (final match in thinkRegex.allMatches(display)) {
+    for (var i = 0; i < matches.length; i++) {
+      final match = matches[i];
       final before = display.substring(lastEnd, match.start);
       if (before
           .trim()
           .isNotEmpty) {
         segments.add(SelectionArea(child: GptMarkdown(before, style: style)));
       }
-      segments.add(_ThinkBlock(body: match.group(1)?.trim() ?? ''));
+      // The active block: the last one while a turn is still streaming AND
+      // its closing tag hasn't arrived (the regex then matched through
+      // end-of-input / the cursor instead of a `</think>`).
+      final unclosed =
+          !(match.group(0) ?? '').toLowerCase().contains('</think');
+      final active = streaming && i == matches.length - 1 && unclosed;
+      segments.add(
+        _ThinkBlock(body: match.group(1)?.trim() ?? '', autoExpanded: active),
+      );
       lastEnd = match.end;
     }
     final tail = display.substring(lastEnd);
@@ -317,11 +398,16 @@ class _Bubble extends StatelessWidget {
 }
 
 /// A folded `<think>` block: collapsed to a one-line toggle by default,
-/// expands to the raw reasoning text in a subdued monospace block.
+/// expands to the raw reasoning text in a subdued monospace block. While
+/// [autoExpanded] is true (the live streaming block) it expands on its
+/// own; when it flips false (the closing tag arrived / the turn finished)
+/// it collapses again. A manual tap always wins until the auto state
+/// changes.
 class _ThinkBlock extends StatefulWidget {
-  const _ThinkBlock({required this.body});
+  const _ThinkBlock({required this.body, this.autoExpanded = false});
 
   final String body;
+  final bool autoExpanded;
 
   @override
   State<_ThinkBlock> createState() => _ThinkBlockState();
@@ -329,6 +415,16 @@ class _ThinkBlock extends StatefulWidget {
 
 class _ThinkBlockState extends State<_ThinkBlock> {
   bool _expanded = false;
+
+  @override
+  void didUpdateWidget(covariant _ThinkBlock oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Follow the auto state only on TRANSITIONS, so a manual toggle during
+    // streaming is respected until the block closes.
+    if (widget.autoExpanded != oldWidget.autoExpanded) {
+      setState(() => _expanded = widget.autoExpanded);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -528,6 +624,58 @@ class _ApprovalTile extends StatelessWidget {
     // (e.g. `ZSPD`), mirroring the live permission card.
     final displayName = toolDisplayName(approval.tool, l10n);
     final keyParams = toolKeyParams(approval.tool, approval.input);
+    // Restored cards with an audit outcome show the REAL decision.
+    final audit = approval.auditOutcome;
+    final auditOk = const ['approved', 'auto-allowed', 'silent-allowed']
+        .contains(audit);
+    final label = audit != null
+        ? switch (audit) {
+            'approved' => l10n.approvalOutcomeApproved,
+            'auto-allowed' => l10n.approvalOutcomeAutoAllowed,
+            'silent-allowed' => l10n.approvalOutcomeSilentAllowed,
+            'denied' => l10n.approvalOutcomeDenied,
+            'denied-timeout' => l10n.approvalOutcomeDeniedTimeout,
+            'policy-denied' => l10n.approvalOutcomePolicyDenied,
+            'fail-closed' => l10n.approvalOutcomeFailClosed,
+            _ => l10n.approvalRestored,
+          }
+        : autoDenied
+        ? l10n.approvalAutoDenied
+        : autoAllowed
+        ? l10n.approvalAutoAllowed
+        : !outcomeKnown
+        ? l10n.approvalRestored
+        : ok
+        ? l10n.approvalResolvedAllow
+        : l10n.approvalResolvedDeny;
+    final icon = audit != null
+        ? (auditOk
+              ? (audit == 'approved'
+                    ? Icons.check_circle_rounded
+                    : Icons.done_all_rounded)
+              : (audit == 'denied-timeout'
+                    ? Icons.timer_off_rounded
+                    : audit == 'policy-denied'
+                    ? Icons.block_rounded
+                    : audit == 'fail-closed'
+                    ? Icons.lock_rounded
+                    : Icons.cancel_rounded))
+        : autoDenied
+        ? Icons.cancel_rounded
+        : autoAllowed
+        ? Icons.done_all_rounded
+        : !outcomeKnown
+        ? Icons.history_rounded
+        : ok
+        ? Icons.check_circle_rounded
+        : Icons.cancel_rounded;
+    final iconColor = audit != null
+        ? (auditOk ? colors.success : colors.danger)
+        : outcomeKnown && !autoDenied
+        ? (ok ? colors.success : colors.danger)
+        : autoDenied
+        ? colors.danger
+        : colors.textSecondary;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
@@ -548,34 +696,14 @@ class _ApprovalTile extends StatelessWidget {
           Row(
             children: [
               Icon(
-                autoDenied
-                    ? Icons.cancel_rounded
-                    : autoAllowed
-                    ? Icons.done_all_rounded
-                    : !outcomeKnown
-                    ? Icons.history_rounded
-                    : ok
-                    ? Icons.check_circle_rounded
-                    : Icons.cancel_rounded,
+                icon,
                 size: 14,
-                color: outcomeKnown && !autoDenied
-                    ? (ok ? colors.success : colors.danger)
-                    : autoDenied
-                    ? colors.danger
-                    : colors.textSecondary,
+                color: iconColor,
               ),
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
-                  '${autoDenied
-                      ? l10n.approvalAutoDenied
-                      : autoAllowed
-                      ? l10n.approvalAutoAllowed
-                      : !outcomeKnown
-                      ? l10n.approvalRestored
-                      : ok
-                      ? l10n.approvalResolvedAllow
-                      : l10n.approvalResolvedDeny}'
+                  '$label'
                   ' · $displayName'
                   '${keyParams.isEmpty ? '' : ' ${keyParams.join(' · ')}'}',
                   maxLines: 1,

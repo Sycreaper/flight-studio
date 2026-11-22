@@ -25,6 +25,7 @@ import 'status_bar.dart';
 import 'tabs/app_tab.dart';
 import 'tabs/app_tab_bar.dart';
 import 'tabs/app_tab_controller.dart';
+import 'tabs/approval_log_tab_view.dart';
 import 'tabs/chat_tab_view.dart';
 import 'tabs/flight_plan_form_tab.dart';
 import 'tabs/map_tab_view.dart';
@@ -143,7 +144,8 @@ class AppShellState extends State<AppShell> {
 
   /// Closes chat tabs whose conversation was deleted from the drawer and
   /// mirrors summarized titles onto open chat tabs (titleOverride wins over
-  /// the descriptor's localized "New chat" default).
+  /// the descriptor's localized "New chat" default). The per-conversation
+  /// permission-log tabs get the same treatment.
   void _syncChatTabTitles() {
     if (!mounted) return;
     final manager = ChatSessionManager.instance;
@@ -159,6 +161,19 @@ class AppShellState extends State<AppShell> {
       }
       _tabController.renameChatTab(
         tab.chatSessionKey ?? tab.id,
+        manager.titleOf(conversationId),
+      );
+    }
+    for (final tab in _tabController.tabsOfType(TabIds.approvalLog)) {
+      final conversationId = tab.chatSessionKey;
+      if (conversationId == null) continue;
+      if (manager.isDeleted(conversationId)) {
+        _tabController.close(tab.id);
+        continue;
+      }
+      _tabController.renameTabBy(
+        TabIds.approvalLog,
+        conversationId,
         manager.titleOf(conversationId),
       );
     }
@@ -228,6 +243,20 @@ class AppShellState extends State<AppShell> {
               initialDataTab: widget.initialSettingsDataTab,
             ),
       ),
+    )..register(
+      TabDescriptor(
+        id: TabIds.approvalLog,
+        title: (l10n) => l10n.approvalLogTitle,
+        icon: Icons.verified_user_outlined,
+        showInNewTabMenu: false,
+        // One log tab per conversation (chatSessionKey carries the
+        // conversation id); the title overrides to the conversation's name.
+        createContent: (tab) => ApprovalLogTabView(
+          key: ValueKey('approval_log_${tab.chatSessionKey}'),
+          conversationId: tab.chatSessionKey!,
+          onRevealContext: _revealAuditContext,
+        ),
+      ),
     );
   }
 
@@ -241,9 +270,46 @@ class AppShellState extends State<AppShell> {
       onFlyTo: _flyTo,
       onCreateChat: _newChatTab,
       onOpenConversation: _openConversationTab,
+      onApprovalLog: _openApprovalLogTab,
     )) {
       _workspace.register(p);
     }
+  }
+
+  /// Opens (or focuses) the permission-log tab of one conversation; the
+  /// tab's title tracks the conversation's summarized name.
+  void _openApprovalLogTab(String conversationId) {
+    final manager = ChatSessionManager.instance;
+    final existing = _tabController.tabBy(
+      TabIds.approvalLog,
+      conversationId,
+    );
+    if (existing != null) {
+      _tabController.select(existing.id);
+    } else {
+      _tabController.add(TabIds.approvalLog, chatSessionKey: conversationId);
+    }
+    _tabController.renameTabBy(
+      TabIds.approvalLog,
+      conversationId,
+      // Untitled conversations fall back to the descriptor's localized
+      // "Permission log" title.
+      manager.titleOf(conversationId),
+    );
+  }
+
+  /// Permission-log "jump to context": opens (or focuses) the entry's
+  /// conversation tab and asks it to scroll to the exchange that triggered
+  /// the audited tool call.
+  void _revealAuditContext(Map<String, dynamic> entry) {
+    final conversationId = '${entry['conversationId'] ?? ''}';
+    if (conversationId.isEmpty) return;
+    _openConversationTab(conversationId);
+    ChatSessionManager.instance.requestAuditReveal(
+      conversationId,
+      '${entry['turnExcerpt'] ?? ''}',
+      '${entry['tool'] ?? ''}',
+    );
   }
 
   /// "New conversation" — opens a fresh chat tab (the Letta conversation is

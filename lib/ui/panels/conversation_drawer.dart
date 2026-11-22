@@ -25,6 +25,7 @@ class ConversationDrawer extends StatefulWidget {
     super.key,
     required this.onCreateChat,
     required this.onOpenConversation,
+    this.onApprovalLog,
   });
 
   /// Opens a new chat tab (a fresh draft conversation).
@@ -32,6 +33,9 @@ class ConversationDrawer extends StatefulWidget {
 
   /// Opens (or focuses) the chat tab of one conversation id.
   final ValueChanged<String> onOpenConversation;
+
+  /// Opens the permission-log tab of one conversation id.
+  final ValueChanged<String>? onApprovalLog;
 
   @override
   State<ConversationDrawer> createState() => _ConversationDrawerState();
@@ -114,6 +118,9 @@ class _ConversationDrawerState extends State<ConversationDrawer> {
                         widget.onOpenConversation(conversations[i].id),
                     onDelete: () => _confirmDelete(conversations[i].id),
                     onExport: () => _exportMarkdown(conversations[i].id),
+                    onApprovalLog: widget.onApprovalLog == null
+                        ? null
+                        : () => widget.onApprovalLog!(conversations[i].id),
                   ),
                 ),
         ),
@@ -204,12 +211,14 @@ class _ConversationRow extends StatefulWidget {
     required this.onOpen,
     required this.onDelete,
     required this.onExport,
+    this.onApprovalLog,
   });
 
   final GatewayConversation conversation;
   final VoidCallback onOpen;
   final VoidCallback onDelete;
   final VoidCallback onExport;
+  final VoidCallback? onApprovalLog;
 
   @override
   State<_ConversationRow> createState() => _ConversationRowState();
@@ -295,6 +304,7 @@ class _ConversationRowState extends State<_ConversationRow> {
                   onSelected: (value) {
                     if (value == 'delete') widget.onDelete();
                     if (value == 'export') widget.onExport();
+                    if (value == 'approvalLog') widget.onApprovalLog?.call();
                   },
                   itemBuilder: (context) => [
                     PopupMenuItem(
@@ -316,6 +326,26 @@ class _ConversationRowState extends State<_ConversationRow> {
                         ],
                       ),
                     ),
+                    if (widget.onApprovalLog != null)
+                      PopupMenuItem(
+                        value: 'approvalLog',
+                        height: 36,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.verified_user_outlined,
+                                size: 15, color: colors.accent),
+                            const SizedBox(width: 8),
+                            Text(
+                              l10n.conversationApprovalLog,
+                              style: TextStyle(
+                                fontSize: 12.5,
+                                color: colors.textPrimary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     PopupMenuItem(
                       value: 'delete',
                       height: 36,

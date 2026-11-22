@@ -21,6 +21,7 @@ List<DrawerPanelData> buildDefaultPanels({
   ValueChanged<LatLng>? onFlyTo,
   VoidCallback? onCreateChat,
   ValueChanged<String>? onOpenConversation,
+  ValueChanged<String>? onApprovalLog,
 }) {
   return [
     DrawerPanelData(
@@ -48,6 +49,7 @@ List<DrawerPanelData> buildDefaultPanels({
       content: (_) => ConversationDrawer(
         onCreateChat: onCreateChat ?? () {},
         onOpenConversation: onOpenConversation ?? (_) {},
+        onApprovalLog: onApprovalLog ?? (_) {},
       ),
     ),
     DrawerPanelData(

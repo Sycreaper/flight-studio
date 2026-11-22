@@ -12,6 +12,7 @@ abstract final class TabIds {
   static const String flightPlan = 'flightPlan';
   static const String chat = 'chat';
   static const String settings = 'settings';
+  static const String approvalLog = 'approvalLog';
 }
 
 /// Describes one kind of main-window tab — the seam a plugin tab uses.

@@ -130,6 +130,30 @@ class AppTabController extends ChangeNotifier {
     }
   }
 
+  /// Updates any tab's override title matched by (typeId, chatSessionKey) —
+  /// e.g. the per-conversation permission-log tabs track their
+  /// conversation's summarized title. No-op when nothing matches or the
+  /// title is unchanged.
+  void renameTabBy(String typeId, String? chatSessionKey, String? title) {
+    for (final t in _tabs) {
+      if (t.typeId == typeId && t.chatSessionKey == chatSessionKey) {
+        if (t.titleOverride != title) {
+          t.titleOverride = title;
+          notifyListeners();
+        }
+        return;
+      }
+    }
+  }
+
+  /// The open tab of [typeId] bound to [chatSessionKey], if any.
+  AppTab? tabBy(String typeId, String? chatSessionKey) {
+    for (final t in _tabs) {
+      if (t.typeId == typeId && t.chatSessionKey == chatSessionKey) return t;
+    }
+    return null;
+  }
+
   /// Closes [id]; re-selects an adjacent tab, or clears the selection when the
   /// last tab is closed (empty state).
   void close(String id) {

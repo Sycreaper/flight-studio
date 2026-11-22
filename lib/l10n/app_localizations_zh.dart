@@ -87,6 +87,47 @@ class AppLocalizationsZh extends AppLocalizations {
   String get conversationExport => '导出对话';
 
   @override
+  String get conversationApprovalLog => '权限日志';
+
+  @override
+  String get approvalLogTitle => '权限日志';
+
+  @override
+  String get approvalLogEmpty => '此会话暂无工具权限决策记录';
+
+  @override
+  String get approvalLogLoadFailed => '权限日志不可用——网关是否在运行？';
+
+  @override
+  String get approvalOutcomeApproved => '已批准';
+
+  @override
+  String get approvalOutcomeDenied => '已拒绝';
+
+  @override
+  String get approvalOutcomeDeniedTimeout => '已拒绝（超时）';
+
+  @override
+  String get approvalOutcomeAutoAllowed => '自动允许';
+
+  @override
+  String get approvalOutcomePolicyDenied => '策略拦截';
+
+  @override
+  String get approvalOutcomeSilentAllowed => '技能（始终允许）';
+
+  @override
+  String get approvalOutcomeFailClosed => '失败关闭';
+
+  @override
+  String get approvalRevealTooltip => '回到上下文';
+
+  @override
+  String approvalLevelTooltip(Object level) {
+    return '本回合授予的访问级别：$level';
+  }
+
+  @override
   String get conversationExportUser => '用户';
 
   @override

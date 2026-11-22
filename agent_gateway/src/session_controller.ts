@@ -78,6 +78,11 @@ export class SessionController {
         return this.pending.filter((r) => !r.resolved);
     }
 
+    /// Whether [id] is still unresolved (ApprovalPort.isPending).
+    isPending(id: string): boolean {
+        return this.pending.some((r) => r.id === id && !r.resolved);
+    }
+
     /// Waits until the approval is resolved or [timeoutMs] elapses
     /// (timeout → deny). Used by the canUseTool bridge.
     waitForResolution(id: string, timeoutMs: number): Promise<boolean> {

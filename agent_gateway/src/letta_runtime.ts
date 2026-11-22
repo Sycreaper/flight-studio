@@ -76,6 +76,7 @@ export class LettaRuntime extends EventEmitter {
         this.approvalBridge = new ApprovalBridge({
             turnAiLevel: () => this.turns.liveAiLevel,
             activeConversationId: () => this.turns.liveConversationId,
+            turnText: () => this.turns.liveTurnText,
             approvals: () => this.wiredApprovals,
             emit: (event) => this.emitEvent(event),
         });

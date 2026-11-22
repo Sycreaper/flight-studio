@@ -111,6 +111,12 @@ class GatewayProcess {
     // Another gateway may have come up while we were starting.
     if (await _isHealthy()) return true;
 
+    // Evict WHATEVER holds the port that is not our own child — including
+    // a stale gateway from an earlier app run that answers 401 to our
+    // fresh token (an authenticated stale gateway reads as "unhealthy"
+    // but still holds 8787, and would crash our spawn with EADDRINUSE).
+    await _evictStaleGateway();
+
     final gatewayDir = _locateGatewayDir();
     if (gatewayDir == null) return false;
     final entry = File(
