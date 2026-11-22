@@ -2450,6 +2450,264 @@ abstract class AppLocalizations {
   /// **'Experimental'**
   String get simExperimental;
 
+  /// No description provided for @simConnStateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection'**
+  String get simConnStateTitle;
+
+  /// No description provided for @simConnDisconnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Not connected'**
+  String get simConnDisconnected;
+
+  /// No description provided for @simConnConnecting.
+  ///
+  /// In en, this message translates to:
+  /// **'Connecting…'**
+  String get simConnConnecting;
+
+  /// No description provided for @simConnConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected'**
+  String get simConnConnected;
+
+  /// No description provided for @simConnError.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection failed'**
+  String get simConnError;
+
+  /// No description provided for @simConnVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'X-Plane version'**
+  String get simConnVersion;
+
+  /// No description provided for @simConnAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get simConnAddress;
+
+  /// No description provided for @simConnUnknownVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'unknown'**
+  String get simConnUnknownVersion;
+
+  /// No description provided for @simConnConnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect'**
+  String get simConnConnect;
+
+  /// No description provided for @simConnDisconnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Disconnect'**
+  String get simConnDisconnect;
+
+  /// No description provided for @simConnNoInstall.
+  ///
+  /// In en, this message translates to:
+  /// **'Add an X-Plane 12 install under Data → Simulators first'**
+  String get simConnNoInstall;
+
+  /// No description provided for @simWebApiPort.
+  ///
+  /// In en, this message translates to:
+  /// **'Web API port'**
+  String get simWebApiPort;
+
+  /// No description provided for @simAutoConnectLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-connect at startup'**
+  String get simAutoConnectLabel;
+
+  /// No description provided for @legendAircraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Aircraft'**
+  String get legendAircraft;
+
+  /// No description provided for @aircraftPanelTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Aircraft'**
+  String get aircraftPanelTitle;
+
+  /// No description provided for @aircraftNotConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'No simulator connected'**
+  String get aircraftNotConnected;
+
+  /// No description provided for @aircraftNotConnectedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'X-Plane 12.1.1+ with its local Web API, or enable auto-connect in Settings → Simulator.'**
+  String get aircraftNotConnectedHint;
+
+  /// No description provided for @aircraftOpenSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open settings'**
+  String get aircraftOpenSettings;
+
+  /// No description provided for @aircraftGroupName.
+  ///
+  /// In en, this message translates to:
+  /// **'Aircraft'**
+  String get aircraftGroupName;
+
+  /// No description provided for @aircraftGroupPosition.
+  ///
+  /// In en, this message translates to:
+  /// **'Position'**
+  String get aircraftGroupPosition;
+
+  /// No description provided for @aircraftGroupSpeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Speed'**
+  String get aircraftGroupSpeed;
+
+  /// No description provided for @aircraftGroupAttitude.
+  ///
+  /// In en, this message translates to:
+  /// **'Attitude'**
+  String get aircraftGroupAttitude;
+
+  /// No description provided for @aircraftGroupAutopilot.
+  ///
+  /// In en, this message translates to:
+  /// **'Autopilot'**
+  String get aircraftGroupAutopilot;
+
+  /// No description provided for @aircraftModel.
+  ///
+  /// In en, this message translates to:
+  /// **'Model'**
+  String get aircraftModel;
+
+  /// No description provided for @aircraftLatitude.
+  ///
+  /// In en, this message translates to:
+  /// **'Latitude'**
+  String get aircraftLatitude;
+
+  /// No description provided for @aircraftLongitude.
+  ///
+  /// In en, this message translates to:
+  /// **'Longitude'**
+  String get aircraftLongitude;
+
+  /// No description provided for @aircraftAltitudeMsl.
+  ///
+  /// In en, this message translates to:
+  /// **'Altitude MSL'**
+  String get aircraftAltitudeMsl;
+
+  /// No description provided for @aircraftAltitudeAgl.
+  ///
+  /// In en, this message translates to:
+  /// **'Altitude AGL'**
+  String get aircraftAltitudeAgl;
+
+  /// No description provided for @aircraftGroundSpeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Ground speed'**
+  String get aircraftGroundSpeed;
+
+  /// No description provided for @aircraftIas.
+  ///
+  /// In en, this message translates to:
+  /// **'IAS'**
+  String get aircraftIas;
+
+  /// No description provided for @aircraftTas.
+  ///
+  /// In en, this message translates to:
+  /// **'TAS'**
+  String get aircraftTas;
+
+  /// No description provided for @aircraftVerticalSpeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Vertical speed'**
+  String get aircraftVerticalSpeed;
+
+  /// No description provided for @aircraftHeadingTrue.
+  ///
+  /// In en, this message translates to:
+  /// **'Heading (true)'**
+  String get aircraftHeadingTrue;
+
+  /// No description provided for @aircraftHeadingMag.
+  ///
+  /// In en, this message translates to:
+  /// **'Heading (magnetic)'**
+  String get aircraftHeadingMag;
+
+  /// No description provided for @aircraftPitch.
+  ///
+  /// In en, this message translates to:
+  /// **'Pitch'**
+  String get aircraftPitch;
+
+  /// No description provided for @aircraftRoll.
+  ///
+  /// In en, this message translates to:
+  /// **'Roll'**
+  String get aircraftRoll;
+
+  /// No description provided for @aircraftApOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Autopilot'**
+  String get aircraftApOn;
+
+  /// No description provided for @aircraftApAltitude.
+  ///
+  /// In en, this message translates to:
+  /// **'Altitude window'**
+  String get aircraftApAltitude;
+
+  /// No description provided for @aircraftApHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Heading window'**
+  String get aircraftApHeading;
+
+  /// No description provided for @aircraftApSpeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Speed window'**
+  String get aircraftApSpeed;
+
+  /// No description provided for @aircraftApVs.
+  ///
+  /// In en, this message translates to:
+  /// **'Vertical speed set'**
+  String get aircraftApVs;
+
+  /// No description provided for @aircraftApOnLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'ENGAGED'**
+  String get aircraftApOnLabel;
+
+  /// No description provided for @aircraftApOffLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'OFF'**
+  String get aircraftApOffLabel;
+
   /// No description provided for @simType.
   ///
   /// In en, this message translates to:

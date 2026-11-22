@@ -14,7 +14,14 @@ import 'settings_page.dart';
 ///
 /// Lets the gear-menu map "About" / "Settings" entries to specific landing
 /// spots without exposing the page's section enum.
-enum SettingsLanding { general, apiKeys, simulator, navdata, ai, about }
+enum SettingsLanding {
+  general,
+  apiKeys,
+  simulator,
+  navdata,
+  ai,
+  about,
+}
 
 /// Carries the user [SettingsController] (theme/locale/BYOK/…) down to any
 /// widget below [FlightStudioApp]. Looked up via [AppScope.of].
@@ -307,8 +314,9 @@ SettingsSection _mapSection(SettingsLanding landing) {
   switch (landing) {
     case SettingsLanding.general:
       return SettingsSection.general;
-    case SettingsLanding.apiKeys:
     case SettingsLanding.simulator:
+      return SettingsSection.simulator;
+    case SettingsLanding.apiKeys:
     case SettingsLanding.navdata:
       return SettingsSection.data;
     case SettingsLanding.ai:
@@ -323,8 +331,6 @@ SettingsDataTab? _mapDataTab(SettingsLanding landing) {
   switch (landing) {
     case SettingsLanding.apiKeys:
       return SettingsDataTab.apiKeys;
-    case SettingsLanding.simulator:
-      return SettingsDataTab.simulators;
     case SettingsLanding.navdata:
       return SettingsDataTab.navdata;
     default:

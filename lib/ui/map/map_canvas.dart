@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -11,6 +12,7 @@ import '../../../data/navdata/navdata_service.dart';
 import '../../../data/settings/api_key_entry.dart';
 import '../../../data/settings/app_settings.dart';
 import '../../../data/settings/settings_enums.dart';
+import '../../../sim/simulator_connector.dart';
 import '../../../l10n/app_localizations.dart';
 import '../panels/inspector_service.dart';
 import '../settings/settings_window.dart';
@@ -32,6 +34,8 @@ class MapCanvas extends StatefulWidget {
     required this.navVisible,
     required this.zoomNotifier,
     required this.flyToTarget,
+    this.planeTelemetry,
+    this.planeVisible = true,
   });
 
   final Set<NavPointCategory> navVisible;
@@ -43,6 +47,13 @@ class MapCanvas extends StatefulWidget {
   /// Fly-to requests from the search drawer — the latest non-null value is
   /// flown to once the map is ready.
   final ValueNotifier<LatLng?> flyToTarget;
+
+  /// Live aircraft telemetry (null notifier / null value while
+  /// disconnected). The plane marker renders on top of the nav layers.
+  final ValueListenable<SimTelemetry?>? planeTelemetry;
+
+  /// Whether the plane marker is shown (legend toggle).
+  final bool planeVisible;
 
   /// Below this zoom the map shows no nav markers at all — at world views a
   /// viewport query can only ever cover part of the globe, so partial
@@ -315,6 +326,23 @@ class _MapCanvasState extends State<MapCanvas> {
             _navPoints,
             widget.navVisible,
             onInspect: (point) => InspectorService.instance.inspect(point),
+          ),
+        // Live aircraft marker — above the nav layers, rotated to the
+        // true heading, in the accent colour (legend-toggled).
+        if (widget.planeVisible && widget.planeTelemetry != null)
+          ValueListenableBuilder<SimTelemetry?>(
+            valueListenable: widget.planeTelemetry!,
+            builder: (context, plane, _) {
+              if (plane == null) return const SizedBox.shrink();
+              return MarkerLayer(
+                markers: [
+                  Marker(
+                    point: LatLng(plane.latitude, plane.longitude),
+                    child: _PlaneMarker(headingDeg: plane.headingDeg ?? 0),
+                  ),
+                ],
+              );
+            },
           ),
         SimpleAttributionWidget(
           source: Text(
@@ -768,4 +796,28 @@ class _GridPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _GridPainter oldDelegate) =>
       oldDelegate.colors != colors;
+}
+
+/// The live aircraft marker: an accent-coloured plane glyph rotated to the
+/// true heading (north = 0°, icon nose points up at 0°).
+class _PlaneMarker extends StatelessWidget {
+  const _PlaneMarker({required this.headingDeg});
+
+  final double headingDeg;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<AppColors>()!;
+    return Transform.rotate(
+      angle: headingDeg * 3.141592653589793 / 180.0,
+      child: Icon(
+        Icons.flight_rounded,
+        size: 22,
+        color: colors.accent,
+        shadows: [
+          Shadow(color: Colors.black.withValues(alpha: 0.5), blurRadius: 3),
+        ],
+      ),
+    );
+  }
 }

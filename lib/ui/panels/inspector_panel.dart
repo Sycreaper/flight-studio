@@ -12,6 +12,7 @@ import '../../../data/weather/weather_service.dart';
 import '../../../l10n/app_localizations.dart';
 import '../map/nav_markers.dart';
 import '../theme/app_colors.dart';
+import '../widgets/fact_row.dart';
 import 'inspector_service.dart';
 
 /// Right drawer: LNM-style information dock for the currently inspected nav
@@ -332,18 +333,18 @@ class _NavaidSheet extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(10, 8, 10, 12),
       children: [
-        _FactRow(
+        FactRow(
             label: l10n.inspectorType,
             value: navCategoryLabel(l10n, point.category)),
-        _FactRow(label: l10n.inspectorCoordinates, value: coords),
-        _FactRow(label: '',
+        FactRow(label: l10n.inspectorCoordinates, value: coords),
+        FactRow(label: '',
             value: '${point.latitude.toStringAsFixed(5)}, ${point.longitude
                 .toStringAsFixed(5)}',
             muted: true),
         if (point.frequency != null)
-          _FactRow(label: l10n.inspectorFrequency, value: point.frequency!),
+          FactRow(label: l10n.inspectorFrequency, value: point.frequency!),
         if (point.elevationFt != null)
-          _FactRow(
+          FactRow(
             label: l10n.inspectorElevation,
             value:
             '${point.elevationFt} ft / ${(point.elevationFt! * 0.3048)
@@ -386,51 +387,51 @@ class _OverviewTab extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(10, 8, 10, 12),
       children: [
-        _FactRow(label: l10n.inspectorIcao, value: a?.icao ?? point.ident),
-        _FactRow(label: l10n.inspectorIata, value: a?.iata ?? na),
-        _FactRow(label: l10n.inspectorXplaneIdent, value: a?.icao ?? na),
-        _FactRow(
+        FactRow(label: l10n.inspectorIcao, value: a?.icao ?? point.ident),
+        FactRow(label: l10n.inspectorIata, value: a?.iata ?? na),
+        FactRow(label: l10n.inspectorXplaneIdent, value: a?.icao ?? na),
+        FactRow(
           label: l10n.inspectorType,
           value: a == null ? na : _airportTypeLabel(a.type, l10n),
         ),
-        _FactRow(
+        FactRow(
           label: l10n.inspectorDataSource,
           value: a == null ? na : _sourceLabel(a.source),
         ),
         // Region = first two ICAO letters (e.g. ZSQD → ZS), LNM-style.
-        _FactRow(
+        FactRow(
           label: l10n.inspectorRegion,
           value: (a?.icao ?? point.ident).length >= 2
               ? (a?.icao ?? point.ident).substring(0, 2)
               : na,
         ),
-        _FactRow(label: l10n.inspectorCity, value: a?.city ?? na),
-        _FactRow(label: l10n.inspectorCountry, value: a?.country ?? na),
-        _FactRow(
+        FactRow(label: l10n.inspectorCity, value: a?.city ?? na),
+        FactRow(label: l10n.inspectorCountry, value: a?.country ?? na),
+        FactRow(
           label: l10n.inspectorElevation,
           value: elevationFt == null
               ? na
               : '${elevationFt.round()} ft / ${(elevationFt * 0.3048)
               .round()} m',
         ),
-        _FactRow(label: l10n.inspectorMagvar, value: magvarText),
-        _FactRow(
+        FactRow(label: l10n.inspectorMagvar, value: magvarText),
+        FactRow(
           label: l10n.inspectorRunwayCount,
           value: a == null ? na : '${a.runwayStripCount}',
         ),
-        _FactRow(
+        FactRow(
           label: l10n.inspectorLongestRunway,
           value: a?.longestRunway == null
               ? na
               : _longestRunwayText(a!.longestRunway!),
         ),
-        _FactRow(label: l10n.inspectorSunTimes, value: sunText),
-        _FactRow(
+        FactRow(label: l10n.inspectorSunTimes, value: sunText),
+        FactRow(
           label: l10n.inspectorCoordinates,
           value:
           '${formatLatDMS(point.latitude)} ${formatLonDMS(point.longitude)}',
         ),
-        _FactRow(
+        FactRow(
           label: '',
           value:
           '${point.latitude.toStringAsFixed(5)}, ${point.longitude
@@ -521,7 +522,7 @@ class _MetarTab extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(10, 8, 10, 12),
       children: [
         for (final fact in decoded.facts(texts))
-          _FactRow(label: fact.label, value: fact.value),
+          FactRow(label: fact.label, value: fact.value),
         const SizedBox(height: 8),
         _RawTextBlock(text: metar, header: l10n.inspectorRawReport),
       ],
@@ -550,7 +551,7 @@ class _TafTab extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(10, 8, 10, 12),
       children: [
         for (final fact in decoded.facts(texts))
-          _FactRow(label: fact.label, value: fact.value),
+          FactRow(label: fact.label, value: fact.value),
         const SizedBox(height: 8),
         _RawTextBlock(text: taf, header: l10n.inspectorRawReport),
         if (decoded.changeGroups.isNotEmpty) ...[
@@ -598,53 +599,6 @@ class _NotAvailable extends StatelessWidget {
 }
 
 // ── Shared atoms ─────────────────────────────────────────────────────────────
-
-/// One label/value line in the fact sheet.
-class _FactRow extends StatelessWidget {
-  const _FactRow({
-    required this.label,
-    required this.value,
-    this.muted = false,
-  });
-
-  final String label;
-  final String value;
-  final bool muted;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).extension<AppColors>()!;
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 3),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 86,
-            child: Text(
-              label,
-              style: TextStyle(
-                fontSize: 10.5,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 0.4,
-                color: colors.textDisabled,
-              ),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              style: TextStyle(
-                fontSize: 12,
-                color: muted ? colors.textSecondary : colors.textPrimary,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 /// One ATC frequency line: `Tower  119.50 MHz · TOWER`.
 class _FrequencyRow extends StatelessWidget {

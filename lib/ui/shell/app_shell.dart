@@ -22,6 +22,8 @@ import '../workspace/workspace_view.dart';
 import 'form_toolbar.dart';
 import 'map_toolbar.dart';
 import 'status_bar.dart';
+import '../../sim/sim_connection_service.dart';
+import '../../sim/simulator_connector.dart';
 import 'tabs/app_tab.dart';
 import 'tabs/app_tab_bar.dart';
 import 'tabs/app_tab_controller.dart';
@@ -84,6 +86,9 @@ class AppShellState extends State<AppShell> {
 
   final GlobalKey<SettingsTabViewState> _settingsTabKey = GlobalKey();
   final Set<NavPointCategory> _navVisible = NavPointCategory.values.toSet();
+
+  /// Whether the live aircraft marker is shown (legend "Aircraft" toggle).
+  bool _planeVisible = true;
 
   /// Live map zoom published by [MapCanvas]; drives legend-bar visibility.
   final ValueNotifier<double> _mapZoom = ValueNotifier<double>(3);
@@ -195,6 +200,7 @@ class AppShellState extends State<AppShell> {
               navVisible: _navVisible,
               zoomNotifier: _mapZoom,
               flyToTarget: _flyToTarget,
+              planeVisible: _planeVisible,
             ),
         createToolbar: (context) =>
             MapToolbar(
@@ -418,17 +424,26 @@ class AppShellState extends State<AppShell> {
               return ValueListenableBuilder<double>(
                 valueListenable: _mapZoom,
                 builder: (context, zoom, _) {
-                  return NavLegendBar(
-                    visible: _navVisible,
-                    enabled: zoom >= MapCanvas.minMarkerZoom,
-                    onToggle: (cat) =>
-                        setState(() {
-                          if (_navVisible.contains(cat)) {
-                            _navVisible.remove(cat);
-                          } else {
-                            _navVisible.add(cat);
-                          }
-                        }),
+                  return ListenableBuilder(
+                    listenable: SimConnectionService.instance,
+                    builder: (context, _) => NavLegendBar(
+                      visible: _navVisible,
+                      enabled: zoom >= MapCanvas.minMarkerZoom,
+                      onToggle: (cat) =>
+                          setState(() {
+                            if (_navVisible.contains(cat)) {
+                              _navVisible.remove(cat);
+                            } else {
+                              _navVisible.add(cat);
+                            }
+                          }),
+                      planeActive: _planeVisible,
+                      planeConnected:
+                          SimConnectionService.instance.state ==
+                              SimConnectionState.connected,
+                      onTogglePlane: () =>
+                          setState(() => _planeVisible = !_planeVisible),
+                    ),
                   );
                 },
               );
@@ -445,12 +460,15 @@ class AppShellState extends State<AppShell> {
               BackgroundTaskManager.instance,
               NavdataService.instance,
               _mapCenter,
+              SimConnectionService.instance,
             ]),
             builder: (context, _) =>
                 SizedBox(
                   width: double.infinity,
                   child: StatusBar(
-                    isConnected: false,
+                    isConnected:
+                        SimConnectionService.instance.state ==
+                            SimConnectionState.connected,
                     dataCycle: _dataCycleText(),
                     coordinate: _coordinateText(),
                     utcTime: _utcNow(),

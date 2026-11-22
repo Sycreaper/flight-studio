@@ -123,6 +123,20 @@ class SettingsController extends ChangeNotifier {
     value: port,
   );
 
+  /// Web API port of X-Plane's built-in server (default 8086).
+  Future<void> setXplaneWebApiPort(int port) => _updateInt(
+    mutator: (s) => s.copyWith(xplaneWebApiPort: port),
+    key: SettingsKeys.xplaneWebApiPort,
+    value: port,
+  );
+
+  /// Auto-connect the simulator link at app start.
+  Future<void> setSimAutoConnect(bool v) => _updateBool(
+    simAutoConnect: v,
+    key: SettingsKeys.simAutoConnect,
+    value: v,
+  );
+
   Future<void> setXplaneBridgePort(int port) => _updateInt(
     mutator: (s) => s.copyWith(xplaneBridgePort: port),
     key: SettingsKeys.xplaneBridgePort,
@@ -343,6 +357,7 @@ class SettingsController extends ChangeNotifier {
     bool? useXplaneNative,
     bool? aiConfirmWrites,
     bool? aiAutoRead,
+    bool? simAutoConnect,
     required String key,
     required Object? value,
   }) async {
@@ -362,12 +377,14 @@ class SettingsController extends ChangeNotifier {
       useXplaneNative: useXplaneNative,
       aiConfirmWrites: aiConfirmWrites,
       aiAutoRead: aiAutoRead,
+    simAutoConnect: simAutoConnect,
     );
     notifyListeners();
     await _persist(key, value);
   }
 
   Future<void> _updateBool({
+    bool? simAutoConnect,
     bool? reopenLastWorkspace,
     bool? checkUpdatesOnLaunch,
     bool? preferMetric,
@@ -380,6 +397,7 @@ class SettingsController extends ChangeNotifier {
     required String key,
     required bool value,
   }) => _update(
+    simAutoConnect: simAutoConnect,
     reopenLastWorkspace: reopenLastWorkspace,
     checkUpdatesOnLaunch: checkUpdatesOnLaunch,
     preferMetric: preferMetric,
@@ -473,6 +491,9 @@ class SettingsController extends ChangeNotifier {
       await p.getString(SettingsKeys.navdataActiveSourceId),
       xplaneInstallPath: await p.getString(SettingsKeys.xplaneInstallPath),
       xplaneUdpPort: await p.getInt(SettingsKeys.xplaneUdpPort) ?? 49000,
+      xplaneWebApiPort:
+          await p.getInt(SettingsKeys.xplaneWebApiPort) ?? 8086,
+      simAutoConnect: await p.getBool(SettingsKeys.simAutoConnect) ?? true,
       xplaneBridgePort: await p.getInt(SettingsKeys.xplaneBridgePort) ?? 49001,
       useOurAirports: await p.getBool(SettingsKeys.useOurAirports) ?? true,
       useFaaCifp: await p.getBool(SettingsKeys.useFaaCifp) ?? true,
@@ -514,6 +535,8 @@ class SettingsController extends ChangeNotifier {
       SettingsKeys.navdataActiveSourceId,
       SettingsKeys.xplaneInstallPath,
       SettingsKeys.xplaneUdpPort,
+      SettingsKeys.xplaneWebApiPort,
+      SettingsKeys.simAutoConnect,
       SettingsKeys.xplaneBridgePort,
       SettingsKeys.useOurAirports,
       SettingsKeys.useFaaCifp,

@@ -26,6 +26,9 @@ export function buildMcpServers():
     const env: Record<string, string> = {};
     const db = process.env.FLIGHTSTUDIO_NAVDATA_DB?.trim();
     if (db) env.FLIGHTSTUDIO_NAVDATA_DB = db;
+    // X-Plane Web API port for the get_sim_state tool (app-set).
+    const xplanePort = process.env.FLIGHTSTUDIO_XPLANE_PORT?.trim();
+    if (xplanePort) env.FLIGHTSTUDIO_XPLANE_PORT = xplanePort;
     return {
         "flightstudio-core": {
             type: "stdio",

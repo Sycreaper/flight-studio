@@ -12,6 +12,8 @@ import 'package:flight_studio/mcp/stdio_server.dart';
 /// - FLIGHTSTUDIO_NAVDATA_DB — path of the app's navdata SQLite database
 ///   (opened READ-ONLY; the app remains the sole writer).
 /// - CHARTFOX_TOKEN          — optional ChartFox bearer token.
+/// - FLIGHTSTUDIO_XPLANE_PORT — X-Plane Web API port for `get_sim_state`
+///   (default 8086).
 ///
 /// Tool invocations are audited into `mcp-audit.sqlite` next to the
 /// navdata database.

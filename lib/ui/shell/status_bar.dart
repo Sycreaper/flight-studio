@@ -1,3 +1,4 @@
+import 'dart:io' show Platform;
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -254,24 +255,13 @@ class _StatusChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppColors>()!;
-    final dot = connected ? colors.success : colors.textDisabled;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10),
       alignment: Alignment.center,
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            width: 8,
-            height: 8,
-            decoration: BoxDecoration(
-              color: dot,
-              shape: BoxShape.circle,
-              boxShadow: connected
-                  ? [BoxShadow(color: dot.withValues(alpha: 0.5), blurRadius: 6)]
-                  : null,
-            ),
-          ),
+          _BreathingDot(color: colors.success, animate: connected),
           const SizedBox(width: 6),
           Text(
             label,
@@ -282,6 +272,90 @@ class _StatusChip extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Connection dot. While [animate] is true it slowly breathes (opacity +
+/// glow pulsing) to read as "live"; static grey when not connected. The
+/// animation never starts under `flutter test` so pumpAndSettle still
+/// settles.
+class _BreathingDot extends StatefulWidget {
+  const _BreathingDot({required this.color, required this.animate});
+
+  final Color color;
+  final bool animate;
+
+  @override
+  State<_BreathingDot> createState() => _BreathingDotState();
+}
+
+class _BreathingDotState extends State<_BreathingDot>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1600),
+    );
+    if (widget.animate &&
+        !Platform.environment.containsKey('FLUTTER_TEST')) {
+      _controller.repeat(reverse: true);
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant _BreathingDot oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.animate == oldWidget.animate) return;
+    if (widget.animate &&
+        !Platform.environment.containsKey('FLUTTER_TEST')) {
+      _controller.repeat(reverse: true);
+    } else {
+      _controller.stop();
+      _controller.value = 0;
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final dotColor = widget.animate
+        ? widget.color
+        : Theme.of(context).extension<AppColors>()!.textDisabled;
+    if (!widget.animate || !_controller.isAnimating) {
+      return Container(
+        width: 8,
+        height: 8,
+        decoration: BoxDecoration(color: dotColor, shape: BoxShape.circle),
+      );
+    }
+    return FadeTransition(
+      opacity: Tween<double>(begin: 0.35, end: 1).animate(
+        CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+      ),
+      child: Container(
+        width: 8,
+        height: 8,
+        decoration: BoxDecoration(
+          color: dotColor,
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: dotColor.withValues(alpha: 0.6),
+              blurRadius: 3 + 4 * _controller.value,
+            ),
+          ],
+        ),
       ),
     );
   }

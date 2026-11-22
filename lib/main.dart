@@ -14,6 +14,7 @@ import 'data/settings/settings_enums.dart';
 import 'features/flights/flight_repository.dart';
 import 'l10n/import_messages.dart';
 import 'sim/built_in_connectors.dart';
+import 'sim/sim_connection_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -76,4 +77,10 @@ void main() async {
   if (!splashEnabled) {
     unawaited(runStartupNavdataScanIfNeeded(settings));
   }
+
+  // Auto-connect the X-Plane Web API link when the setting allows and an
+  // install exists (no-op in tests — the service guards FLUTTER_TEST).
+  unawaited(
+    SimConnectionService.instance.autoConnect(settings),
+  );
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 
+import '../panels/aircraft_panel.dart';
 import '../panels/conversation_drawer.dart';
 import '../panels/flight_plan_tree.dart';
 import '../panels/inspector_panel.dart';
@@ -59,6 +60,14 @@ List<DrawerPanelData> buildDefaultPanels({
       slot: DrawerSlot.right,
       width: 280,
       content: (_) => InspectorPanel(onFlyTo: onFlyTo ?? (_) {}),
+    ),
+    DrawerPanelData(
+      id: 'aircraft',
+      title: 'Aircraft',
+      icon: Icons.flight_rounded,
+      slot: DrawerSlot.right,
+      width: 280,
+      content: (_) => const AircraftPanel(),
     ),
     DrawerPanelData(
       id: 'profile',

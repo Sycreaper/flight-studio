@@ -12,6 +12,12 @@ enum SimConnectionState { disconnected, connecting, connected, error }
 /// seam stays stable for plugins that bridge other simulators.
 @immutable
 /// One live telemetry snapshot from the connected simulator.
+///
+/// Field semantics follow X-Plane's Web API datarefs where applicable;
+/// connectors for other sims map onto the same shape. Everything beyond
+/// the five required fields is optional — panels render missing values
+/// as "—" (aircraft vary in what they expose).
+@immutable
 class SimTelemetry {
   const SimTelemetry({
     required this.latitude,
@@ -20,14 +26,64 @@ class SimTelemetry {
     this.groundSpeedKt,
     this.headingDeg,
     this.timestamp,
+    this.altitudeAglFt,
+    this.indicatedAirspeedKt,
+    this.trueAirspeedKt,
+    this.verticalSpeedFpm,
+    this.headingMagDeg,
+    this.pitchDeg,
+    this.rollDeg,
+    this.autopilotOn,
+    this.apAltitudeFt,
+    this.apHeadingDeg,
+    this.apSpeedKt,
+    this.apVerticalSpeedFpm,
+    this.aircraftName,
   });
 
   final double latitude;
   final double longitude;
+
+  /// Barometric altitude above MSL, feet.
   final double altitudeFt;
   final double? groundSpeedKt;
+
+  /// True heading, degrees.
   final double? headingDeg;
   final DateTime? timestamp;
+
+  /// Radio altitude above ground, feet.
+  final double? altitudeAglFt;
+  final double? indicatedAirspeedKt;
+  final double? trueAirspeedKt;
+
+  /// Indicated vertical speed, feet per minute.
+  final double? verticalSpeedFpm;
+
+  /// Magnetic heading, degrees.
+  final double? headingMagDeg;
+  final double? pitchDeg;
+  final double? rollDeg;
+
+  // ── Autopilot ────────────────────────────────────────────────────────────
+
+  /// Autopilot servos engaged.
+  final bool? autopilotOn;
+
+  /// Autopilot altitude window, feet.
+  final double? apAltitudeFt;
+
+  /// Autopilot heading window, degrees.
+  final double? apHeadingDeg;
+
+  /// Autopilot speed window, knots.
+  final double? apSpeedKt;
+
+  /// Autopilot vertical-speed setting, feet per minute.
+  final double? apVerticalSpeedFpm;
+
+  /// Aircraft display name (e.g. "Boeing 737-800").
+  final String? aircraftName;
 }
 
 /// Seam for a live simulator link — one implementation per simulator (built-in

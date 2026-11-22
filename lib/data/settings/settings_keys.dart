@@ -20,6 +20,8 @@ class SettingsKeys {
   // X-Plane 12
   static const xplaneInstallPath = 'xplane.installPath';
   static const xplaneUdpPort = 'xplane.udpPort';
+  static const xplaneWebApiPort = 'xplane.webApiPort';
+  static const simAutoConnect = 'sim.autoConnect';
   static const xplaneBridgePort = 'xplane.bridgePort';
 
   // Navigation data

@@ -90,12 +90,15 @@ class NavLegendBar extends StatelessWidget {
     required this.onToggle,
     this.wrap = false,
     this.enabled = true,
+    this.planeActive = false,
+    this.planeConnected = false,
+    this.onTogglePlane,
   });
 
   final Set<NavPointCategory> visible;
   final ValueChanged<NavPointCategory> onToggle;
 
-  /// When `true`, toggles flow onto multiple lines instead of scrolling —
+  /// When `true` (default), toggles flow onto multiple lines instead of scrolling —
   /// used by the search drawer where the narrow width would otherwise cut
   /// the row off and the scrollbar would show as a dark strip.
   final bool wrap;
@@ -104,6 +107,16 @@ class NavLegendBar extends StatelessWidget {
   /// swallowed, hover shows the OS "forbidden" cursor and contents are
   /// dimmed — the native disabled-control feel.
   final bool enabled;
+
+  /// Whether the aircraft marker is shown (the live sim link's plane).
+  final bool planeActive;
+
+  /// Whether a simulator is connected — the aircraft chip is dimmed and
+  /// inert while not (the rest of the bar stays usable).
+  final bool planeConnected;
+
+  /// Invoked when the aircraft chip is tapped.
+  final VoidCallback? onTogglePlane;
 
   @override
   Widget build(BuildContext context) {
@@ -116,6 +129,13 @@ class NavLegendBar extends StatelessWidget {
           active: visible.contains(cat),
           colors: colors,
           onTap: () => onToggle(cat),
+        ),
+      if (onTogglePlane != null)
+        _PlaneLegendToggle(
+          active: planeActive,
+          enabled: planeConnected,
+          colors: colors,
+          onTap: onTogglePlane!,
         ),
     ];
 
@@ -155,6 +175,55 @@ class NavLegendBar extends StatelessWidget {
       );
     }
     return bar;
+  }
+}
+
+/// The aircraft chip of the legend bar — same anatomy as a category
+/// toggle, but keyed to the live simulator link instead of a nav category.
+/// Dimmed and inert while no simulator is connected.
+class _PlaneLegendToggle extends StatelessWidget {
+  const _PlaneLegendToggle({
+    required this.active,
+    required this.enabled,
+    required this.colors,
+    required this.onTap,
+  });
+
+  final bool active;
+  final bool enabled;
+  final AppColors colors;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final fg = active && enabled ? colors.accent : colors.textDisabled;
+    return MouseRegion(
+      cursor: enabled ? SystemMouseCursors.click : MouseCursor.defer,
+      child: GestureDetector(
+        onTap: enabled ? onTap : null,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+          decoration: BoxDecoration(
+            color: active && enabled
+                ? colors.accent.withValues(alpha: 0.14)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.flight_rounded, size: 13, color: fg),
+              const SizedBox(width: 4),
+              Text(
+                l10n.legendAircraft,
+                style: TextStyle(fontSize: 11, color: fg),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 

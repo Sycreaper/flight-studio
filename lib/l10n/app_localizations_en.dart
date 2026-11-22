@@ -1223,6 +1223,137 @@ class AppLocalizationsEn extends AppLocalizations {
   String get simExperimental => 'Experimental';
 
   @override
+  String get simConnStateTitle => 'Connection';
+
+  @override
+  String get simConnDisconnected => 'Not connected';
+
+  @override
+  String get simConnConnecting => 'Connecting…';
+
+  @override
+  String get simConnConnected => 'Connected';
+
+  @override
+  String get simConnError => 'Connection failed';
+
+  @override
+  String get simConnVersion => 'X-Plane version';
+
+  @override
+  String get simConnAddress => 'Address';
+
+  @override
+  String get simConnUnknownVersion => 'unknown';
+
+  @override
+  String get simConnConnect => 'Connect';
+
+  @override
+  String get simConnDisconnect => 'Disconnect';
+
+  @override
+  String get simConnNoInstall =>
+      'Add an X-Plane 12 install under Data → Simulators first';
+
+  @override
+  String get simWebApiPort => 'Web API port';
+
+  @override
+  String get simAutoConnectLabel => 'Auto-connect at startup';
+
+  @override
+  String get legendAircraft => 'Aircraft';
+
+  @override
+  String get aircraftPanelTitle => 'Aircraft';
+
+  @override
+  String get aircraftNotConnected => 'No simulator connected';
+
+  @override
+  String get aircraftNotConnectedHint =>
+      'X-Plane 12.1.1+ with its local Web API, or enable auto-connect in Settings → Simulator.';
+
+  @override
+  String get aircraftOpenSettings => 'Open settings';
+
+  @override
+  String get aircraftGroupName => 'Aircraft';
+
+  @override
+  String get aircraftGroupPosition => 'Position';
+
+  @override
+  String get aircraftGroupSpeed => 'Speed';
+
+  @override
+  String get aircraftGroupAttitude => 'Attitude';
+
+  @override
+  String get aircraftGroupAutopilot => 'Autopilot';
+
+  @override
+  String get aircraftModel => 'Model';
+
+  @override
+  String get aircraftLatitude => 'Latitude';
+
+  @override
+  String get aircraftLongitude => 'Longitude';
+
+  @override
+  String get aircraftAltitudeMsl => 'Altitude MSL';
+
+  @override
+  String get aircraftAltitudeAgl => 'Altitude AGL';
+
+  @override
+  String get aircraftGroundSpeed => 'Ground speed';
+
+  @override
+  String get aircraftIas => 'IAS';
+
+  @override
+  String get aircraftTas => 'TAS';
+
+  @override
+  String get aircraftVerticalSpeed => 'Vertical speed';
+
+  @override
+  String get aircraftHeadingTrue => 'Heading (true)';
+
+  @override
+  String get aircraftHeadingMag => 'Heading (magnetic)';
+
+  @override
+  String get aircraftPitch => 'Pitch';
+
+  @override
+  String get aircraftRoll => 'Roll';
+
+  @override
+  String get aircraftApOn => 'Autopilot';
+
+  @override
+  String get aircraftApAltitude => 'Altitude window';
+
+  @override
+  String get aircraftApHeading => 'Heading window';
+
+  @override
+  String get aircraftApSpeed => 'Speed window';
+
+  @override
+  String get aircraftApVs => 'Vertical speed set';
+
+  @override
+  String get aircraftApOnLabel => 'ENGAGED';
+
+  @override
+  String get aircraftApOffLabel => 'OFF';
+
+  @override
   String get simType => 'Simulator Type';
 
   @override

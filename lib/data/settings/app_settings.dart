@@ -26,6 +26,8 @@ class AppSettings {
     this.activeNavdataSourceId,
     this.xplaneInstallPath,
     this.xplaneUdpPort = 49000,
+    this.xplaneWebApiPort = 8086,
+    this.simAutoConnect = true,
     this.xplaneBridgePort = 49001,
     this.useOurAirports = true,
     this.useFaaCifp = true,
@@ -66,6 +68,10 @@ class AppSettings {
   // --- X-Plane 12 ------------------------------------------------------------
   final String? xplaneInstallPath;
   final int xplaneUdpPort;
+  final int xplaneWebApiPort;
+
+  /// Auto-connect the simulator link at app start.
+  final bool simAutoConnect;
   final int xplaneBridgePort;
 
   // --- Navigation data -------------------------------------------------------
@@ -178,6 +184,8 @@ class AppSettings {
     Object? aiEndpoint = _sentinel,
     Object? aiModel = _sentinel,
     int? xplaneUdpPort,
+    int? xplaneWebApiPort,
+    bool? simAutoConnect,
     int? xplaneBridgePort,
     bool? useOurAirports,
     bool? useFaaCifp,
@@ -210,6 +218,8 @@ class AppSettings {
         this.xplaneInstallPath,
       ),
       xplaneUdpPort: xplaneUdpPort ?? this.xplaneUdpPort,
+      xplaneWebApiPort: xplaneWebApiPort ?? this.xplaneWebApiPort,
+      simAutoConnect: simAutoConnect ?? this.simAutoConnect,
       xplaneBridgePort: xplaneBridgePort ?? this.xplaneBridgePort,
       useOurAirports: useOurAirports ?? this.useOurAirports,
       useFaaCifp: useFaaCifp ?? this.useFaaCifp,

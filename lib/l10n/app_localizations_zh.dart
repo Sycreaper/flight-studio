@@ -1208,6 +1208,136 @@ class AppLocalizationsZh extends AppLocalizations {
   String get simExperimental => '实验性';
 
   @override
+  String get simConnStateTitle => '连接';
+
+  @override
+  String get simConnDisconnected => '未连接';
+
+  @override
+  String get simConnConnecting => '连接中…';
+
+  @override
+  String get simConnConnected => '已连接';
+
+  @override
+  String get simConnError => '连接失败';
+
+  @override
+  String get simConnVersion => 'X-Plane 版本';
+
+  @override
+  String get simConnAddress => '地址';
+
+  @override
+  String get simConnUnknownVersion => '未知';
+
+  @override
+  String get simConnConnect => '连接';
+
+  @override
+  String get simConnDisconnect => '断开';
+
+  @override
+  String get simConnNoInstall => '请先在 数据 → 模拟器 中添加 X-Plane 12 安装';
+
+  @override
+  String get simWebApiPort => 'Web API 端口';
+
+  @override
+  String get simAutoConnectLabel => '启动时自动连接';
+
+  @override
+  String get legendAircraft => '飞机';
+
+  @override
+  String get aircraftPanelTitle => '飞机';
+
+  @override
+  String get aircraftNotConnected => '未连接模拟器';
+
+  @override
+  String get aircraftNotConnectedHint =>
+      '需要 X-Plane 12.1.1+ 并开启本地 Web API；或在 设置 → 模拟器 中开启自动连接。';
+
+  @override
+  String get aircraftOpenSettings => '打开设置';
+
+  @override
+  String get aircraftGroupName => '机型';
+
+  @override
+  String get aircraftGroupPosition => '位置';
+
+  @override
+  String get aircraftGroupSpeed => '速度';
+
+  @override
+  String get aircraftGroupAttitude => '姿态';
+
+  @override
+  String get aircraftGroupAutopilot => '自动驾驶';
+
+  @override
+  String get aircraftModel => '机型';
+
+  @override
+  String get aircraftLatitude => '纬度';
+
+  @override
+  String get aircraftLongitude => '经度';
+
+  @override
+  String get aircraftAltitudeMsl => '海拔（MSL）';
+
+  @override
+  String get aircraftAltitudeAgl => '高度（AGL）';
+
+  @override
+  String get aircraftGroundSpeed => '地速';
+
+  @override
+  String get aircraftIas => '表速';
+
+  @override
+  String get aircraftTas => '真速';
+
+  @override
+  String get aircraftVerticalSpeed => '升降速度';
+
+  @override
+  String get aircraftHeadingTrue => '真航向';
+
+  @override
+  String get aircraftHeadingMag => '磁航向';
+
+  @override
+  String get aircraftPitch => '俯仰';
+
+  @override
+  String get aircraftRoll => '坡度';
+
+  @override
+  String get aircraftApOn => '自动驾驶';
+
+  @override
+  String get aircraftApAltitude => '高度窗';
+
+  @override
+  String get aircraftApHeading => '航向窗';
+
+  @override
+  String get aircraftApSpeed => '速度窗';
+
+  @override
+  String get aircraftApVs => '垂直速度设定';
+
+  @override
+  String get aircraftApOnLabel => '接通';
+
+  @override
+  String get aircraftApOffLabel => '关闭';
+
+  @override
   String get simType => '模拟器类型';
 
   @override

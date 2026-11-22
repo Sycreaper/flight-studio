@@ -139,6 +139,21 @@ class CoreToolServer {
           level: SafetyLevel.publicData,
           execute: _weatherRead,
         ),
+        CoreTool(
+          name: 'get_sim_state',
+          description: 'Live aircraft state from X-Plane\'s local Web API: '
+              'position, altitude (MSL/AGL), speeds (IAS/TAS/GS/VS), '
+              'headings, attitude and the autopilot windows. Use for any '
+              'question about where the aircraft is or how it is flying '
+              '(飞机状态/高度/速度/航向/自动驾驶). Returns a hint when no '
+              'simulator is reachable.',
+          schema: const {
+            'type': 'object',
+            'properties': <String, dynamic>{},
+          },
+          level: SafetyLevel.publicData,
+          execute: _getSimState,
+        ),
       ];
 
   /// Finds a registered tool by name (or by an MCP-qualified suffix like
@@ -301,6 +316,131 @@ class CoreToolServer {
   ) {
     final rows = db.select(sql, params);
     return rows.isEmpty ? null : rows.first;
+  }
+
+  // ── get_sim_state ─────────────────────────────────────────────────────────
+  // Reads X-Plane's local Web API over REST on demand (probe → name→id
+  // resolve, cached per process → value reads). The MCP server is its own
+  // process, so it talks to the sim directly rather than through the app's
+  // SimConnectionService. Port comes from FLIGHTSTUDIO_XPLANE_PORT
+  // (default 8086).
+
+  /// Session-scoped dataref ids resolved from names (stable within one
+  /// X-Plane run).
+  static Map<String, int>? _simStateIds;
+
+  static const _simStateNames = <String, String>{
+    'lat': 'sim/flightmodel/position/latitude',
+    'lon': 'sim/flightmodel/position/longitude',
+    'elevM': 'sim/flightmodel/position/elevation',
+    'aglFt': 'sim/cockpit2/gauges/indicators/radio_altimeter_height_ft_pilot',
+    'gsMs': 'sim/flightmodel/position/groundspeed',
+    'iasKt': 'sim/flightmodel/position/indicated_airspeed',
+    'tasKt': 'sim/flightmodel/position/true_airspeed',
+    'vsFpm': 'sim/flightmodel/position/vh_ind',
+    'hdgTrue': 'sim/flightmodel/position/psi',
+    'hdgMag': 'sim/cockpit2/gauges/indicators/heading_AHARS_deg_mag_pilot',
+    'pitch': 'sim/flightmodel/position/theta',
+    'roll': 'sim/flightmodel/position/phi',
+    'apServos': 'sim/cockpit2/autopilot/servos_on',
+    'apAltFt': 'sim/cockpit2/autopilot/altitude_dial_ft',
+    'apHdg': 'sim/cockpit2/autopilot/heading_dial_deg',
+    'apSpdKt': 'sim/cockpit2/autopilot/airspeed_dial_kias',
+  };
+
+  static Dio? _simDio;
+
+  static Dio get _simRest => _simDio ??= Dio()
+    ..options.connectTimeout = const Duration(seconds: 3)
+    ..options.receiveTimeout = const Duration(seconds: 4);
+
+  static int get _simPort =>
+      int.tryParse(Platform.environment['FLIGHTSTUDIO_XPLANE_PORT'] ?? '') ??
+      8086;
+
+  Future<String> _getSimState(Map<String, dynamic> args) async {
+    final port = _simPort;
+    final base = 'http://127.0.0.1:$port';
+    // Probe — a clean refusal text beats a stack of timeouts downstream.
+    try {
+      await _simRest.get<Map<String, dynamic>>('$base/api/capabilities');
+    } on Exception {
+      return 'X-Plane Web API unreachable on 127.0.0.1:$port. The simulator '
+          'must be running (X-Plane 12.1.1+) with incoming traffic allowed '
+          '(Settings → Network).';
+    }
+    try {
+      _simStateIds ??= await _resolveSimDatarefs(base);
+      final ids = _simStateIds!;
+      final values = <String, num>{};
+      for (final entry in ids.entries) {
+        final res = await _simRest.get<dynamic>(
+          '$base/api/v3/datarefs/${entry.value}/value',
+        );
+        final data = res.data is Map ? (res.data as Map)['data'] : res.data;
+        if (data is num) {
+          values[entry.key] = data;
+        } else if (data is List && data.isNotEmpty && data.first is num) {
+          values[entry.key] = data.first as num;
+        }
+      }
+      if (!values.containsKey('lat') || !values.containsKey('lon')) {
+        return 'No flight loaded in X-Plane (no position datarefs yet).';
+      }
+      double? v(String k) => values[k]?.toDouble();
+      String fmt(String k, String unit, {int digits = 1}) =>
+          v(k) == null ? '—' : '${v(k)!.toStringAsFixed(digits)}$unit';
+      final apOn = v('apServos');
+      final b = StringBuffer('## Aircraft state');
+      b.writeln();
+      b.writeln('- Position: ${v('lat')!.toStringAsFixed(4)}, '
+          '${v('lon')!.toStringAsFixed(4)}');
+      b.writeln('- Altitude: ${fmt('elevM', ' ft MSL', digits: 0)}'
+          ' · ${fmt('aglFt', ' ft AGL', digits: 0)}');
+      b.writeln('- Speeds: IAS ${fmt('iasKt', ' kt')} · TAS '
+          '${fmt('tasKt', ' kt')} · GS '
+          '${v('gsMs') == null ? '—' : '${(v('gsMs')! * 1.94384).toStringAsFixed(1)} kt'}'
+          ' · VS ${fmt('vsFpm', ' fpm', digits: 0)}');
+      b.writeln('- Heading: true ${fmt('hdgTrue', '°')} · magnetic '
+          '${fmt('hdgMag', '°')}');
+      b.writeln('- Attitude: pitch ${fmt('pitch', '°')} · roll '
+          '${fmt('roll', '°')}');
+      b.writeln('- Autopilot: ${apOn == null ? 'unknown' : (apOn != 0 ? 'ENGAGED' : 'OFF')}'
+          ' · alt ${fmt('apAltFt', ' ft', digits: 0)} · hdg '
+          '${fmt('apHdg', '°')} · spd ${fmt('apSpdKt', ' kt')}');
+      return b.toString().trim();
+    } on Exception catch (e) {
+      return 'Sim state read failed: $e';
+    }
+  }
+
+  /// Resolves the sim-state dataref names to session ids (one REST query
+  /// per name; unresolved names are skipped — aircraft dataref sets vary).
+  static Future<Map<String, int>> _resolveSimDatarefs(String base) async {
+    final out = <String, int>{};
+    for (final entry in _simStateNames.entries) {
+      try {
+        final res = await _simRest.get<Map<String, dynamic>>(
+          '$base/api/v3/datarefs',
+          queryParameters: {
+            'filter[name]': entry.value,
+            'fields': 'id,name',
+          },
+        );
+        final list = res.data?['data'];
+        if (list is! List || list.isEmpty) continue;
+        for (final row in list) {
+          if (row is Map<String, dynamic> && row['name'] == entry.value) {
+            final id = row['id'];
+            if (id is int) out[entry.key] = id;
+            break;
+          }
+        }
+      } on Exception {
+        // Unresolved on this aircraft — skip.
+      }
+    }
+    return out;
   }
 
   // ── charts_read ───────────────────────────────────────────────────────────

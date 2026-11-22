@@ -8,10 +8,11 @@ import 'sections/about_section.dart';
 import 'sections/ai_copilot_section.dart';
 import 'sections/data_section.dart';
 import 'sections/general_section.dart';
+import 'sections/simulator_connection_section.dart';
 
 /// The categories shown in the settings nav rail. Public so the gear-menu can
 /// request a landing section without re-implementing the list.
-enum SettingsSection { general, data, ai, about }
+enum SettingsSection { general, simulator, data, ai, about }
 
 /// The tab inside the Data section, for landing precision.
 enum SettingsDataTab { apiKeys, simulators, navdata }
@@ -20,6 +21,7 @@ enum SettingsDataTab { apiKeys, simulators, navdata }
 IconData settingsSectionIcon(SettingsSection section) =>
     switch (section) {
       SettingsSection.general => Icons.tune_rounded,
+      SettingsSection.simulator => Icons.flight_takeoff_rounded,
       SettingsSection.data => Icons.storage_rounded,
       SettingsSection.ai => Icons.auto_awesome_rounded,
       SettingsSection.about => Icons.info_outline_rounded,
@@ -30,6 +32,7 @@ IconData settingsSectionIcon(SettingsSection section) =>
 String settingsSectionTitle(AppLocalizations l10n, SettingsSection section) =>
     switch (section) {
       SettingsSection.general => l10n.settingsCategoryGeneral,
+      SettingsSection.simulator => l10n.settingsCategorySimulator,
       SettingsSection.data => l10n.settingsCategoryData,
       SettingsSection.ai => l10n.settingsCategoryAi,
       SettingsSection.about => l10n.settingsCategoryAbout,
@@ -46,6 +49,8 @@ Widget buildSettingsSection(
   switch (section) {
     case SettingsSection.general:
       return GeneralSection(controller: controller);
+    case SettingsSection.simulator:
+      return SimulatorConnectionSection(controller: controller);
     case SettingsSection.data:
       return DataSection(controller: controller, initialTab: dataTab);
     case SettingsSection.ai:

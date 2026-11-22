@@ -5,8 +5,10 @@ import 'dart:math' as math;
 
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/logging/app_log.dart';
+import '../../data/settings/settings_keys.dart';
 import 'gateway_client.dart';
 
 /// Owns the Agent Gateway subprocess lifecycle.
@@ -81,6 +83,8 @@ class GatewayProcess {
   /// - `FLIGHTSTUDIO_PROJECT_ROOT` — project root containing
   ///   `bin/mcp_flightstudio_core.dart`; only set in dev-style layouts, so
   ///   release builds simply run the agent without MCP tools.
+  /// - `FLIGHTSTUDIO_XPLANE_PORT` — the X-Plane Web API port for the
+  ///   `get_sim_state` tool (read from settings; default 8086).
   Future<Map<String, String>> _flightStudioEnv() async {
     final env = <String, String>{};
     try {
@@ -89,6 +93,14 @@ class GatewayProcess {
           p.join(dir.path, 'navdata.sqlite');
     } on Exception {
       // No support directory (tests) — skip.
+    }
+    try {
+      env['FLIGHTSTUDIO_XPLANE_PORT'] =
+          '${await SharedPreferencesAsync().getInt(
+                SettingsKeys.xplaneWebApiPort,
+              ) ?? 8086}';
+    } on Exception {
+      // Settings unavailable (tests) — the tool falls back to 8086.
     }
     final cwd = Directory.current.path;
     if (await File(p.join(cwd, 'bin', 'mcp_flightstudio_core.dart'))
